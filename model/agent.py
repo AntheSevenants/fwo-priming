@@ -23,3 +23,26 @@ class PrimingAgent(mesa.Agent):
             random_numbers = self.model.nprandom.rand(self.model.num_constructions)
             # Normalise
             self.probs = random_numbers / random_numbers.sum()
+
+    def interact_do(self):        
+        while True:
+            hearer_agent = self.random.choice(self.model.agents)
+            if self != hearer_agent:
+                break
+
+        self.interact(hearer_agent)
+
+    def interact(self, hearer_agent):
+        construction_indices = list(range(len(self.model.constructions)))
+        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.probs)
+
+        hearer_agent.receive_construction(chosen_construction_index)
+
+    def receive_construction(self, construction_index):
+        # Now the hearer has to adjust their internal distribution
+        self.probs[construction_index] += self.model.priming_strength
+
+        # Renormalise all probabilities
+        self.probs = np.divide(self.probs, self.probs.sum())
+
+        # That's it!

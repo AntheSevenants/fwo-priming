@@ -13,6 +13,7 @@ class PrimingModel(mesa.Model):
         self,
         num_agents=50,
         starting_probabilities=model.types.StartingProbabilities.EQUAL,
+        priming_strength = 0.4,
         seed=None,
     ):
 
@@ -22,6 +23,7 @@ class PrimingModel(mesa.Model):
         self.nprandom = np.random.default_rng(seed)
 
         self.starting_probabilities = starting_probabilities
+        self.priming_strength = priming_strength
 
         self.init_constructions()
         agents = model.agent.PrimingAgent.create_agents(model=self, n=num_agents)
