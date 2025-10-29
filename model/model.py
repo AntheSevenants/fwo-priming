@@ -19,6 +19,8 @@ class PrimingModel(mesa.Model):
         starting_probabilities: List[float] = None,
         constructions: List[str] = ["ACT", "PASS"],
         priming_strength: int = 0.4,
+        decay_strength: int = None,
+        priming_opportunity: float = 1,
         seed: int = None,
     ):
         
@@ -32,6 +34,10 @@ class PrimingModel(mesa.Model):
         # Priming probabilities
         self.init_starting_probabilities(starting_probabilities_type, starting_probabilities)
         self.priming_strength = priming_strength
+        self.decay_strength = decay_strength # how quickly does priming decay if ctx not used?
+
+        # Priming opportunity = how often does a priming context appear?
+        self.priming_opportunity = priming_opportunity
 
         # Constructions
         self.init_constructions(constructions)

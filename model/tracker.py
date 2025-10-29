@@ -1,9 +1,8 @@
-import model.model
 import numpy as np
 
 
 class Tracker:
-    def __init__(self, model: model.model.PrimingModel):
+    def __init__(self, model):
         # This will break pickling the model forever. Good :-)
         self.model = model
 

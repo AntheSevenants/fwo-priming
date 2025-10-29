@@ -1,6 +1,4 @@
 import mesa
-import model.model
-import model.agent
 import model.types
 import numpy as np
 
@@ -9,7 +7,7 @@ from typing import Self
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
 
-    def __init__(self, model: model.model.PrimingModel):
+    def __init__(self, model):
         # Pass the parameters to the parent class.
         super().__init__(model)
 
@@ -32,7 +30,13 @@ class PrimingAgent(mesa.Agent):
             # Normalise
             self.probs = random_numbers / random_numbers.sum()
 
-    def interact_do(self):        
+    def interact_do(self):
+        # First, establish whether there is a priming opportunity
+        # If no chance at priming anyway, do not have a conversation
+        priming_chance = self.model.nprandom.random()
+        if priming_chance > self.model.priming_opportunity:
+            return
+
         while True:
             hearer_agent = self.random.choice(self.model.agents)
             if self != hearer_agent:
