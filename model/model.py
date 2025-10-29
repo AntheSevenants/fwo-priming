@@ -17,6 +17,9 @@ class PrimingModel(mesa.Model):
         priming_strength = 0.4,
         seed=None,
     ):
+        
+        # Number of agents
+        self.num_agents = num_agents
 
         # Random
         super().__init__(seed=seed)
