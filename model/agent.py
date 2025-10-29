@@ -1,12 +1,15 @@
 import mesa
+import model.model
+import model.agent
 import model.types
 import numpy as np
 
+from typing import Self
 
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
 
-    def __init__(self, model):
+    def __init__(self, model: model.model.PrimingModel):
         # Pass the parameters to the parent class.
         super().__init__(model)
 
@@ -15,7 +18,7 @@ class PrimingAgent(mesa.Agent):
     def init_construction_probs(self):
         # Assign starting probabilities to the constructions
         self.probs = np.zeros(self.model.num_constructions)
-        
+
         # If all agents start with an equal probability distribution, adhere to this distribution
         if self.model.starting_probabilities_type == model.types.StartingProbabilities.EQUAL:
             # If we start without predetermined probabilities, do equal probabilities
@@ -37,7 +40,7 @@ class PrimingAgent(mesa.Agent):
 
         self.interact(hearer_agent)
 
-    def interact(self, hearer_agent):
+    def interact(self, hearer_agent: Self):
         construction_indices = list(range(len(self.model.constructions)))
         chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.probs)
 
@@ -45,7 +48,7 @@ class PrimingAgent(mesa.Agent):
 
         hearer_agent.receive_construction(chosen_construction_index)
 
-    def receive_construction(self, construction_index):
+    def receive_construction(self, construction_index: int):
         # Now the hearer has to adjust their internal distribution
         self.probs[construction_index] += self.model.priming_strength
 

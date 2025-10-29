@@ -6,18 +6,20 @@ import model.agent
 import model.types
 import model.tracker
 
+from typing import List, Optional
+
 
 class PrimingModel(mesa.Model):
     """A model of syntactic priming"""
 
     def __init__(
         self,
-        num_agents=50,
-        starting_probabilities_type=model.types.StartingProbabilities.EQUAL,
-        starting_probabilities=None,
-        constructions=["ACT", "PASS"],
-        priming_strength = 0.4,
-        seed=None,
+        num_agents: int = 50,
+        starting_probabilities_type: int = model.types.StartingProbabilities.EQUAL,
+        starting_probabilities: List[float] = None,
+        constructions: List[str] = ["ACT", "PASS"],
+        priming_strength: int = 0.4,
+        seed: int = None,
     ):
         
         # Number of agents
@@ -47,13 +49,14 @@ class PrimingModel(mesa.Model):
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
         self.datacollector.collect(self)
 
-    def init_constructions(self, constructions):
+    def init_constructions(self,
+                           constructions: List[str]):
         self.constructions = constructions
         self.num_constructions = len(self.constructions)
 
     def init_starting_probabilities(self,
-                                    starting_probabilities_type,
-                                    starting_probabilities=None):
+                                    starting_probabilities_type: int,
+                                    starting_probabilities: List[float]=None):
         self.starting_probabilities_type = starting_probabilities_type
         self.starting_probabilities = starting_probabilities
 

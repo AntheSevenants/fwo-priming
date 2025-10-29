@@ -1,3 +1,6 @@
+import model.model
+
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -9,7 +12,8 @@ def formatter(x, pos, scale=100):
     return str(int(x * scale))
 
 
-def check_ax(ax=None, disable_title=False):
+def check_ax(ax: matplotlib.axes.Axes = None,
+             disable_title: bool = False):
     if ax is None:
         fig, ax = plt.subplots(figsize=(6, 4))
 
@@ -21,7 +25,11 @@ def check_ax(ax=None, disable_title=False):
     return fig, ax
 
 
-def plot_ratio(model, attribute, ax=None, title=None, disable_title=False):
+def plot_ratio(model: model.model.PrimingModel,
+               attribute: str,
+               ax: matplotlib.axes.Axes = None,
+               title: str = None,
+               disable_title: bool = False):
     df = model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
@@ -34,7 +42,11 @@ def plot_ratio(model, attribute, ax=None, title=None, disable_title=False):
         ax.set_title(title)
 
 
-def plot_ratio_pass(model, attribute, ax=None, title=None, disable_title=False):
+def plot_ratio_pass(model: model.model.PrimingModel,
+                    attribute: str, 
+                    ax: matplotlib.axes.Axes = None,
+                    title: str=None,
+                    disable_title: bool=False):
     df = model.datacollector.get_model_vars_dataframe()
 
     if ax is None:
