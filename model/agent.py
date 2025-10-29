@@ -20,7 +20,7 @@ class PrimingAgent(mesa.Agent):
         if self.model.starting_probabilities == model.types.StartingProbabilities.EQUAL:
             self.probs = np.ones(self.model.num_constructions) / self.model.num_constructions
         elif self.model.starting_probabilities == model.types.StartingProbabilities.RANDOM:
-            random_numbers = self.model.nprandom.rand(self.model.num_constructions)
+            random_numbers = self.model.nprandom.random(self.model.num_constructions)
             # Normalise
             self.probs = random_numbers / random_numbers.sum()
 
