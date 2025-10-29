@@ -35,7 +35,11 @@ class PrimingAgent(mesa.Agent):
         # If no chance at priming anyway, do not have a conversation
         priming_chance = self.model.nprandom.random()
         if priming_chance > self.model.priming_opportunity:
-            self.do_decay()
+            # Stop decaying if maximum preference was reached
+            # (and this is allowed)
+            max_prob = np.max(self.probs)
+            if max_prob < 1 and not self.model.allow_decay_stop:
+                self.do_decay()
             return
 
         while True:

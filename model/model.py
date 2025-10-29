@@ -21,6 +21,7 @@ class PrimingModel(mesa.Model):
         priming_strength: int = 0.4,
         decay_strength: float = 0,
         priming_opportunity: float = 1,
+        allow_decay_stop: bool = True,
         seed: int = None,
     ):
         
@@ -38,6 +39,9 @@ class PrimingModel(mesa.Model):
 
         # Priming opportunity = how often does a priming context appear?
         self.priming_opportunity = priming_opportunity
+
+        # Allow decay to stop when a construction has "won"
+        self.allow_decay_stop = allow_decay_stop
 
         # Constructions
         self.init_constructions(constructions)
