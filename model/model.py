@@ -19,7 +19,7 @@ class PrimingModel(mesa.Model):
         starting_probabilities: List[float] = None,
         constructions: List[str] = ["ACT", "PASS"],
         priming_strength: int = 0.4,
-        decay_strength: int = None,
+        decay_strength: float = 0,
         priming_opportunity: float = 1,
         seed: int = None,
     ):

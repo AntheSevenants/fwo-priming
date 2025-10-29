@@ -35,6 +35,7 @@ class PrimingAgent(mesa.Agent):
         # If no chance at priming anyway, do not have a conversation
         priming_chance = self.model.nprandom.random()
         if priming_chance > self.model.priming_opportunity:
+            self.do_decay()
             return
 
         while True:
@@ -60,3 +61,14 @@ class PrimingAgent(mesa.Agent):
         self.probs = np.divide(self.probs, self.probs.sum())
 
         # That's it!
+
+    # $$
+    # p'_k = (1 - d) \cdot p_n + d \cdot \frac{1}{N}
+    # $$
+    def do_decay(self):
+        # No need to do maths if decay strength is zero
+        if self.model.decay_strength == 0:
+            return
+
+        uniform_dist = np.ones(self.model.num_constructions) / self.model.num_constructions
+        self.probs = (1 - self.model.decay_strength) * self.probs + self.model.decay_strength * uniform_dist
