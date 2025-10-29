@@ -36,7 +36,7 @@ class PrimingAgent(mesa.Agent):
         construction_indices = list(range(len(self.model.constructions)))
         chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.probs)
 
-        self.tracker.register_construction_chosen(chosen_construction_index)
+        self.model.tracker.register_construction_chosen(chosen_construction_index)
 
         hearer_agent.receive_construction(chosen_construction_index)
 
