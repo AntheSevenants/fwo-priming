@@ -14,6 +14,7 @@ class PrimingModel(mesa.Model):
         self,
         num_agents=50,
         starting_probabilities=model.types.StartingProbabilities.EQUAL,
+        constructions=["ACT", "PASS"],
         priming_strength = 0.4,
         seed=None,
     ):
@@ -30,7 +31,7 @@ class PrimingModel(mesa.Model):
         self.priming_strength = priming_strength
 
         # Constructions
-        self.init_constructions()
+        self.init_constructions(constructions)
 
         # Agents
         agents = model.agent.PrimingAgent.create_agents(model=self, n=num_agents)
@@ -45,8 +46,8 @@ class PrimingModel(mesa.Model):
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
         self.datacollector.collect(self)
 
-    def init_constructions(self):
-        self.constructions = ["ACT", "PASS"]
+    def init_constructions(self, constructions):
+        self.constructions = constructions
         self.num_constructions = len(self.constructions)
 
     def step(self):
