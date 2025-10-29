@@ -4,6 +4,7 @@ import numpy as np
 
 import model.agent
 import model.types
+import model.tracker
 
 
 class PrimingModel(mesa.Model):
@@ -17,18 +18,27 @@ class PrimingModel(mesa.Model):
         seed=None,
     ):
 
+        # Random
         super().__init__(seed=seed)
-        print("Seed is", seed)
-
         self.nprandom = np.random.default_rng(seed)
 
+        # Priming probabilities
         self.starting_probabilities = starting_probabilities
         self.priming_strength = priming_strength
 
+        # Constructions
         self.init_constructions()
+
+        # Agents
         agents = model.agent.PrimingAgent.create_agents(model=self, n=num_agents)
 
-        model_reporters = {}
+        # Model data collection
+        self.tracker = model.tracker.Tracker(self)
+
+        model_reporters = {
+            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent("probs"),
+            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents("probs"),
+        }
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
         self.datacollector.collect(self)
 
@@ -37,4 +47,5 @@ class PrimingModel(mesa.Model):
         self.num_constructions = len(self.constructions)
 
     def step(self):
-        pass
+        self.agents.shuffle_do("interact_do")
+        self.datacollector.collect(self)
