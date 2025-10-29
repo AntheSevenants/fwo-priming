@@ -17,9 +17,14 @@ class PrimingAgent(mesa.Agent):
         self.probs = np.zeros(self.model.num_constructions)
         
         # If all agents start with an equal probability distribution, adhere to this distribution
-        if self.model.starting_probabilities == model.types.StartingProbabilities.EQUAL:
-            self.probs = np.ones(self.model.num_constructions) / self.model.num_constructions
-        elif self.model.starting_probabilities == model.types.StartingProbabilities.RANDOM:
+        if self.model.starting_probabilities_type == model.types.StartingProbabilities.EQUAL:
+            # If we start without predetermined probabilities, do equal probabilities
+            if self.model.starting_probabilities is None:
+                self.probs = np.ones(self.model.num_constructions) / self.model.num_constructions
+            # Else, adopt the given starting probabilities
+            else:
+                self.probs = np.array(self.model.starting_probabilities)
+        elif self.model.starting_probabilities_type == model.types.StartingProbabilities.RANDOM:
             random_numbers = self.model.nprandom.random(self.model.num_constructions)
             # Normalise
             self.probs = random_numbers / random_numbers.sum()
