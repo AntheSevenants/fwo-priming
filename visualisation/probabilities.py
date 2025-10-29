@@ -18,5 +18,5 @@ def plot_ratio(model, attribute, ax=None, title=None, disable_title=False):
     for i in range(matrix.shape[1]):
         ax.plot(matrix[:,i], color=COLOURS[i])
 
-    # if title is not None and not disable_title:
-    #     ax.set_title(title)
+    if title is not None and not disable_title:
+        ax.set_title(title)
