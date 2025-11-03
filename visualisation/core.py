@@ -72,7 +72,6 @@ def plot_ratio_pass(model: model.model.PrimingModel,
         ax.set_title(f"{i + 1}")
         ax.set_xticks([])
         # ax.set_xlabel('Construction 0 usage')
-        ax.invert_yaxis()  # So time increases upward
         ax.grid(True)
 
         # Disable ugly boxes
@@ -80,5 +79,6 @@ def plot_ratio_pass(model: model.model.PrimingModel,
             spine.set_visible(False)
 
     axes[0].set_ylabel("Time steps in the simulation")
+    axes[0].invert_yaxis()
 
     return ax
