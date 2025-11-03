@@ -4,6 +4,8 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
+from typing import List, Optional
+
 COLOURS = ["blue", "orange", "green", "red", "purple"]
 
 
@@ -43,7 +45,8 @@ def plot_ratio(model: model.model.PrimingModel,
 
 
 def plot_ratio_pass(model: model.model.PrimingModel,
-                    attribute: str, 
+                    attribute: str,
+                    secondary_baseline_attribute: str = None,
                     ax: matplotlib.axes.Axes = None,
                     title: str=None,
                     disable_title: bool=False):
@@ -59,14 +62,24 @@ def plot_ratio_pass(model: model.model.PrimingModel,
         )
 
     matrix = np.stack(df[attribute])
+    # Secondary baseline to plot in all the graphs
+    if secondary_baseline_attribute is not None:
+        secondary_baselines = df[secondary_baseline_attribute][0]
+    else:
+        secondary_baselines = None
+
     num_steps = matrix.shape[0]
     time_steps = np.arange(num_steps)
     # Vertical baseline which shows 0.5
     baseline = np.full(num_steps, 0.5)
 
     for i, ax in enumerate(axes):
-        # Plot 0.5 baselien first
-        ax.plot(baseline, time_steps, color="gray", alpha=0.1)
+        # Plot baselines first
+        ax.plot(baseline, time_steps, color="gray", alpha=0.1, linestyle="dashed")
+        # Vertical baseline which shows secondary baseline for this agent (if defined)
+        if secondary_baselines is not None:
+            starting_baseline = np.full(num_steps, secondary_baselines[i][0])
+            ax.plot(starting_baseline, time_steps, color="gray", alpha=0.1)
 
         ax.plot(matrix[:, i, 0], time_steps, color="blue")
         ax.set_title(f"{i + 1}")

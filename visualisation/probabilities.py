@@ -20,6 +20,7 @@ def plot_ctx_probs_per_agent(model: model.model.PrimingModel,
     return visualisation.core.plot_ratio_pass(
         model,
         "ctx_probs_per_agent",
+        secondary_baseline_attribute="starting_probs_per_agent",
         title="Evolution of relative preference per agent",
         disable_title=disable_title
     )
