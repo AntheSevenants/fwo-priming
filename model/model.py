@@ -56,6 +56,7 @@ class PrimingModel(mesa.Model):
 
         model_reporters = {
             "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent("probs"),
+            "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent("starting_probs"),
             "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents("probs"),
         }
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
