@@ -35,6 +35,7 @@ class PrimingModel(mesa.Model):
             "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent("probs"),
             "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent("starting_probs"),
             "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents("probs"),
+            "consensus_reached": lambda model: False if len(model.datacollector.model_vars["ctx_probs_mean"]) == 0 else (np.any(np.isclose(model.datacollector.model_vars["ctx_probs_mean"][-1], 1)) is np.True_)
         }
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
         self.datacollector.collect(self)
@@ -42,3 +43,6 @@ class PrimingModel(mesa.Model):
     def step(self):
         self.agents.shuffle_do("interact_do")
         self.datacollector.collect(self)
+
+        if self.datacollector.model_vars["consensus_reached"][-1] and self.params.early_stop:
+            self.running = False

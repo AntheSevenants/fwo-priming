@@ -12,6 +12,8 @@ class Parameters:
 
     num_agents: int = 50
     seed: Optional[int] = None
+    # Allow model to stop early if consensus is reached
+    early_stop: bool = False
 
     # ----
     # Priming-related probabilities
