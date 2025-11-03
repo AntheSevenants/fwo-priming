@@ -30,6 +30,9 @@ class PrimingAgent(mesa.Agent):
             # Normalise
             self.probs = random_numbers / random_numbers.sum()
 
+        # Remember these initial probabilities
+        self.starting_probs = self.probs.copy()
+
     def interact_do(self):
         # First, establish whether there is a priming opportunity
         # If no chance at priming anyway, do not have a conversation
@@ -74,5 +77,11 @@ class PrimingAgent(mesa.Agent):
         if self.model.decay_strength == 0:
             return
 
-        uniform_dist = np.ones(self.model.num_constructions) / self.model.num_constructions
+        # If we do not decay to the starting probabilities, decay to a uniform distribution instead
+        if not self.model.decay_to_starting_probabilities:
+            uniform_dist = np.ones(self.model.num_constructions) / self.model.num_constructions
+        # Else, the distribution to decay to is the starting probabilities
+        else:
+            uniform_dist = self.starting_probs.copy()
+
         self.probs = (1 - self.model.decay_strength) * self.probs + self.model.decay_strength * uniform_dist
