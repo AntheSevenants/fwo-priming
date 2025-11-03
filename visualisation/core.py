@@ -54,7 +54,7 @@ def plot_ratio_pass(model: model.model.PrimingModel,
 
     if ax is None:
         fig, axes = plt.subplots(
-            nrows=1, ncols=model.num_agents, figsize=(15, 10), sharey=True
+            nrows=1, ncols=model.params.num_agents, figsize=(15, 10), sharey=True
         )
     else:
         raise ValueError(
