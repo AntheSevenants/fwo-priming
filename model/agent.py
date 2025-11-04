@@ -1,5 +1,6 @@
 import mesa
 import model.enums
+import model.entropy
 import numpy as np
 
 from typing import Self
@@ -32,6 +33,12 @@ class PrimingAgent(mesa.Agent):
 
         # Remember these initial probabilities
         self.starting_probs = self.probs.copy()
+        # We keep a "log" of entropy so we can compute the delta
+        self.entropy = np.array([ model.entropy.compute_entropy(self.probs) ] * 2)
+
+    def update_entropy_history(self):
+        new_entropy_value = model.entropy.compute_entropy(self.probs)
+        self.entropy = np.concatenate((self.entropy[1:], [ new_entropy_value ]))
 
     def interact_do(self):
         # First, establish whether there is a priming opportunity
@@ -66,6 +73,9 @@ class PrimingAgent(mesa.Agent):
 
         # Renormalise all probabilities
         self.probs = np.divide(self.probs, self.probs.sum())
+
+        # Update internal entropy log
+        self.update_entropy_history()
 
         # That's it!
 

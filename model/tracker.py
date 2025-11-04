@@ -18,18 +18,20 @@ class Tracker:
     def register_construction_chosen(self, construction_index: int):
         self.chosen_constructions.append(construction_index)
 
-    def get_property_per_agent(self, property_name: str):
+    def get_property_per_agent(self, property_name: str, index: int = None):
         agent_property_dist = []
 
         # Get the property for each agent
         for agent in self.model.agents:
             property_value = getattr(agent, property_name)
+            if index:
+                property_value = property_value[index]
             agent_property_dist.append(property_value)
 
         # Turn into numpy array
         return np.array(agent_property_dist)
     
-    def get_property_mean_across_agents(self, property_name: str):
-        agent_property_dist = self.get_property_per_agent(property_name)
+    def get_property_mean_across_agents(self, property_name: str, index: int = None):
+        agent_property_dist = self.get_property_per_agent(property_name, index=index)
 
         return agent_property_dist.mean(axis=0)
