@@ -64,6 +64,8 @@ def plot_ratio(model: model.model.PrimingModel,
 
 def plot_ratio_pass(model: model.model.PrimingModel,
                     attribute: str,
+                    ylim: List[float],
+                    baseline: float = None,
                     secondary_baseline_attribute: str = None,
                     ax: matplotlib.axes.Axes = None,
                     title: str = None,
@@ -88,19 +90,32 @@ def plot_ratio_pass(model: model.model.PrimingModel,
 
     num_steps = matrix.shape[0]
     time_steps = np.arange(num_steps)
-    # Vertical baseline which shows 0.5
-    baseline = np.full(num_steps, 0.5)
+
+    num_dimensions = len(matrix.shape)
+
+    if baseline is not None:
+        # Vertical baseline which shows 0.5
+        baseline = np.full(num_steps, baseline)
 
     for i, ax in enumerate(axes):
         # Plot baselines first
-        ax.plot(baseline, time_steps, color="gray",
-                alpha=0.1, linestyle="dashed")
+        if baseline is not None:
+            ax.plot(baseline, time_steps, color="gray",
+                    alpha=0.1, linestyle="dashed")
+            
         # Vertical baseline which shows secondary baseline for this agent (if defined)
         if secondary_baselines is not None:
             starting_baseline = np.full(num_steps, secondary_baselines[i][0])
             ax.plot(starting_baseline, time_steps, color="gray", alpha=0.1)
 
-        ax.plot(matrix[:, i, 0], time_steps, color="blue")
+        if num_dimensions == 3:
+            ax.plot(matrix[:, i, 0], time_steps, color="blue")
+        elif num_dimensions == 2:
+            ax.plot(matrix[:, i], time_steps, color="blue")
+        else:
+            raise ValueError("Invalid number of dimensions")
+
+        ax.set_xlim(ylim)
         ax.set_title(f"{i + 1}")
         ax.set_xticks([])
         # ax.set_xlabel('Construction 0 usage')
