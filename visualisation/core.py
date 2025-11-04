@@ -78,7 +78,7 @@ def plot_ratio_pass(model: model.model.PrimingModel,
         )
     else:
         raise ValueError(
-            "Cannot do mosaic plots for this graph type. Please do not pass an ax."
+            "Cannot do mosaic plots for this graph type. Please do not pass an axis."
         )
 
     matrix = np.stack(df[attribute])
