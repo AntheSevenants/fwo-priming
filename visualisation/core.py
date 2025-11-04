@@ -27,6 +27,24 @@ def check_ax(ax: matplotlib.axes.Axes = None,
     return fig, ax
 
 
+def plot_value(model: model.model.PrimingModel,
+               attribute: str,
+               ylim: List[int],
+               ax: matplotlib.axes.Axes = None,
+               title: str = None,
+               disable_title: bool = False):
+    df = model.datacollector.get_model_vars_dataframe()
+
+    fig, ax = check_ax(ax, disable_title)
+
+    value_list = np.stack(df[attribute])
+    ax.plot(value_list, color=COLOURS[0])
+    ax.set_ylim(ylim)
+
+    if title is not None and not disable_title:
+        ax.set_title(title)
+
+
 def plot_ratio(model: model.model.PrimingModel,
                attribute: str,
                ax: matplotlib.axes.Axes = None,
@@ -48,8 +66,8 @@ def plot_ratio_pass(model: model.model.PrimingModel,
                     attribute: str,
                     secondary_baseline_attribute: str = None,
                     ax: matplotlib.axes.Axes = None,
-                    title: str=None,
-                    disable_title: bool=False):
+                    title: str = None,
+                    disable_title: bool = False):
     df = model.datacollector.get_model_vars_dataframe()
 
     if ax is None:
@@ -75,7 +93,8 @@ def plot_ratio_pass(model: model.model.PrimingModel,
 
     for i, ax in enumerate(axes):
         # Plot baselines first
-        ax.plot(baseline, time_steps, color="gray", alpha=0.1, linestyle="dashed")
+        ax.plot(baseline, time_steps, color="gray",
+                alpha=0.1, linestyle="dashed")
         # Vertical baseline which shows secondary baseline for this agent (if defined)
         if secondary_baselines is not None:
             starting_baseline = np.full(num_steps, secondary_baselines[i][0])
