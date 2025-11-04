@@ -1,5 +1,5 @@
 import mesa
-import model.types
+import model.enums
 import numpy as np
 
 from typing import Self
@@ -18,14 +18,14 @@ class PrimingAgent(mesa.Agent):
         self.probs = np.zeros(self.model.params.num_constructions)
 
         # If all agents start with an equal probability distribution, adhere to this distribution
-        if self.model.params.starting_probabilities_type == model.types.StartingProbabilities.EQUAL:
+        if self.model.params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
             # If we start without predetermined probabilities, do equal probabilities
             if self.model.params.starting_probabilities is None:
                 self.probs = np.ones(self.model.params.num_constructions) / self.model.params.num_constructions
             # Else, adopt the given starting probabilities
             else:
                 self.probs = np.array(self.model.params.starting_probabilities)
-        elif self.model.params.starting_probabilities_type == model.types.StartingProbabilities.RANDOM:
+        elif self.model.params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
             random_numbers = self.model.nprandom.random(self.model.params.num_constructions)
             # Normalise
             self.probs = random_numbers / random_numbers.sum()

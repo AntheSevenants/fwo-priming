@@ -1,4 +1,4 @@
-import model.types
+import model.enums
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional
@@ -21,7 +21,7 @@ class Parameters:
 
     # How should the starting probabilities be initialised?
     # Can be EQUAL (everyone the same) or RANDOM (everyone different)
-    starting_probabilities_type: int = model.types.StartingProbabilities.EQUAL
+    starting_probabilities_type: int = model.enums.StartingProbabilities.EQUAL
     # If EQUAL, we can provide a custom distribution
     starting_probabilities: Optional[List[float]] = None
     priming_strength: float = 0.4

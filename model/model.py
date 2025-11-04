@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 import model.agent
-import model.types
+import model.enums
 import model.tracker
 import model.defaults
 
