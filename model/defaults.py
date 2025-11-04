@@ -1,4 +1,5 @@
 import model.enums
+import numpy as np
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Optional
@@ -25,6 +26,9 @@ class Parameters:
     # If EQUAL, we can provide a custom distribution
     starting_probabilities: Optional[List[float]] = None
     priming_strength: float = 0.4
+    # Make priming strength dependent on surprisal
+    inverse_frequency_exponent: float = 0
+    inverse_frequency_max_multiplier: float = 2
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0
@@ -46,3 +50,6 @@ class Parameters:
     def __post_init__(self):
         # After the fact, compute the number of constructions
         self.num_constructions = len(self.constructions)
+
+        # Uniform distribution
+        self.uniform_dist = np.ones(self.num_constructions) / self.num_constructions

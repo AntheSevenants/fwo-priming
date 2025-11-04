@@ -71,9 +71,37 @@ class PrimingAgent(mesa.Agent):
 
         hearer_agent.receive_construction(chosen_construction_index)
 
+    def compute_priming_strength(self, construction_index: int):
+        # If disabled, return default strength to save on resources
+        if self.model.params.inverse_frequency_exponent == 0:
+            return self.model.params.priming_strength
+
+        # The priming strength we will use as a baseline to attenuate / boost
+        priming_strength_base = self.model.params.priming_strength
+        # We need the uniform distribution to know where the mean is
+        mean_probability = self.model.params.uniform_dist[0]
+        # What is the current probability of this construction?
+        # Depending on whether it is high or low, we will adjust the priming strength
+        current_probability = self.probs[construction_index]
+
+        # Safety for division, like Laplace
+        epsilon = 0.001
+
+        multiplier = np.power(
+            # Very improbable outcomes will lead to a much higher multiplier
+            np.divide(mean_probability, current_probability + epsilon),
+            # The exponent tries to adjust how strong the multiplier is
+            self.model.params.inverse_frequency_exponent)
+        # Cap the multiplier to a predetermined maximum
+        multiplier = min(multiplier, self.model.params.inverse_frequency_max_multiplier)
+
+        # Apply the multiplier and return
+        priming_strength = priming_strength_base * multiplier
+        return priming_strength
+
     def receive_construction(self, construction_index: int):
         # Now the hearer has to adjust their internal distribution
-        self.probs[construction_index] += self.model.params.priming_strength
+        self.probs[construction_index] += self.compute_priming_strength(construction_index)
 
         # Renormalise all probabilities
         self.probs = np.divide(self.probs, self.probs.sum())
@@ -93,7 +121,7 @@ class PrimingAgent(mesa.Agent):
 
         # If we do not decay to the starting probabilities, decay to a uniform distribution instead
         if not self.model.params.decay_to_starting_probabilities:
-            uniform_dist = np.ones(self.model.params.num_constructions) / self.model.params.num_constructions
+            uniform_dist = self.model.params.uniform_dist
         # Else, the distribution to decay to is the starting probabilities
         else:
             uniform_dist = self.starting_probs.copy()
