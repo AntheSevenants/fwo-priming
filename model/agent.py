@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import mesa
 import model.enums
 import model.entropy
 import numpy as np
 
-from typing import Self
+from typing import Self, TYPE_CHECKING
+if TYPE_CHECKING:
+    from model.model import PrimingModel
 
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
 
-    def __init__(self, model):
+    def __init__(self, model: PrimingModel):
         # Pass the parameters to the parent class.
         super().__init__(model)
 
