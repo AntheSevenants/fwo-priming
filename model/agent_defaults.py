@@ -12,11 +12,16 @@ import model.entropy
 class Attributes:
     model_params: model.model_defaults = None
 
-    # The internal probability distribution of the agents
-    probs: List[float] = None
+    # The internal probability distribution of agents
+    # This is for "long-term" priming
+    base_rate: List[float] = None
 
-    # The initial probabilities
-    starting_probs: List[float] = None
+    # For posterity: the base rate that the agents were initialised with
+    starting_base_rate: List[float] = None
+
+    # Activation rate
+    # This is for "short-term" priming
+    activation: List[float] = None
 
     # A "log" of entropy, needed so we can compute the delta
     entropy: List[float] = None
@@ -32,23 +37,27 @@ class Attributes:
 
         # Now that the initial probabilities have been set, do some housekeeping
         # (copying the starting probs, computing entropy etc.)
-        self.starting_probs = self.probs.copy()
+        self.starting_base_rate = self.base_rate.copy()
+
+        # Since we start from a neutral position, copy the base rate to activation levels
+        self.activation = self.base_rate.copy()
+
         # We multiply by two because else the delta computation will fail
-        self.entropy = np.array([ model.entropy.compute_entropy(self.probs) ] * 2)
+        self.entropy = np.array([ model.entropy.compute_entropy(self.activation) ] * 2)
 
     def init_construction_probs(self):
-        # Assign starting probabilities to the constructions
-        self.probs = np.zeros(self.model_params.num_constructions)
+        # Assign starting base rate to the constructions
+        self.base_rate = np.zeros(self.model_params.num_constructions)
 
         # If all agents start with an equal probability distribution, adhere to this distribution
         if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
             # If we start without predetermined probabilities, do equal probabilities
             if self.model_params.starting_probabilities is None:
-                self.probs = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
+                self.base_rate = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
             # Else, adopt the given starting probabilities
             else:
-                self.probs = np.array(self.model_params.starting_probabilities)
+                self.base_rate = np.array(self.model_params.starting_probabilities)
         elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
             random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
             # Normalise
-            self.probs = random_numbers / random_numbers.sum()
+            self.base_rate = random_numbers / random_numbers.sum()

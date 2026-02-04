@@ -20,7 +20,7 @@ class PrimingAgent(mesa.Agent):
         self.atts = model.agent_defaults.Attributes(priming_model.params)
 
     def update_entropy_history(self):
-        new_entropy_value = model.entropy.compute_entropy(self.atts.probs)
+        new_entropy_value = model.entropy.compute_entropy(self.atts.activation)
         self.atts.entropy = np.concatenate((self.atts.entropy[1:], [ new_entropy_value ]))
 
     def interact_do(self):
@@ -30,7 +30,7 @@ class PrimingAgent(mesa.Agent):
         if priming_chance > self.model.params.priming_opportunity:
             # Stop decaying if maximum preference was reached
             # (and this is allowed)
-            max_prob = np.max(self.atts.probs)
+            max_prob = np.max(self.atts.activation)
             if max_prob < 1 and not self.model.params.allow_decay_stop:
                 self.do_decay()
             return
@@ -61,7 +61,7 @@ class PrimingAgent(mesa.Agent):
         mean_probability = self.model.params.uniform_dist[0]
         # What is the current probability of this construction?
         # Depending on whether it is high or low, we will adjust the priming strength
-        current_probability = self.atts.probs[construction_index]
+        current_probability = self.atts.activation[construction_index]
 
         # Safety for division, like Laplace
         epsilon = 0.001
@@ -80,10 +80,10 @@ class PrimingAgent(mesa.Agent):
 
     def receive_construction(self, construction_index: int):
         # Now the hearer has to adjust their internal distribution
-        self.atts.probs[construction_index] += self.compute_priming_strength(construction_index)
+        self.atts.activation[construction_index] += self.compute_priming_strength(construction_index)
 
         # Renormalise all probabilities
-        self.atts.probs = np.divide(self.atts.probs, self.atts.probs.sum())
+        self.atts.activation = np.divide(self.atts.activation, self.atts.activation.sum())
 
         # Update internal entropy log
         self.update_entropy_history()
@@ -105,4 +105,4 @@ class PrimingAgent(mesa.Agent):
         else:
             uniform_dist = self.atts.starting_probs.copy()
 
-        self.atts.probs = (1 - self.model.params.decay_strength) * self.atts.probs + self.model.params.decay_strength * uniform_dist
+        self.atts.activation = (1 - self.model.params.decay_strength) * self.atts.activation + self.model.params.decay_strength * uniform_dist

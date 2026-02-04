@@ -32,9 +32,9 @@ class PrimingModel(mesa.Model):
         self.tracker = model.tracker.Tracker(self)
 
         model_reporters = {
-            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent("probs"),
-            "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent("starting_probs"),
-            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents("probs"),
+            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent("activation"),
+            "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent("starting_base_rate"),
+            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents("activation"),
             "ctx_entropy_per_agent": lambda model: model.tracker.get_property_per_agent("entropy", index=-1),
             "ctx_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents("entropy", index=-1),
             "consensus_reached": lambda model: False if len(model.datacollector.model_vars["ctx_probs_mean"]) == 0 else (np.any(np.isclose(model.datacollector.model_vars["ctx_probs_mean"][-1], 1)) is np.True_)
