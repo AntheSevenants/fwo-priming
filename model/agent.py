@@ -44,7 +44,7 @@ class PrimingAgent(mesa.Agent):
 
     def interact(self, hearer_agent: Self):
         construction_indices = list(range(len(self.model.params.constructions)))
-        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.probs)
+        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.activation)
 
         self.model.tracker.register_construction_chosen(chosen_construction_index)
 
@@ -98,11 +98,14 @@ class PrimingAgent(mesa.Agent):
         if self.model.params.decay_strength == 0:
             return
 
-        # If we do not decay to the starting probabilities, decay to a uniform distribution instead
-        if not self.model.params.decay_to_starting_probabilities:
+        # Where should the activation levels decay to?
+        if self.model.params.decay_to == model.enums.DecayTo.UNIFORM_DIST:
             uniform_dist = self.model.params.uniform_dist
-        # Else, the distribution to decay to is the starting probabilities
-        else:
-            uniform_dist = self.atts.starting_probs.copy()
+        # The distribution to decay to is the starting probabilities
+        elif self.model.params.decay_to == model.enums.DecayTo.STARTING_DIST:
+            uniform_dist = self.atts.starting_base_rate.copy()
+        # The distribution to decay to is the base rate
+        elif self.model.params.decay_to == model.enums.DecayTo.BASE_RATE:
+            uniform_dist = self.atts.base_rate.copy()
 
         self.atts.activation = (1 - self.model.params.decay_strength) * self.atts.activation + self.model.params.decay_strength * uniform_dist
