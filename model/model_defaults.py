@@ -26,6 +26,7 @@ class Parameters:
     # If EQUAL, we can provide a custom distribution
     starting_probabilities: Optional[List[float]] = None
     priming_strength: float = 0.4
+    base_rate_change_strength: float = 0.1
     # Make priming strength dependent on surprisal
     inverse_frequency_exponent: float = 0
     inverse_frequency_max_multiplier: float = 2
@@ -41,6 +42,8 @@ class Parameters:
     decay_strength: float = 0.0
     # Decay to uniform distribution or starting distribution, or somewhere else?
     decay_to: int = model.enums.DecayTo.UNIFORM_DIST
+    # What processes affect the base rate of an agent?
+    affects_base_rate: int = model.enums.AffectsBaseRate.NOTHING
     # Allow decay to stop when a construction has "won"
     allow_decay_stop: bool = True
 

@@ -46,9 +46,19 @@ class PrimingAgent(mesa.Agent):
         construction_indices = list(range(len(self.model.params.constructions)))
         chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.activation)
 
+        # If production affects base rate, update base rate
+        if model.enums.AffectsBaseRate.affects_production(self.model.params.affects_base_rate):
+            self.update_base_rate(chosen_construction_index)
+
         self.model.tracker.register_construction_chosen(chosen_construction_index)
 
         hearer_agent.receive_construction(chosen_construction_index)
+
+    def update_base_rate(self, construction_index: int):
+        self.atts.base_rate[construction_index] += self.model.params.base_rate_change_strength
+        
+        # Renormalise
+        self.atts.base_rate = np.divide(self.atts.base_rate, self.atts.base_rate.sum())
 
     def compute_priming_strength(self, construction_index: int):
         # If disabled, return default strength to save on resources
@@ -81,6 +91,10 @@ class PrimingAgent(mesa.Agent):
     def receive_construction(self, construction_index: int):
         # Now the hearer has to adjust their internal distribution
         self.atts.activation[construction_index] += self.compute_priming_strength(construction_index)
+
+        # If reception affects base rate, update base rate
+        if model.enums.AffectsBaseRate.affects_reception(self.model.params.affects_base_rate):
+            self.update_base_rate(construction_index)
 
         # Renormalise all probabilities
         self.atts.activation = np.divide(self.atts.activation, self.atts.activation.sum())
