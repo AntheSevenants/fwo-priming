@@ -4,9 +4,10 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 COLOURS = ["blue", "orange", "green", "red", "purple"]
+LINE_STYLES = ["-", "--", ":", "-."]
 
 
 def formatter(x, pos, scale=100):
@@ -46,17 +47,24 @@ def plot_value(model: model.model.PrimingModel,
 
 
 def plot_ratio(model: model.model.PrimingModel,
-               attribute: str,
+               attributes: Union[str, List[str]],
                ax: matplotlib.axes.Axes = None,
                title: str = None,
                disable_title: bool = False):
+    if isinstance(attributes, str):
+        attributes = [attributes]  # Convert single string to list for uniform processing
+
+    if len(attributes) > len(LINE_STYLES):
+        raise ValueError(f"Number of attributes cannot exceed number of line styles (= {len(LINE_STYLES)})")
+
     df = model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
 
-    matrix = np.stack(df[attribute])
-    for i in range(matrix.shape[1]):
-        ax.plot(matrix[:, i], color=COLOURS[i])
+    for attribute_idx, attribute in enumerate(attributes):
+        matrix = np.stack(df[attribute])
+        for i in range(matrix.shape[1]):
+            ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
 
     if title is not None and not disable_title:
         ax.set_title(title)
