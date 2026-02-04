@@ -5,7 +5,7 @@ import numpy as np
 import model.agent
 import model.enums
 import model.tracker
-import model.defaults
+import model.model_defaults
 
 from dataclasses import dataclass, asdict
 from typing import List, Optional
@@ -16,7 +16,7 @@ class PrimingModel(mesa.Model):
 
     def __init__(
         self,
-        params: model.defaults.Parameters
+        params: model.model_defaults.Parameters
     ):
         # Load parameters
         self.params = params

@@ -23,7 +23,7 @@ class Tracker:
 
         # Get the property for each agent
         for agent in self.model.agents:
-            property_value = getattr(agent, property_name)
+            property_value = getattr(agent.atts, property_name)
             if index:
                 property_value = property_value[index]
             agent_property_dist.append(property_value)
