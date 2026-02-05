@@ -15,6 +15,13 @@ class PrimingModel(mesa.Model):
     """A model of syntactic priming"""
 
     def __init__(self, params: model.model_defaults.Parameters):
+        """Initialise the Priming Model
+
+        Args:
+            params (model.model_defaults.Parameters): 
+            Parameters object detailing what parameters the simulation should use
+        """
+
         # Load parameters
         self.params = params
 
@@ -69,9 +76,14 @@ class PrimingModel(mesa.Model):
         self.datacollector.collect(self)
 
     def step(self):
+        """Routine run at every step in the simulation"""
+
+        # Make all agents interact in a random order
         self.agents.shuffle_do("interact_do")
+        # Collect information about this specific model step
         self.datacollector.collect(self)
 
+        # Stop the simulation if consensus is reached and early stopping is allowed
         if (
             self.datacollector.model_vars["consensus_reached"][-1]
             and self.params.early_stop
