@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 from dataclasses import dataclass, asdict, field
@@ -38,10 +39,10 @@ class Attributes:
 
         # Now that the initial probabilities have been set, do some housekeeping
         # (copying the starting probs, computing entropy etc.)
-        self.starting_base_rate = self.base_rate.copy()
+        self.starting_base_rate = copy.deepcopy(self.base_rate)
 
         # Since we start from a neutral position, copy the base rate to activation levels
-        self.activation = self.base_rate.copy()
+        self.activation = copy.deepcopy(self.base_rate)
 
         # We multiply by two because else the delta computation will fail
         self.entropy = np.array([ model.entropy.compute_entropy(self.activation) ] * 2)
