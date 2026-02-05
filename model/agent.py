@@ -5,6 +5,7 @@ import model.enums
 import model.entropy
 import model.agent_defaults
 import numpy as np
+import copy
 
 from typing import Self, TYPE_CHECKING
 if TYPE_CHECKING:
@@ -186,4 +187,15 @@ class PrimingAgent(mesa.Agent):
         elif self.model.params.decay_to == model.enums.DecayTo.BASE_RATE:
             uniform_dist = self.atts.base_rate.copy()
 
-        self.atts.activation = (1 - self.model.params.decay_strength) * self.atts.activation + self.model.params.decay_strength * uniform_dist
+        # self.atts.activation = (1 - self.model.params.decay_strength) * self.atts.activation + self.model.params.decay_strength * uniform_dist
+
+        # Apply decay for each construction
+        for construction_index in range(self.model.params.num_constructions):
+            # Compute difference with the uniform distribution (or base rate)
+            activation_delta = self.atts.activation[construction_index] - uniform_dist[construction_index]
+
+            # Multiply by decay strength to attenuate
+            decay = activation_delta * self.model.params.decay_strength
+
+            # Now subtract the decay from the current activation level for this construction index
+            self.atts.activation[construction_index] -= decay
