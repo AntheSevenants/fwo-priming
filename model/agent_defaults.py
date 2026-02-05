@@ -21,6 +21,7 @@ class Attributes:
 
     # Activation rate
     # This is for "short-term" priming
+    # Each value has a legal range from 0 to 1
     activation: List[float] = None
 
     # A "log" of entropy, needed so we can compute the delta
@@ -61,3 +62,12 @@ class Attributes:
             random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
             # Normalise
             self.base_rate = random_numbers / random_numbers.sum()
+    
+    @property
+    def activation_norm(self):
+        """The normalised activation levels. All values sum to one.
+
+        Returns:
+            np.array(float): A numpy array containing the activation levels, normalised to sum to one.
+        """
+        return np.divide(self.activation, np.sum(self.activation))

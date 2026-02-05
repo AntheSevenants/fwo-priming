@@ -32,7 +32,7 @@ class PrimingAgent(mesa.Agent):
         This function computes the entropy of the current distribution and adds it to the log.
         """
 
-        new_entropy_value = model.entropy.compute_entropy(self.atts.activation)
+        new_entropy_value = model.entropy.compute_entropy(self.atts.activation_norm)
         self.atts.entropy = np.concatenate((self.atts.entropy[1:], [ new_entropy_value ]))
 
     def interact_do(self):
@@ -71,7 +71,7 @@ class PrimingAgent(mesa.Agent):
         # We choose what construction the agent will utter based on the current activation levels
         # "More activated" constructions are more likely to be chosen.
         construction_indices = list(range(len(self.model.params.constructions)))
-        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.activation)
+        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.activation_norm)
 
         # If production is set to affect base rate, update the base rate for the chosen construction
         if model.enums.AffectsBaseRate.affects_production(self.model.params.affects_base_rate):
@@ -119,7 +119,7 @@ class PrimingAgent(mesa.Agent):
         mean_probability = self.model.params.uniform_dist[0]
         # What is the current probability of this construction?
         # Depending on whether it is high or low, we will adjust the priming strength
-        current_probability = self.atts.activation[construction_index]
+        current_probability = self.atts.activation_norm[construction_index]
 
         # Safety for division, like Laplace
         epsilon = 0.001
@@ -145,14 +145,18 @@ class PrimingAgent(mesa.Agent):
         """
 
         # Now the hearer has to adjust their internal distribution
-        self.atts.activation[construction_index] += self.compute_priming_strength(construction_index)
+        # Maximum activation level is one!
+        self.atts.activation[construction_index] = min(
+            self.atts.activation[construction_index] + self.compute_priming_strength(construction_index),
+            1
+        )
 
         # If reception is set to affect base rate, update base rate
         if model.enums.AffectsBaseRate.affects_reception(self.model.params.affects_base_rate):
             self.update_base_rate(construction_index)
 
         # Renormalise all probabilities
-        self.atts.activation = np.divide(self.atts.activation, self.atts.activation.sum())
+        # self.atts.activation = np.divide(self.atts.activation, self.atts.activation.sum())
 
         # Update internal entropy log
         self.update_entropy_history()
