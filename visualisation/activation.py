@@ -9,7 +9,7 @@ def plot_ctx_activation_mean(model: model.model.PrimingModel,
                         disable_title: bool = False):
     return visualisation.core.plot_ratio(
         model,
-        "ctx_probs_mean",
+        "ctx_activation_mean",
         title="Mean activation per construction across agents",
         ax=ax,
         disable_title=disable_title,
@@ -19,7 +19,7 @@ def plot_ctx_activation_per_agent(model: model.model.PrimingModel,
                              disable_title: bool = False):
     return visualisation.core.plot_ratio_pass(
         model,
-        "ctx_probs_per_agent",
+        "ctx_activation_per_agent",
         ylim=[0, 1],
         baseline=0.5,
         #secondary_baseline_attribute="starting_probs_per_agent",

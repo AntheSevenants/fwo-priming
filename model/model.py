@@ -38,7 +38,7 @@ class PrimingModel(mesa.Model):
         self.tracker = model.tracker.Tracker(self)
 
         model_reporters = {
-            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent(
+            "ctx_activation_per_agent": lambda model: model.tracker.get_property_per_agent(
                 "activation"
             ),
             "ctx_base_rate_per_agent": lambda model: model.tracker.get_property_per_agent(
@@ -47,7 +47,7 @@ class PrimingModel(mesa.Model):
             "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent(
                 "starting_base_rate"
             ),
-            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents(
+            "ctx_activation_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "activation"
             ),
             "ctx_base_rate_mean": lambda model: model.tracker.get_property_mean_across_agents(
