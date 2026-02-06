@@ -147,3 +147,8 @@ def plot_ratio_pass(model: model.model.PrimingModel,
     axes[0].invert_yaxis()
 
     return ax
+
+
+def check_if_none(variable_name: str, value: Any):
+    if value is None:
+        raise ValueError(f"\"{variable_name}\" cannot be None")
