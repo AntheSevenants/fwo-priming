@@ -26,3 +26,18 @@ def plot_ctx_probs_per_agent(model: model.model.PrimingModel,
         title="Evolution of probabilities per agent",
         disable_title=disable_title
     )
+
+def plot_ctx_probs_for_agent(model: model.model.PrimingModel,
+                             ax: matplotlib.axes.Axes = None,
+                             agent_index: int = None,
+                             disable_title: bool = False):
+    visualisation.core.check_if_none("agent_index", agent_index)
+
+    return visualisation.core.plot_ratio(
+        model,
+        "ctx_probs_per_agent",
+        agent_filter=agent_index,
+        title=f"Probability per construction for agent {agent_index}",
+        ax=ax,
+        disable_title=disable_title,
+    )

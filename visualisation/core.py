@@ -28,17 +28,36 @@ def check_ax(ax: matplotlib.axes.Axes = None,
     return fig, ax
 
 
-def plot_value(model: model.model.PrimingModel,
+def filter_for_agent(matrix: np.array,
+                     agent_filter: int):
+    # If needed, index data for a specific agent
+    if agent_filter is not None:
+        # 3D matrix
+        dimensionality = len(matrix.shape)
+
+        if dimensionality == 3:
+            matrix = matrix[:, agent_filter, :]
+        else:
+            matrix = matrix[:, agent_filter]
+
+    return matrix
+
+
+def plot_value(priming_model: model.model.PrimingModel,
                attribute: str,
                ylim: List[int],
                ax: matplotlib.axes.Axes = None,
+               agent_filter: int = None,
                title: str = None,
                disable_title: bool = False):
-    df = model.datacollector.get_model_vars_dataframe()
+    df = priming_model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
 
     value_list = np.stack(df[attribute])
+    # If needed, index data for a specific agent
+    value_list = filter_for_agent(value_list, agent_filter)
+
     ax.plot(value_list, color=COLOURS[0])
     ax.set_ylim(ylim)
 
@@ -46,7 +65,7 @@ def plot_value(model: model.model.PrimingModel,
         ax.set_title(title)
 
 
-def plot_ratio(model: model.model.PrimingModel,
+def plot_ratio(priming_model: model.model.PrimingModel,
                attributes: Union[str, List[str]],
                ylim: List[float] = [0, 1],
                ax: matplotlib.axes.Axes = None,
@@ -59,7 +78,7 @@ def plot_ratio(model: model.model.PrimingModel,
     if len(attributes) > len(LINE_STYLES):
         raise ValueError(f"Number of attributes cannot exceed number of line styles (= {len(LINE_STYLES)})")
 
-    df = model.datacollector.get_model_vars_dataframe()
+    df = priming_model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
 
@@ -67,8 +86,7 @@ def plot_ratio(model: model.model.PrimingModel,
         matrix = np.stack(df[attribute])
 
         # If needed, index data for a specific agent
-        if agent_filter is not None:
-            matrix = matrix[:, agent_filter, :]
+        matrix = filter_for_agent(matrix, agent_filter)
 
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
@@ -80,7 +98,7 @@ def plot_ratio(model: model.model.PrimingModel,
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
 
-def plot_ratio_pass(model: model.model.PrimingModel,
+def plot_ratio_pass(priming_model: model.model.PrimingModel,
                     attribute: str,
                     ylim: List[float],
                     baseline: float = None,
@@ -88,11 +106,11 @@ def plot_ratio_pass(model: model.model.PrimingModel,
                     ax: matplotlib.axes.Axes = None,
                     title: str = None,
                     disable_title: bool = False):
-    df = model.datacollector.get_model_vars_dataframe()
+    df = priming_model.datacollector.get_model_vars_dataframe()
 
     if ax is None:
         fig, axes = plt.subplots(
-            nrows=1, ncols=model.params.num_agents, figsize=(15, 10), sharey=True
+            nrows=1, ncols=priming_model.params.num_agents, figsize=(15, 10), sharey=True
         )
     else:
         raise ValueError(
