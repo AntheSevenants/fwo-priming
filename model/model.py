@@ -41,6 +41,9 @@ class PrimingModel(mesa.Model):
             "ctx_activation_per_agent": lambda model: model.tracker.get_property_per_agent(
                 "activation"
             ),
+            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent(
+                "activation_norm"
+            ),
             "ctx_base_rate_per_agent": lambda model: model.tracker.get_property_per_agent(
                 "base_rate"
             ),
@@ -49,6 +52,9 @@ class PrimingModel(mesa.Model):
             ),
             "ctx_activation_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "activation"
+            ),
+            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents(
+                "activation_norm"
             ),
             "ctx_base_rate_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "base_rate"
