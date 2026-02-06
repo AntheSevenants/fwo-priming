@@ -48,6 +48,7 @@ def plot_value(model: model.model.PrimingModel,
 
 def plot_ratio(model: model.model.PrimingModel,
                attributes: Union[str, List[str]],
+               ylim: List[float] = [0, 1],
                ax: matplotlib.axes.Axes = None,
                title: str = None,
                disable_title: bool = False):
@@ -68,6 +69,9 @@ def plot_ratio(model: model.model.PrimingModel,
 
     if title is not None and not disable_title:
         ax.set_title(title)
+    
+    ax.set_ylim(ylim)
+    ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
 
 def plot_ratio_pass(model: model.model.PrimingModel,
