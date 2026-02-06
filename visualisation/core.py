@@ -4,7 +4,7 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
 COLOURS = ["blue", "orange", "green", "red", "purple"]
 LINE_STYLES = ["-", "--", ":", "-."]
@@ -50,6 +50,7 @@ def plot_ratio(model: model.model.PrimingModel,
                attributes: Union[str, List[str]],
                ylim: List[float] = [0, 1],
                ax: matplotlib.axes.Axes = None,
+               agent_filter: int = None,
                title: str = None,
                disable_title: bool = False):
     if isinstance(attributes, str):
@@ -64,6 +65,11 @@ def plot_ratio(model: model.model.PrimingModel,
 
     for attribute_idx, attribute in enumerate(attributes):
         matrix = np.stack(df[attribute])
+
+        # If needed, index data for a specific agent
+        if agent_filter is not None:
+            matrix = matrix[:, agent_filter, :]
+
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
 
