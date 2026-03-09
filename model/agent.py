@@ -187,3 +187,8 @@ class PrimingAgent(mesa.Agent):
 
             # Now subtract the decay from the current activation level for this construction index
             self.atts.activation[construction_index] -= decay
+
+            # Snap to decay goal if within a certain range
+            RANGE = 0.05
+            if self.atts.activation[construction_index] - RANGE <= self.atts.base_rate[construction_index]:
+                self.atts.activation[construction_index] = self.atts.base_rate[construction_index]
