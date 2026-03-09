@@ -121,10 +121,11 @@ class PrimingAgent(mesa.Agent):
         epsilon = 0.001
 
         multiplier = np.power(
-            # Very improbable outcomes will lead to a much higher multiplier
-            np.divide(compare_probability + epsilon, current_probability + epsilon),
-            # The exponent tries to adjust how strong the multiplier is
-            self.model.params.inverse_frequency_exponent)
+            np.divide(priming_strength_base + epsilon,
+                      current_probability + epsilon),
+            self.model.params.inverse_frequency_exponent
+        )
+
         # Cap the multiplier to a predetermined maximum
         multiplier = min(multiplier, self.model.params.inverse_frequency_max_multiplier)
 
