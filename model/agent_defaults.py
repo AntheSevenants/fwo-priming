@@ -11,22 +11,22 @@ import model.entropy
 
 @dataclass
 class Attributes:
-    model_params: model.model_defaults = None
+    model_params: model.model_defaults.Parameters
 
     # The internal probability distribution of agents
     # This is for "long-term" priming
-    base_rate: List[float] = None
+    base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # For posterity: the base rate that the agents were initialised with
-    starting_base_rate: List[float] = None
+    starting_base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # Activation rate
     # This is for "short-term" priming
     # Each value has a legal range from 0 to 1
-    activation: List[float] = None
+    activation: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # A "log" of entropy, needed so we can compute the delta
-    entropy: List[float] = None
+    entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
@@ -60,6 +60,7 @@ class Attributes:
             else:
                 self.base_rate = np.array(self.model_params.starting_probabilities)
         elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
+            raise NotImplementedError
             random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
             # Normalise
             self.base_rate = random_numbers / random_numbers.sum()

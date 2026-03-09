@@ -1,6 +1,8 @@
 import mesa
 import numpy as np
 
+from typing import Optional
+
 
 class Tracker:
     """The tracker is the facilitates keeping track of the current model state.
@@ -33,7 +35,7 @@ class Tracker:
 
         self.chosen_constructions.append(construction_index)
 
-    def get_property_per_agent(self, property_name: str, index: int = None):
+    def get_property_per_agent(self, property_name: str, index: Optional[int] = None):
         """Retrieve a list of property values of each agent. If a property is multi-dimensional, you can ask to retrieve the value of one of the dimensions.
 
         Args:
@@ -49,14 +51,14 @@ class Tracker:
         # Get the property for each agent
         for agent in self.model.agents:
             property_value = getattr(agent.atts, property_name)
-            if index:
+            if index is not None:
                 property_value = property_value[index]
             agent_property_dist.append(property_value)
 
         # Turn into numpy array
         return np.array(agent_property_dist)
     
-    def get_property_mean_across_agents(self, property_name: str, index: int = None):
+    def get_property_mean_across_agents(self, property_name: str, index: Optional[int] = None):
         """Retrieve the mean of a requested property value across agents. If a property is multi-dimensional, you can ask to take the mean of the values of just one of the dimensions.
 
         Args:

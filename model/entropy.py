@@ -4,7 +4,7 @@ from typing import List, Optional
 
 ENTROPY_BASE = 2
 
-def compute_entropy(probability_distribution: List[float]):
+def compute_entropy(probability_distribution: np.ndarray):
     """Compute entropy (base 2) depending on a probability distribution.
 
     Args:
