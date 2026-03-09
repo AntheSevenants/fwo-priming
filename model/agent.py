@@ -119,25 +119,18 @@ class PrimingAgent(mesa.Agent):
 
         # The priming strength we will use as a baseline to attenuate / boost
         priming_strength_base = self.model.params.priming_strength
-        # We need the uniform distribution to know where the mean is
-        mean_probability = self.model.params.uniform_dist[0]
-        # What is the current probability of this construction?
-        # Depending on whether it is high or low, we will adjust the priming strength
-        current_probability = self.atts.activation_norm[construction_index]
+        # Base rate will be used to compare how "off" the activation is
+        comparison_base = self.atts.base_rate[construction_index]
 
         # Safety for division, like Laplace
         epsilon = 0.001
 
-        multiplier = np.power(
-            # Very improbable outcomes will lead to a much higher multiplier
-            np.divide(mean_probability, current_probability + epsilon),
-            # The exponent tries to adjust how strong the multiplier is
-            self.model.params.inverse_frequency_exponent)
-        # Cap the multiplier to a predetermined maximum
-        multiplier = min(multiplier, self.model.params.inverse_frequency_max_multiplier)
+        priming_strength = np.divide(
+            priming_strength_base,
+            # the first term can attenuate the inverse frequency
+            np.exp(comparison_base, self.model.params.inverse_frequency_exponent)
+        )
 
-        # Apply the multiplier and return
-        priming_strength = priming_strength_base * multiplier
         return priming_strength
 
     def receive_construction(self, construction_index: int):
