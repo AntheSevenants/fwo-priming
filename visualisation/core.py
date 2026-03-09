@@ -1,10 +1,11 @@
 import model.model
 
+import matplotlib.figure
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union, Any, Tuple
 
 COLOURS = ["blue", "orange", "green", "red", "purple"]
 LINE_STYLES = ["-", "--", ":", "-."]
@@ -15,8 +16,19 @@ def formatter(x, pos, scale=100):
     return str(int(x * scale))
 
 
-def check_ax(ax: Optional[matplotlib.axes.Axes] = None,
-             disable_title: bool = False):
+def check_ax(
+        ax: Optional[matplotlib.axes.Axes] = None,
+        disable_title: bool = False) -> Tuple[matplotlib.figure.Figure | matplotlib.figure.SubFigure | None, matplotlib.axes.Axes]:
+    """Check if an Axis is defined. If not, create a new subfigure.
+
+    Args:
+        ax (Optional[matplotlib.axes.Axes], optional): The axis variable to be checked. Defaults to None.
+        disable_title (bool, optional): Whether the title will be disabled for this figure. Defaults to False.
+
+    Returns:
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: A tuple containing the figure and axis objects
+    """
+
     if ax is None:
         fig, ax = plt.subplots(figsize=(6, 4))
 
@@ -28,8 +40,19 @@ def check_ax(ax: Optional[matplotlib.axes.Axes] = None,
     return fig, ax
 
 
-def filter_for_agent(matrix: np.ndarray,
-                     agent_filter: Optional[int] = None):
+def filter_for_agent(
+        matrix: np.ndarray,
+        agent_filter: Optional[int] = None) -> np.ndarray:
+    """Filter an input matrix for the data associated with a specific agent
+
+    Args:
+        matrix (np.ndarray): The input matrix (from the DataCollector)
+        agent_filter (Optional[int], optional): The index of the specified agent. Defaults to None.
+
+    Returns:
+        np.ndarray: The filtered matrix
+    """
+
     # If needed, index data for a specific agent
     if agent_filter is not None:
         # 3D matrix
@@ -43,13 +66,26 @@ def filter_for_agent(matrix: np.ndarray,
     return matrix
 
 
-def plot_value(priming_model: model.model.PrimingModel,
-               attribute: str,
-               ylim: List[float],
-               ax: Optional[matplotlib.axes.Axes] = None,
-               agent_filter: Optional[int] = None,
-               title: Optional[str] = None,
-               disable_title: bool = False):
+def plot_value(
+        priming_model: model.model.PrimingModel,
+        attribute: str,
+        ylim: List[float],
+        ax: Optional[matplotlib.axes.Axes] = None,
+        agent_filter: Optional[int] = None,
+        title: Optional[str] = None,
+        disable_title: bool = False):
+    """Plot a desired series of values from a model run
+
+    Args:
+        priming_model (model.model.PrimingModel): The model instance
+        attribute (str): The name of the series to model
+        ylim (List[float]): The expected range of values, will be the y axis
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph.. Defaults to False.
+    """
+
     df = priming_model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
@@ -65,13 +101,29 @@ def plot_value(priming_model: model.model.PrimingModel,
         ax.set_title(title)
 
 
-def plot_ratio(priming_model: model.model.PrimingModel,
-               attributes: Union[str, List[str]],
-               ylim: List[float] = [0, 1],
-               ax: Optional[matplotlib.axes.Axes] = None,
-               agent_filter: Optional[int] = None,
-               title: Optional[str] = None,
-               disable_title: bool = False):
+def plot_ratio(
+        priming_model: model.model.PrimingModel,
+        attributes: Union[str, List[str]],
+        ylim: List[float] = [0, 1],
+        ax: Optional[matplotlib.axes.Axes] = None,
+        agent_filter: Optional[int] = None,
+        title: Optional[str] = None,
+        disable_title: bool = False):
+    """Plot a desired series of ratio values from a model run
+
+    Args:
+        priming_model (model.model.PrimingModel): The model instance
+        attributes (Union[str, List[str]]): The names of the series to model
+        ylim (List[float], optional): The expected range of values, will be the y axis. Defaults to [0, 1].
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Raises:
+        ValueError: If the number of attributes to plot is larger than the supported number of line styles
+    """
+
     if isinstance(attributes, str):
         attributes = [attributes]  # Convert single string to list for uniform processing
 
@@ -98,14 +150,36 @@ def plot_ratio(priming_model: model.model.PrimingModel,
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
 
-def plot_ratio_pass(priming_model: model.model.PrimingModel,
-                    attribute: str,
-                    ylim: List[float],
-                    baseline: Optional[float] = None,
-                    secondary_baseline_attribute: Optional[str] = None,
-                    ax: Optional[matplotlib.axes.Axes] = None,
-                    title: Optional[str] = None,
-                    disable_title: Optional[bool] = False):
+def plot_ratio_pass(
+        priming_model: model.model.PrimingModel,
+        attribute: str,
+        ylim: List[float],
+        baseline: Optional[float] = None,
+        secondary_baseline_attribute: Optional[str] = None,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        title: Optional[str] = None,
+        disable_title: Optional[bool] = False):
+    """Plot a desired series of ratio values for all agents at once for a given model run
+
+    Args:
+        priming_model (model.model.PrimingModel): The model instance
+        attribute (str): The name of the series to model
+        ylim (List[float]): The expected range of values, will be the y axis.
+        baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
+        secondary_baseline_attribute (Optional[str], optional): Secondary baseline. Can mark another default value. Defaults to None.
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Please do not pass any axes currently. Defaults to None.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (Optional[bool], optional): Whether to show a title for this graph.. Defaults to False.
+
+    Raises:
+        ValueError: Passing an Axis through ax is currently not supported
+        ValueError: Input matrix dimensions can only be 2 or 3
+
+    Returns:
+        matplotlib.axes.Axis: The created graph
+    """
+
+
     df = priming_model.datacollector.get_model_vars_dataframe()
 
     if ax is None:

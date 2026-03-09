@@ -5,9 +5,21 @@ import visualisation.core
 
 from typing import Optional
 
-def plot_ctx_probs_mean(model: model.model.PrimingModel,
-                        ax: Optional[matplotlib.axes.Axes] = None,
-                        disable_title: bool = False):
+def plot_ctx_probs_mean(
+        model: model.model.PrimingModel,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        disable_title: bool = False):
+    """Plot the mean preference probabilities across agents.
+
+    Args:
+        model (model.model.PrimingModel): The model instance
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        matplotlib.axes.Axis: The finished graph
+    """
+
     return visualisation.core.plot_ratio(
         model,
         "ctx_probs_mean",
@@ -16,8 +28,19 @@ def plot_ctx_probs_mean(model: model.model.PrimingModel,
         disable_title=disable_title,
     )
 
-def plot_ctx_probs_per_agent(model: model.model.PrimingModel,
-                             disable_title: bool = False):
+def plot_ctx_probs_per_agent(
+        model: model.model.PrimingModel,
+        disable_title: bool = False):
+    """Plot the preference probabilities evolution of each agent on a single graph.
+
+    Args:
+        model (model.model.PrimingModel): The model instance
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        matplotlib.axes.Axis: The finished graph
+    """
+
     return visualisation.core.plot_ratio_pass(
         model,
         "ctx_probs_per_agent",
@@ -28,10 +51,23 @@ def plot_ctx_probs_per_agent(model: model.model.PrimingModel,
         disable_title=disable_title
     )
 
-def plot_ctx_probs_for_agent(model: model.model.PrimingModel,
-                             ax: Optional[matplotlib.axes.Axes] = None,
-                             agent_index: Optional[int] = None,
-                             disable_title: bool = False):
+def plot_ctx_probs_for_agent(
+        model: model.model.PrimingModel,
+        ax: Optional[matplotlib.axes.Axes] = None,
+        agent_index: Optional[int] = None,
+        disable_title: bool = False):
+    """Plot the preference probabilities evolution of a single agent
+
+    Args:
+        model (model.model.PrimingModel): A model instance
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        matplotlib.axes.Axis: The finished graph
+    """
+
     visualisation.core.check_if_none("agent_index", agent_index)
 
     return visualisation.core.plot_ratio(
