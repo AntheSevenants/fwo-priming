@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 from typing import Callable
 
 
 def combine_plots(
-    ax1_func: Callable[[plt.Axes], None],
-    ax2_func: Callable[[plt.Axes], None],
+    ax1_func: Callable[[Axes], None],
+    ax2_func: Callable[[Axes], None],
 ):
     fig, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(16, 6))
 

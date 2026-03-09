@@ -15,7 +15,7 @@ def formatter(x, pos, scale=100):
     return str(int(x * scale))
 
 
-def check_ax(ax: matplotlib.axes.Axes = None,
+def check_ax(ax: Optional[matplotlib.axes.Axes] = None,
              disable_title: bool = False):
     if ax is None:
         fig, ax = plt.subplots(figsize=(6, 4))
@@ -23,13 +23,13 @@ def check_ax(ax: matplotlib.axes.Axes = None,
     fig = ax.get_figure()
 
     if disable_title:
-        fig.tight_layout()
+        plt.tight_layout()
 
     return fig, ax
 
 
-def filter_for_agent(matrix: np.array,
-                     agent_filter: int):
+def filter_for_agent(matrix: np.ndarray,
+                     agent_filter: Optional[int] = None):
     # If needed, index data for a specific agent
     if agent_filter is not None:
         # 3D matrix
@@ -45,21 +45,21 @@ def filter_for_agent(matrix: np.array,
 
 def plot_value(priming_model: model.model.PrimingModel,
                attribute: str,
-               ylim: List[int],
-               ax: matplotlib.axes.Axes = None,
-               agent_filter: int = None,
-               title: str = None,
+               ylim: List[float],
+               ax: Optional[matplotlib.axes.Axes] = None,
+               agent_filter: Optional[int] = None,
+               title: Optional[str] = None,
                disable_title: bool = False):
     df = priming_model.datacollector.get_model_vars_dataframe()
 
     fig, ax = check_ax(ax, disable_title)
 
-    value_list = np.stack(df[attribute])
+    value_list = np.stack(df[attribute].tolist())
     # If needed, index data for a specific agent
     value_list = filter_for_agent(value_list, agent_filter)
 
     ax.plot(value_list, color=COLOURS[0])
-    ax.set_ylim(ylim)
+    ax.set_ylim(*ylim)
 
     if title is not None and not disable_title:
         ax.set_title(title)
@@ -68,9 +68,9 @@ def plot_value(priming_model: model.model.PrimingModel,
 def plot_ratio(priming_model: model.model.PrimingModel,
                attributes: Union[str, List[str]],
                ylim: List[float] = [0, 1],
-               ax: matplotlib.axes.Axes = None,
-               agent_filter: int = None,
-               title: str = None,
+               ax: Optional[matplotlib.axes.Axes] = None,
+               agent_filter: Optional[int] = None,
+               title: Optional[str] = None,
                disable_title: bool = False):
     if isinstance(attributes, str):
         attributes = [attributes]  # Convert single string to list for uniform processing
@@ -83,7 +83,7 @@ def plot_ratio(priming_model: model.model.PrimingModel,
     fig, ax = check_ax(ax, disable_title)
 
     for attribute_idx, attribute in enumerate(attributes):
-        matrix = np.stack(df[attribute])
+        matrix = np.stack(df[attribute].tolist())
 
         # If needed, index data for a specific agent
         matrix = filter_for_agent(matrix, agent_filter)
@@ -94,18 +94,18 @@ def plot_ratio(priming_model: model.model.PrimingModel,
     if title is not None and not disable_title:
         ax.set_title(title)
     
-    ax.set_ylim(ylim)
+    ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
 
 def plot_ratio_pass(priming_model: model.model.PrimingModel,
                     attribute: str,
                     ylim: List[float],
-                    baseline: float = None,
-                    secondary_baseline_attribute: str = None,
-                    ax: matplotlib.axes.Axes = None,
-                    title: str = None,
-                    disable_title: bool = False):
+                    baseline: Optional[float] = None,
+                    secondary_baseline_attribute: Optional[str] = None,
+                    ax: Optional[matplotlib.axes.Axes] = None,
+                    title: Optional[str] = None,
+                    disable_title: Optional[bool] = False):
     df = priming_model.datacollector.get_model_vars_dataframe()
 
     if ax is None:
@@ -117,7 +117,7 @@ def plot_ratio_pass(priming_model: model.model.PrimingModel,
             "Cannot do mosaic plots for this graph type. Please do not pass an axis."
         )
 
-    matrix = np.stack(df[attribute])
+    matrix = np.stack(df[attribute].tolist())
     # Secondary baseline to plot in all the graphs
     if secondary_baseline_attribute is not None:
         secondary_baselines = df[secondary_baseline_attribute][0]
@@ -129,36 +129,37 @@ def plot_ratio_pass(priming_model: model.model.PrimingModel,
 
     num_dimensions = len(matrix.shape)
 
+    baseline_to_plot = None
     if baseline is not None:
         # Vertical baseline which shows 0.5
-        baseline = np.full(num_steps, baseline)
+        baseline_to_plot = np.full(num_steps, baseline)
 
-    for i, ax in enumerate(axes):
+    for i, _ax in enumerate(axes):
         # Plot baselines first
-        if baseline is not None:
-            ax.plot(baseline, time_steps, color="gray",
+        if baseline_to_plot is not None:
+            _ax.plot(baseline_to_plot, time_steps, color="gray",
                     alpha=0.1, linestyle="dashed")
             
         # Vertical baseline which shows secondary baseline for this agent (if defined)
         if secondary_baselines is not None:
             starting_baseline = np.full(num_steps, secondary_baselines[i][0])
-            ax.plot(starting_baseline, time_steps, color="gray", alpha=0.1)
+            _ax.plot(starting_baseline, time_steps, color="gray", alpha=0.1)
 
         if num_dimensions == 3:
-            ax.plot(matrix[:, i, 0], time_steps, color="blue")
+            _ax.plot(matrix[:, i, 0], time_steps, color="blue")
         elif num_dimensions == 2:
-            ax.plot(matrix[:, i], time_steps, color="blue")
+            _ax.plot(matrix[:, i], time_steps, color="blue")
         else:
             raise ValueError("Invalid number of dimensions")
 
-        ax.set_xlim(ylim)
-        ax.set_title(f"{i + 1}")
-        ax.set_xticks([])
+        _ax.set_xlim(ylim)
+        _ax.set_title(f"{i + 1}")
+        _ax.set_xticks([])
         # ax.set_xlabel('Construction 0 usage')
-        ax.grid(True)
+        _ax.grid(True)
 
         # Disable ugly boxes
-        for spine in ax.spines.values():
+        for spine in _ax.spines.values():
             spine.set_visible(False)
 
     axes[0].set_ylabel("Time steps in the simulation")

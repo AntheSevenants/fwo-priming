@@ -4,26 +4,26 @@ from typing import List, Optional
 
 ENTROPY_BASE = 2
 
-def compute_entropy(probability_distribution: np.ndarray):
+def compute_entropy(probability_distribution: np.ndarray) -> float:
     """Compute entropy (base 2) depending on a probability distribution.
 
     Args:
         probability_distribution (List[float]): The probability distribution. Can be any length.
 
     Returns:
-        number[Any, int | float | complex]: The computed entropy level.
+        float: The computed entropy level.
     """
 
-    return entropy(probability_distribution, base=ENTROPY_BASE)
+    return float(entropy(probability_distribution, base=ENTROPY_BASE))
 
-def compute_maximum_entropy(n: int):
+def compute_maximum_entropy(n: int) -> float:
     """Compute the maximum possible entropy for a given distribution length.
 
     Args:
         n (int): Distribution length
 
     Returns:
-        number[Any, int | float | complex]: The computed entropy level.
+        float: The computed entropy level.
     """
 
-    return entropy(np.ones(n) / n, base=ENTROPY_BASE)
+    return float(entropy(np.ones(n) / n, base=ENTROPY_BASE))

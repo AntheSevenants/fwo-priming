@@ -4,6 +4,8 @@ import model.model
 import model.entropy
 import visualisation.core
 
+from typing import Optional
+
 def ylim_from_model(priming_model: model.model.PrimingModel):
     ylim = [ 0, model.entropy.compute_maximum_entropy(priming_model.params.num_constructions) ]
 
@@ -11,7 +13,7 @@ def ylim_from_model(priming_model: model.model.PrimingModel):
 
 
 def plot_ctx_entropy_mean(priming_model: model.model.PrimingModel,
-                        ax: matplotlib.axes.Axes = None,
+                        ax: Optional[matplotlib.axes.Axes] = None,
                         disable_title: bool = False):
     ylim = ylim_from_model(priming_model)
 
@@ -39,8 +41,8 @@ def plot_ctx_entropy_per_agent(priming_model: model.model.PrimingModel,
 
 
 def plot_ctx_entropy_for_agent(priming_model: model.model.PrimingModel,
-                             ax: matplotlib.axes.Axes = None,
-                             agent_index: int = None,
+                             ax: Optional[matplotlib.axes.Axes] = None,
+                             agent_index: Optional[int] = None,
                              disable_title: bool = False):
     visualisation.core.check_if_none("agent_index", agent_index)
 

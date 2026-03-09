@@ -3,9 +3,10 @@ import matplotlib.axes
 import model.model
 import visualisation.core
 
+from typing import Optional
 
 def plot_ctx_probs_mean(model: model.model.PrimingModel,
-                        ax: matplotlib.axes.Axes = None,
+                        ax: Optional[matplotlib.axes.Axes] = None,
                         disable_title: bool = False):
     return visualisation.core.plot_ratio(
         model,
@@ -28,8 +29,8 @@ def plot_ctx_probs_per_agent(model: model.model.PrimingModel,
     )
 
 def plot_ctx_probs_for_agent(model: model.model.PrimingModel,
-                             ax: matplotlib.axes.Axes = None,
-                             agent_index: int = None,
+                             ax: Optional[matplotlib.axes.Axes] = None,
+                             agent_index: Optional[int] = None,
                              disable_title: bool = False):
     visualisation.core.check_if_none("agent_index", agent_index)
 

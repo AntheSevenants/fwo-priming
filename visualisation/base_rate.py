@@ -3,9 +3,10 @@ import matplotlib.axes
 import model.model
 import visualisation.core
 
+from typing import Optional
 
 def plot_ctx_base_rate_mean(model: model.model.PrimingModel,
-                        ax: matplotlib.axes.Axes = None,
+                        ax: Optional[matplotlib.axes.Axes] = None,
                         disable_title: bool = False):
     return visualisation.core.plot_ratio(
         model,
