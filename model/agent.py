@@ -120,7 +120,7 @@ class PrimingAgent(mesa.Agent):
         priming_strength = np.divide(
             priming_strength_base,
             # the first term can attenuate the inverse frequency
-            np.exp(comparison_base, self.model.params.inverse_frequency_exponent)
+            np.pow(comparison_base, self.model.params.inverse_frequency_exponent)
         )
 
         return priming_strength
