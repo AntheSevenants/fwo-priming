@@ -86,10 +86,12 @@ class PrimingModel(mesa.Model):
 
         # Make all agents interact in a random order
         self.agents.shuffle_do("interact_do")
-        # Now do decay for all agents
-        self.agents.do("do_decay")
+
         # Collect information about this specific model step
         self.datacollector.collect(self)
+
+        # Now do decay for all agents
+        self.agents.do("do_decay")
 
         # Stop the simulation if consensus is reached and early stopping is allowed
         if (
