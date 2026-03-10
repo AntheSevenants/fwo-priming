@@ -26,7 +26,7 @@ class PrimingModel(mesa.Model):
         self.params = params
 
         # Load parent class, set random and seed
-        super().__init__(seed=self.params.seed)
+        super().__init__(rng=self.params.seed)
         self.nprandom = np.random.default_rng(self.params.seed)
 
         # Agents
