@@ -79,14 +79,20 @@ def batch_run(
     """
 
     runs_list = []
+
+    # Keep track of each combination of arguments
+    # Then keep track of each iteration for each combination
+    # Makes it MUCH easier to find the different parameter combinations later
     run_id = 0
-    for iteration in range(iterations):
-        for kwargs in _make_model_kwargs(parameters):
+    combination_id = 0
+    for kwargs in _make_model_kwargs(parameters):
+        for iteration in range(iterations):
             if "seed" not in kwargs:
                 kwargs["seed"] = random.randint(0, 99999999)
 
-            runs_list.append((run_id, iteration, date_time, kwargs))
+            runs_list.append((run_id, combination_id, iteration, date_time, kwargs))
             run_id += 1
+        combination_id += 1
 
     process_func = partial(
         _model_run_func,
@@ -174,7 +180,7 @@ def serialise_data_collector(model):
 
 def _model_run_func(
     model_cls: type[PrimingModel],
-    run: tuple[int, int, str, dict[str, Any]],
+    run: tuple[int, int, int, str, dict[str, Any]],
     max_steps: int,
     iterations: int,
     data_collection_period: int,
@@ -199,7 +205,7 @@ def _model_run_func(
     List[Dict[str, Any]]
         Return model_data, agent_data from the reporters
     """
-    run_id, iteration, run_folder, kwargs = run
+    run_id, combination_id, iteration, run_folder, kwargs = run
     model_params = dict_to_params(kwargs)
     model = model_cls(model_params)
     while model.running and model.steps <= max_steps:
@@ -217,9 +223,10 @@ def _model_run_func(
     data = [
         {
             "run_id": run_id,
+            "combination_id": combination_id,
+            "iteration": iteration,
             "max_steps": max_steps,
             "steps": model.steps,
-            "iterations": iterations,
             **kwargs,
         }
     ]
