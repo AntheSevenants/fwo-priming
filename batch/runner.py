@@ -42,13 +42,14 @@ from tqdm.auto import tqdm
 
 from mesa.model import Model
 
+from model.model import PrimingModel
 from batch.params import dict_to_params
 
 multiprocessing.set_start_method("spawn", force=True)
 
 
 def batch_run(
-    model_cls: type[Model],
+    model_cls: type[PrimingModel],
     date_time: str,
     parameters: Mapping[str, Any | Iterable[Any]],
     # We still retain the Optional[int] because users may set it to None (i.e. use all CPUs)
@@ -61,7 +62,7 @@ def batch_run(
     """Batch run a mesa model with a set of parameter values.
 
     Args:
-        model_cls (Type[Model]): The model class to batch-run
+        model_cls (Type[PrimingModel]): The model class to batch-run
         parameters (Mapping[str, Union[Any, Iterable[Any]]]): Dictionary with model parameters over which to run the model. You can either pass single values or iterables.
         number_processes (int, optional): Number of processes used, by default 1. Set this to None if you want to use all CPUs.
         iterations (int, optional): Number of iterations for each parameter combination, by default 1
@@ -172,7 +173,7 @@ def serialise_data_collector(model):
 
 
 def _model_run_func(
-    model_cls: type[Model],
+    model_cls: type[PrimingModel],
     run: tuple[int, int, str, dict[str, Any]],
     max_steps: int,
     iterations: int,
@@ -182,7 +183,7 @@ def _model_run_func(
 
     Parameters
     ----------
-    model_cls : Type[Model]
+    model_cls : Type[PrimingModel]
         The model class to batch-run
     run: Tuple[int, int, Dict[str, Any]]
         The run id, iteration number, and kwargs for this run
@@ -266,7 +267,7 @@ def _model_run_func(
 
 
 def _collect_data(
-    model: Model,
+    model: PrimingModel,
     step: int,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Collect model and agent data from a model using mesas datacollector."""
