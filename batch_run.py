@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 import argparse
+import json
 import random
 import math
 
@@ -49,3 +50,44 @@ if __name__ == "__main__":
     br_df = pd.DataFrame(results)
     br_df = br_df.sort_values(by=['run_id'])
     br_df.to_csv(csv_filename, index=False)
+
+    # Post runs aggregation
+    combinations = br_df.groupby("combination_id")["run_id"].agg(list).reset_index()
+    # Go over each combination
+    for index, row in combinations.iterrows():
+        aggregated_data = { }
+        aggregated_data_out = {}
+
+        # Go over each run associated with this combination
+        for run_id in row["run_id"]:
+            # Load the run in memory
+            run_dump_path = os.path.join(run_folder, f"{run_id}.json")
+            with open(run_dump_path) as json_reader:
+                json_content = json.loads(json_reader.read())
+
+            for column_name in json_content.keys():
+                if column_name.endswith("_mean"):
+                    if column_name not in aggregated_data:
+                        aggregated_data[column_name] = []
+
+                    aggregated_data[column_name].append(
+                        json_content[column_name]
+                    )
+            
+        # Now aggregate, then turn into a list
+        for column_name in aggregated_data:
+            data_matrix = np.array(aggregated_data[column_name])
+            aggregated_data_out[column_name] = {} 
+            aggregated_data_out[column_name]["mean"] = data_matrix.mean(axis=0).tolist()
+            aggregated_data_out[column_name]["min"] = data_matrix.min(axis=0).tolist()
+            aggregated_data_out[column_name]["max"] = data_matrix.max(axis=0).tolist()
+        
+        aggregated_data["combination_id"] = row["combination_id"]
+
+        combination_data_path = os.path.join(
+            run_folder,
+            f"combination_{row['combination_id']}.json"
+        )
+
+        with open(combination_data_path, "wt") as json_writer:
+            json_writer.write(json.dumps(aggregated_data_out))
