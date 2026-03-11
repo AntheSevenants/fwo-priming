@@ -3,16 +3,16 @@ import matplotlib.axes
 import model.model
 import visualisation.core
 
-from typing import Optional
+from typing import Optional, Union, List
 
 def plot_ctx_base_rate_mean(
-        model: model.model.PrimingModel,
+        data: Union[model.model.PrimingModel, List[float]],
         ax: Optional[matplotlib.axes.Axes] = None,
         disable_title: bool = False):
     """Plot the mean base rate across agents
 
     Args:
-        model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -21,7 +21,7 @@ def plot_ctx_base_rate_mean(
     """
     
     return visualisation.core.plot_ratio(
-        model,
+        data,
         "ctx_base_rate_mean",
         title="Mean base rate across agents",
         ax=ax,
@@ -29,12 +29,12 @@ def plot_ctx_base_rate_mean(
     )
 
 def plot_ctx_base_rate_per_agent(
-        model: model.model.PrimingModel,
+        data: Union[model.model.PrimingModel, List[float]],
         disable_title: bool = False):
     """Plot the base rate evolution of each agent on a single graph.
 
     Args:
-        model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         disable_title (bool, optional): Whether to show a title for this grpah. Defaults to False.
 
     Returns:
@@ -42,11 +42,11 @@ def plot_ctx_base_rate_per_agent(
     """
 
     return visualisation.core.plot_ratio_pass(
-        model,
+        data,
         "ctx_base_rate_per_agent",
         ylim=[0, 1],
         baseline=0.5,
-        secondary_baseline_attribute="starting_base_rate_per_agent",
+        # secondary_baseline_attribute="starting_base_rate_per_agent",
         title="Evolution of relative base rate per agent",
         disable_title=disable_title
     )

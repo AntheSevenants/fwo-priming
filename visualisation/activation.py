@@ -3,17 +3,17 @@ import matplotlib.axes
 import model.model
 import visualisation.core
 
-from typing import Optional
+from typing import Optional, Union, List
 
 
 def plot_ctx_activation_mean(
-        model: model.model.PrimingModel,
+        data: Union[model.model.PrimingModel, List[float]],
         ax: Optional[matplotlib.axes.Axes] = None,
         disable_title: bool = False):
     """Plot the mean activation level across agents.
 
     Args:
-        model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -22,7 +22,7 @@ def plot_ctx_activation_mean(
     """
 
     return visualisation.core.plot_ratio(
-        model,
+        data,
         "ctx_activation_mean",
         title="Mean activation per construction across agents",
         ax=ax,
@@ -30,12 +30,12 @@ def plot_ctx_activation_mean(
     )
 
 def plot_ctx_activation_per_agent(
-        model: model.model.PrimingModel,
+        data: Union[model.model.PrimingModel, List[float]],
         disable_title: bool = False):
     """Plot the activation level evolution of each agent on a single graph.
 
     Args:
-        model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
@@ -43,7 +43,7 @@ def plot_ctx_activation_per_agent(
     """
 
     return visualisation.core.plot_ratio_pass(
-        model,
+        data,
         "ctx_activation_per_agent",
         ylim=[0, 1],
         baseline=0.5,
@@ -54,14 +54,14 @@ def plot_ctx_activation_per_agent(
 
 
 def plot_ctx_activation_for_agent(
-        model: model.model.PrimingModel,
+        data: Union[model.model.PrimingModel, List[float]],
         ax:  Optional[matplotlib.axes.Axes] = None,
         agent_index: Optional[int] = None,
         disable_title: bool = False):
     """Plot the activation level evolution of a single agent
 
     Args:
-        model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
@@ -73,7 +73,7 @@ def plot_ctx_activation_for_agent(
     visualisation.core.check_if_none("agent_index", agent_index)
 
     return visualisation.core.plot_ratio(
-        model,
+        data,
         "ctx_activation_per_agent",
         agent_filter=agent_index,
         title=f"Activation per construction for agent {agent_index}",
