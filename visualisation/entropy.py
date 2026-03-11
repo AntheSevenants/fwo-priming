@@ -52,13 +52,13 @@ def plot_ctx_entropy_mean(
     )
 
 def plot_ctx_entropy_per_agent(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[List[float]]],
         num_constructions: int,
         disable_title: bool = False):
     """Plot the entropy evolution of each agent on a single graph.
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values
         num_constructions (int): The number of constructions in the simulation.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 

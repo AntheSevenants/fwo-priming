@@ -7,17 +7,17 @@ from typing import Optional, Union, List
 
 
 def plot_ctx_activation_mean(
-        data: Union[model.model.PrimingModel, List[float]],
-        min_data: Optional[List[float]] = None,
-        max_data: Optional[List[float]] = None,
+        data: Union[model.model.PrimingModel, List[List[float]]],
+        min_data: Optional[List[List[float]]] = None,
+        max_data: Optional[List[List[float]]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         disable_title: bool = False):
     """Plot the mean activation level across agents.
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
-        min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
-        max_data (Optional[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
+        data (Union[model.model.PrimingModel, List[List[float]]): Either a model instance or a list of values
+        min_data (Optional[List[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
+        max_data (Optional[List[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -36,12 +36,12 @@ def plot_ctx_activation_mean(
     )
 
 def plot_ctx_activation_per_agent(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[List[List[float]]]],
         disable_title: bool = False):
     """Plot the activation level evolution of each agent on a single graph.
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[List[List[float]]]]): Either a model instance or a list of values
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
@@ -60,14 +60,14 @@ def plot_ctx_activation_per_agent(
 
 
 def plot_ctx_activation_for_agent(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[List[float]]],
         ax:  Optional[matplotlib.axes.Axes] = None,
         agent_index: Optional[int] = None,
         disable_title: bool = False):
     """Plot the activation level evolution of a single agent
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.

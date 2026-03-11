@@ -67,13 +67,13 @@ def filter_for_agent(
 
 
 def get_value_lists(
-        data: Union[model.model.PrimingModel, Union[List[float], List[List[float]]]],
+        data: Union[model.model.PrimingModel, Union[List[float], List[List[float]]], List[List[List[float]]]],
         attributes: Union[str, List[str]],
         agent_filter: Optional[int] = None) -> List[np.ndarray]:
     """Return a list of values based on a model instance or a list of values
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[float], List[List[float]]], List[List[List[float]]]]): Either a model instance or a list of values
         attributes (Union[str, List[str]]]): The names of the series to plot. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         agent_filter (Optional[int], optional): The index of the agent you want to filter for. If not supplied, no filtering is applied. Defaults to None.
 
@@ -130,14 +130,14 @@ def get_value_lists(
 
 
 def check_min_max_data(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[float], List[List[float]]],
         min_data: Union[List[float], List[List[float]], None],
         max_data: Union[List[float], List[List[float]], None]
     ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[None, None]]:
     """Check the supplied minimal and maximal value lists and raise errors if the supplied data does not make sense.
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[float]], List[List[float]]): Either a model instance or a list of values
         min_data (Union[List[float], List[List[float]], None]): List of minimal values. Needs to be defined together with max_data.
         max_data (Union[List[float], List[List[float]], None]): List of maximal values. Needs to be defined together with min_data.
 
@@ -216,25 +216,25 @@ def plot_value(
 
 
 def plot_ratio(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[List[float]]],
         attributes: Union[str, List[str]],
         ylim: List[float] = [0, 1],
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
-        min_data: Optional[List[float]] = None,
-        max_data: Optional[List[float]] = None,
+        min_data: Optional[List[List[float]]] = None,
+        max_data: Optional[List[List[float]]] = None,
         title: Optional[str] = None,
         disable_title: bool = False):
     """Plot a desired series of ratio values from a model run
 
     Args:
-        priming_model (model.model.PrimingModel): The model instance
+        data (Union[model.model.PrimingModel, List[List[float]]): Either a model instance or a list of values
         attributes (Union[str, List[str]]): The names of the series to model. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         ylim (List[float], optional): The expected range of values, will be the y axis. Defaults to [0, 1].
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
-        min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
-        max_data (Optional[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
+        min_data (Optional[List[List[float]]], optional): List of minimal values. Needs to be defined together with max_data.
+        max_data (Optional[List[List[float]]], optional): List of maximal values. Needs to be defined together with min_data.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -274,7 +274,7 @@ def plot_ratio(
 
 
 def plot_ratio_pass(
-        data: Union[model.model.PrimingModel, List[float]],
+        data: Union[model.model.PrimingModel, List[List[float]], List[List[List[float]]]],
         attribute: str,
         ylim: Optional[List[float]] = None,
         baseline: Optional[float] = None,
@@ -284,7 +284,7 @@ def plot_ratio_pass(
     """Plot a desired series of ratio values for all agents at once for a given model run
 
     Args:
-        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        data (Union[model.model.PrimingModel, List[List[float]], List[List[float]]): Either a model instance or a list of values
         attribute (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
