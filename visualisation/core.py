@@ -66,10 +66,71 @@ def filter_for_agent(
     return matrix
 
 
+def get_value_lists(
+        data: Union[model.model.PrimingModel, Union[List[float], List[List[float]]]],
+        attributes: Optional[Union[str, List[str]]] = None,
+        agent_filter: Optional[int] = None) -> List[np.ndarray]:
+    """Return a list of values based on a model instance or a list of values
+
+    Args:
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        attributes (Optional[Union[str, List[str]]], optional): The names of the series to plot. Only used if data is a model. Defaults to None.
+        agent_filter (Optional[int], optional): The index of the agent you want to filter for. If not supplied, no filtering is applied. Defaults to None.
+
+    Raises:
+        ValueError: Attribute must be specified when plotting data from a model instance.
+
+    Returns:
+        List[np.ndarray]: List of model result value matrices
+    """
+
+    # Convert single string to list for uniform processing
+    if isinstance(attributes, str):
+        attributes = [attributes]
+
+    if attributes is not None:
+        if len(attributes) > len(LINE_STYLES):
+            raise ValueError(f"Number of attributes cannot exceed number of line styles (= {len (LINE_STYLES)})")
+    
+    value_lists = []
+
+    # Model data comes from the model directly
+    if isinstance(data, model.model.PrimingModel):
+        # This can only work if the attribute is defined
+        if attributes is None:
+            raise ValueError("Attribute must be specified when plotting data from a model instance.")
+
+        df = data.datacollector.get_model_vars_dataframe()    
+    
+        for attribute in attributes:
+            if attribute is None:
+                raise ValueError("Supplied attribute cannot be None")
+
+            value_list = np.stack(df[attribute].tolist())
+            # If needed, index data for a specific agent
+            value_list = filter_for_agent(value_list, agent_filter)
+
+            value_lists.append(value_list)
+    else:
+        if len(data) == 0:
+            raise ValueError("Supplied value list cannot have zero length")
+        
+        # If just a single value list is supplied, wrap in an outer list
+        if isinstance(data[0], float):
+            _data = [ data ]
+
+        # Go over each inner list and conver to numpy array
+        for value_list in _data:
+            # Assume a valid list of data
+            value_lists.append(np.array(value_list))
+
+    return value_lists
+
+
 def plot_value(
-        priming_model: model.model.PrimingModel,
-        attribute: str,
-        ylim: List[float],
+        data: Union[model.model.PrimingModel, List[float]],
+        attribute: Optional[str] = None,
+        ylim: Optional[List[float]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
         title: Optional[str] = None,
@@ -77,33 +138,32 @@ def plot_value(
     """Plot a desired series of values from a model run
 
     Args:
-        priming_model (model.model.PrimingModel): The model instance
-        attribute (str): The name of the series to model
-        ylim (List[float]): The expected range of values, will be the y axis
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        attribute (Optional[str], optional): The name of the series to model. Only used if data is a model. Defaults to None.
+        ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph.. Defaults to False.
     """
 
-    df = priming_model.datacollector.get_model_vars_dataframe()
-
     fig, ax = check_ax(ax, disable_title)
 
-    value_list = np.stack(df[attribute].tolist())
-    # If needed, index data for a specific agent
-    value_list = filter_for_agent(value_list, agent_filter)
+    # Get the right data based on the supplied arguments
+    value_list = get_value_lists(data, attribute, agent_filter)[0]
 
     ax.plot(value_list, color=COLOURS[0])
-    ax.set_ylim(*ylim)
+
+    if ylim is not None:
+        ax.set_ylim(*ylim)
 
     if title is not None and not disable_title:
         ax.set_title(title)
 
 
 def plot_ratio(
-        priming_model: model.model.PrimingModel,
-        attributes: Union[str, List[str]],
+        data: Union[model.model.PrimingModel, List[float]],
+        attributes: Optional[Union[str, List[str]]] = None,
         ylim: List[float] = [0, 1],
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
@@ -127,19 +187,12 @@ def plot_ratio(
     if isinstance(attributes, str):
         attributes = [attributes]  # Convert single string to list for uniform processing
 
-    if len(attributes) > len(LINE_STYLES):
-        raise ValueError(f"Number of attributes cannot exceed number of line styles (= {len(LINE_STYLES)})")
-
-    df = priming_model.datacollector.get_model_vars_dataframe()
+    # Get the right data based on the supplied arguments
+    value_lists = get_value_lists(data, attributes, agent_filter)
 
     fig, ax = check_ax(ax, disable_title)
 
-    for attribute_idx, attribute in enumerate(attributes):
-        matrix = np.stack(df[attribute].tolist())
-
-        # If needed, index data for a specific agent
-        matrix = filter_for_agent(matrix, agent_filter)
-
+    for attribute_idx, matrix in enumerate(value_lists):
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
 
@@ -151,22 +204,20 @@ def plot_ratio(
 
 
 def plot_ratio_pass(
-        priming_model: model.model.PrimingModel,
-        attribute: str,
-        ylim: List[float],
+        data: Union[model.model.PrimingModel, List[float]],
+        attribute: Optional[str] = None,
+        ylim: Optional[List[float]] = None,
         baseline: Optional[float] = None,
-        secondary_baseline_attribute: Optional[str] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         title: Optional[str] = None,
         disable_title: Optional[bool] = False):
     """Plot a desired series of ratio values for all agents at once for a given model run
 
     Args:
-        priming_model (model.model.PrimingModel): The model instance
-        attribute (str): The name of the series to model
-        ylim (List[float]): The expected range of values, will be the y axis.
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        attribute (Optional[str], optional): The name of the series to model. Only used if data is a model. Defaults to None.
+        ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
-        secondary_baseline_attribute (Optional[str], optional): Secondary baseline. Can mark another default value. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Please do not pass any axes currently. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (Optional[bool], optional): Whether to show a title for this graph.. Defaults to False.
@@ -179,24 +230,19 @@ def plot_ratio_pass(
         matplotlib.axes.Axis: The created graph
     """
 
+    # Get the right data based on the supplied arguments
+    matrix = get_value_lists(data, attribute)[0]
 
-    df = priming_model.datacollector.get_model_vars_dataframe()
-
-    if ax is None:
-        fig, axes = plt.subplots(
-            nrows=1, ncols=priming_model.params.num_agents, figsize=(15, 10), sharey=True
-        )
-    else:
+    if ax is not None:
         raise ValueError(
             "Cannot do mosaic plots for this graph type. Please do not pass an axis."
         )
-
-    matrix = np.stack(df[attribute].tolist())
-    # Secondary baseline to plot in all the graphs
-    if secondary_baseline_attribute is not None:
-        secondary_baselines = df[secondary_baseline_attribute][0]
-    else:
-        secondary_baselines = None
+    
+    # num agents = size of list ite
+    num_agents = matrix[0].shape[0]
+    fig, axes = plt.subplots(
+        nrows=1, ncols=num_agents, figsize=(15, 10), sharey=True
+    )
 
     num_steps = matrix.shape[0]
     time_steps = np.arange(num_steps)
@@ -208,16 +254,11 @@ def plot_ratio_pass(
         # Vertical baseline which shows 0.5
         baseline_to_plot = np.full(num_steps, baseline)
 
-    for i, _ax in enumerate(axes):
+    for i, _ax in enumerate(fig.axes):
         # Plot baselines first
         if baseline_to_plot is not None:
             _ax.plot(baseline_to_plot, time_steps, color="gray",
                     alpha=0.1, linestyle="dashed")
-            
-        # Vertical baseline which shows secondary baseline for this agent (if defined)
-        if secondary_baselines is not None:
-            starting_baseline = np.full(num_steps, secondary_baselines[i][0])
-            _ax.plot(starting_baseline, time_steps, color="gray", alpha=0.1)
 
         if num_dimensions == 3:
             _ax.plot(matrix[:, i, 0], time_steps, color="blue")
@@ -226,7 +267,8 @@ def plot_ratio_pass(
         else:
             raise ValueError("Invalid number of dimensions")
 
-        _ax.set_xlim(ylim)
+        if ylim is not None:
+            _ax.set_xlim(*ylim)
         _ax.set_title(f"{i + 1}")
         _ax.set_xticks([])
         # ax.set_xlabel('Construction 0 usage')
@@ -236,8 +278,8 @@ def plot_ratio_pass(
         for spine in _ax.spines.values():
             spine.set_visible(False)
 
-    axes[0].set_ylabel("Time steps in the simulation")
-    axes[0].invert_yaxis()
+    fig.axes[0].set_ylabel("Time steps in the simulation")
+    fig.axes[0].invert_yaxis()
 
     return ax
 
