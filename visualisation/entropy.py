@@ -23,6 +23,8 @@ def ylim_from_num_constructions(num_constructions: int):
 def plot_ctx_entropy_mean(
         data: Union[model.model.PrimingModel, List[float]],
         num_constructions: int,
+        min_data: Optional[List[float]] = None,
+        max_data: Optional[List[float]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         disable_title: bool = False):
     """Plot the mean entropy across agents
@@ -41,6 +43,8 @@ def plot_ctx_entropy_mean(
     return visualisation.core.plot_value(
         data,
         "ctx_entropy_mean",
+        min_data=min_data,
+        max_data=max_data,
         ylim=ylim,
         title="Mean entropy across agents",
         ax=ax,
