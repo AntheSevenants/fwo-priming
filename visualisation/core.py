@@ -133,7 +133,22 @@ def check_min_max_data(
         data: Union[model.model.PrimingModel, List[float]],
         min_data: Union[List[float], List[List[float]], None],
         max_data: Union[List[float], List[List[float]], None]
-    ):
+    ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[None, None]]:
+    """Check the supplied minimal and maximal value lists and raise errors if the supplied data does not make sense.
+
+    Args:
+        data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
+        min_data (Union[List[float], List[List[float]], None]): List of minimal values. Needs to be defined together with max_data.
+        max_data (Union[List[float], List[List[float]], None]): List of maximal values. Needs to be defined together with min_data.
+
+    Raises:
+        ValueError: Data cannot be a model instance if min_data and max_data are defined
+        ValueError: max_data cannot be defined if min_data is undefined
+        ValueError: min_data cannot be defined if max_data is undefined
+
+    Returns:
+        Union[Tuple[np.ndarray, np.ndarray], Tuple[None, None]]: If the check was successful, (min_data, max_data) as numpy arrays, else (None, None)
+    """
 
     if isinstance(data, model.model.PrimingModel) \
         and min_data is not None \
@@ -170,7 +185,6 @@ def plot_value(
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
         min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
-        max_data (Optional[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph.. Defaults to False.
     """
