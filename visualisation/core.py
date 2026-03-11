@@ -129,12 +129,36 @@ def get_value_lists(
     return value_lists
 
 
+def check_min_max_data(
+        data: Union[model.model.PrimingModel, List[float]],
+        min_data: Union[List[float], List[List[float]], None],
+        max_data: Union[List[float], List[List[float]], None]
+    ):
+
+    if isinstance(data, model.model.PrimingModel) \
+        and min_data is not None \
+        and max_data is not None:
+        raise ValueError("Supplied data cannot be a model instance if min_data and max_data are defined")
+
+    if min_data is not None and max_data is None:
+        raise ValueError("max_data cannot be None if min_data is set")
+    
+    if max_data is not None and min_data is None:
+        raise ValueError("min_data cannot be None if max_data is set")
+    
+    if max_data is not None and min_data is not None:
+        return np.array(min_data), np.array(max_data)
+    
+    return None, None
+
 def plot_value(
         data: Union[model.model.PrimingModel, List[float]],
         attribute: str,
         ylim: Optional[List[float]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
+        min_data: Optional[List[float]] = None,
+        max_data: Optional[List[float]] = None,
         title: Optional[str] = None,
         disable_title: bool = False):
     """Plot a desired series of values from a model run
@@ -145,6 +169,8 @@ def plot_value(
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
+        min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
+        max_data (Optional[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph.. Defaults to False.
     """
@@ -153,8 +179,20 @@ def plot_value(
 
     # Get the right data based on the supplied arguments
     value_list = get_value_lists(data, attribute, agent_filter)[0]
+    # Check if min and max data are supplied correctly
+    _min_data, _max_data = check_min_max_data(data, min_data, max_data)
 
     ax.plot(value_list, color=COLOURS[0])
+
+    # Plot the shaded area between min and max values
+    if _min_data is not None and _max_data is not None:
+        ax.fill_between(
+            x=range(len(value_list)),
+            y1=_min_data,
+            y2=_max_data,
+            color=COLOURS[0],
+            alpha=0.2
+        )
 
     if ylim is not None:
         ax.set_ylim(*ylim)
@@ -169,6 +207,8 @@ def plot_ratio(
         ylim: List[float] = [0, 1],
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
+        min_data: Optional[List[float]] = None,
+        max_data: Optional[List[float]] = None,
         title: Optional[str] = None,
         disable_title: bool = False):
     """Plot a desired series of ratio values from a model run
@@ -179,6 +219,8 @@ def plot_ratio(
         ylim (List[float], optional): The expected range of values, will be the y axis. Defaults to [0, 1].
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
+        min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
+        max_data (Optional[List[float]], optional): List of maximal values. Needs to be defined together with min_data.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -191,12 +233,24 @@ def plot_ratio(
 
     # Get the right data based on the supplied arguments
     value_lists = get_value_lists(data, attributes, agent_filter)
+    # Check if min and max data are supplied correctly
+    _min_data, _max_data = check_min_max_data(data, min_data, max_data)
 
     fig, ax = check_ax(ax, disable_title)
 
     for attribute_idx, matrix in enumerate(value_lists):
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
+
+            # Plot the shaded area between min and max values
+            if _min_data is not None and _max_data is not None:
+                ax.fill_between(
+                    x=range(matrix.shape[0]),
+                    y1=_min_data[:, i],
+                    y2=_max_data[:, i],
+                    color=COLOURS[i],
+                    alpha=0.2
+        )
 
     if title is not None and not disable_title:
         ax.set_title(title)
