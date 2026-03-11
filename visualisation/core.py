@@ -195,7 +195,6 @@ def plot_ratio(
     fig, ax = check_ax(ax, disable_title)
 
     for attribute_idx, matrix in enumerate(value_lists):
-        print(matrix)
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
 
