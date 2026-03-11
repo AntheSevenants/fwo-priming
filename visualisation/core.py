@@ -68,13 +68,13 @@ def filter_for_agent(
 
 def get_value_lists(
         data: Union[model.model.PrimingModel, Union[List[float], List[List[float]]]],
-        attributes: Optional[Union[str, List[str]]] = None,
+        attributes: Union[str, List[str]],
         agent_filter: Optional[int] = None) -> List[np.ndarray]:
     """Return a list of values based on a model instance or a list of values
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
-        attributes (Optional[Union[str, List[str]]], optional): The names of the series to plot. Only used if data is a model. Defaults to None.
+        attributes (Union[str, List[str]]]): The names of the series to plot. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         agent_filter (Optional[int], optional): The index of the agent you want to filter for. If not supplied, no filtering is applied. Defaults to None.
 
     Raises:
@@ -116,8 +116,10 @@ def get_value_lists(
             raise ValueError("Supplied value list cannot have zero length")
         
         # If just a single value list is supplied, wrap in an outer list
-        if isinstance(data[0], float):
+        if len(attributes) == 1:
             _data = [ data ]
+        else:
+            _data = data
 
         # Go over each inner list and conver to numpy array
         for value_list in _data:
@@ -129,7 +131,7 @@ def get_value_lists(
 
 def plot_value(
         data: Union[model.model.PrimingModel, List[float]],
-        attribute: Optional[str] = None,
+        attribute: str,
         ylim: Optional[List[float]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
@@ -139,7 +141,7 @@ def plot_value(
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
-        attribute (Optional[str], optional): The name of the series to model. Only used if data is a model. Defaults to None.
+        attribute (Optional[str]): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
@@ -163,7 +165,7 @@ def plot_value(
 
 def plot_ratio(
         data: Union[model.model.PrimingModel, List[float]],
-        attributes: Optional[Union[str, List[str]]] = None,
+        attributes: Union[str, List[str]],
         ylim: List[float] = [0, 1],
         ax: Optional[matplotlib.axes.Axes] = None,
         agent_filter: Optional[int] = None,
@@ -173,7 +175,7 @@ def plot_ratio(
 
     Args:
         priming_model (model.model.PrimingModel): The model instance
-        attributes (Union[str, List[str]]): The names of the series to model
+        attributes (Union[str, List[str]]): The names of the series to model. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         ylim (List[float], optional): The expected range of values, will be the y axis. Defaults to [0, 1].
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
@@ -193,6 +195,7 @@ def plot_ratio(
     fig, ax = check_ax(ax, disable_title)
 
     for attribute_idx, matrix in enumerate(value_lists):
+        print(matrix)
         for i in range(matrix.shape[1]):
             ax.plot(matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx])
 
@@ -205,7 +208,7 @@ def plot_ratio(
 
 def plot_ratio_pass(
         data: Union[model.model.PrimingModel, List[float]],
-        attribute: Optional[str] = None,
+        attribute: str,
         ylim: Optional[List[float]] = None,
         baseline: Optional[float] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
@@ -215,7 +218,7 @@ def plot_ratio_pass(
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
-        attribute (Optional[str], optional): The name of the series to model. Only used if data is a model. Defaults to None.
+        attribute (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Please do not pass any axes currently. Defaults to None.
