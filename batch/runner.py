@@ -87,10 +87,14 @@ def batch_run(
     combination_id = 0
     for kwargs in _make_model_kwargs(parameters):
         for iteration in range(iterations):
+            # We have to make a new kwargs object in order to prevent the seed from sticking into this specific combinatino
             if "seed" not in kwargs:
-                kwargs["seed"] = random.randint(0, 99999999)
+                kwargs_pass = { **kwargs, "seed": random.randint(0, 99999999) }
+            else:
+                kwargs_pass = kwargs
 
-            runs_list.append((run_id, combination_id, iteration, date_time, kwargs))
+
+            runs_list.append((run_id, combination_id, iteration, date_time, kwargs_pass))
             run_id += 1
         combination_id += 1
 
