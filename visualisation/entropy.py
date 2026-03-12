@@ -1,10 +1,12 @@
 import matplotlib.axes
+import matplotlib.figure
 
 import model.model
 import model.entropy
 import visualisation.core
 
 from typing import Optional, List, Union
+
 
 def ylim_from_num_constructions(num_constructions: int):
     """Derive the ylim values from the model values
@@ -15,18 +17,19 @@ def ylim_from_num_constructions(num_constructions: int):
     Returns:
         List[float]: The minimum and maximum values for entropy for these model parameters
     """
-    ylim = [ 0, model.entropy.compute_maximum_entropy(num_constructions) ]
+    ylim = [0, model.entropy.compute_maximum_entropy(num_constructions)]
 
     return ylim
 
 
 def plot_ctx_entropy_mean(
-        data: Union[model.model.PrimingModel, List[float]],
-        num_constructions: int,
-        min_data: Optional[List[float]] = None,
-        max_data: Optional[List[float]] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
-        disable_title: bool = False):
+    data: Union[model.model.PrimingModel, List[float]],
+    num_constructions: int,
+    min_data: Optional[List[float]] = None,
+    max_data: Optional[List[float]] = None,
+    ax: Optional[matplotlib.axes.Axes] = None,
+    disable_title: bool = False,
+) -> matplotlib.axes.Axes:
     """Plot the mean entropy across agents
 
     Args:
@@ -36,7 +39,7 @@ def plot_ctx_entropy_mean(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axis: The finished graph
+        matplotlib.axes.Axes: The finished graph
     """
     ylim = ylim_from_num_constructions(num_constructions)
 
@@ -51,10 +54,12 @@ def plot_ctx_entropy_mean(
         disable_title=disable_title,
     )
 
+
 def plot_ctx_entropy_per_agent(
-        data: Union[model.model.PrimingModel, List[List[float]]],
-        num_constructions: int,
-        disable_title: bool = False):
+    data: Union[model.model.PrimingModel, List[List[float]]],
+    num_constructions: int,
+    disable_title: bool = False,
+) -> matplotlib.figure.Figure:
     """Plot the entropy evolution of each agent on a single graph.
 
     Args:
@@ -63,7 +68,7 @@ def plot_ctx_entropy_per_agent(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axis: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
 
     maximum_entropy = model.entropy.compute_maximum_entropy(num_constructions)
@@ -75,16 +80,17 @@ def plot_ctx_entropy_per_agent(
         ylim=ylim,
         baseline=maximum_entropy / 2,
         title="Evolution of preference entropy per agent",
-        disable_title=disable_title
+        disable_title=disable_title,
     )
 
 
 def plot_ctx_entropy_for_agent(
-        data: Union[model.model.PrimingModel, List[float]],
-        num_constructions: int,
-        ax: Optional[matplotlib.axes.Axes] = None,
-        agent_index: Optional[int] = None,
-        disable_title: bool = False):
+    data: Union[model.model.PrimingModel, List[float]],
+    num_constructions: int,
+    ax: Optional[matplotlib.axes.Axes] = None,
+    agent_index: Optional[int] = None,
+    disable_title: bool = False,
+) -> matplotlib.axes.Axes:
     """Plot the entropy evolution of a single agent
 
     Args:
@@ -95,7 +101,7 @@ def plot_ctx_entropy_for_agent(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axis: The finished graph
+        matplotlib.axes.Axes: The finished graph
     """
 
     visualisation.core.check_if_none("agent_index", agent_index)
