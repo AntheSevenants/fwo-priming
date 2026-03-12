@@ -2,7 +2,15 @@ import model.enums
 import numpy as np
 
 from dataclasses import dataclass, asdict, field
-from typing import List, Optional
+from typing import List, Optional, Dict, Type
+
+
+# Mapping of parameter names to their enum classes
+PARAMETER_ENUM_MAPPING: Dict[str, Type] = {
+    "starting_probabilities_type": model.enums.StartingProbabilities,
+    "decay_to": model.enums.DecayTo,
+    "affects_base_rate": model.enums.AffectsBaseRate,
+}
 
 
 @dataclass
