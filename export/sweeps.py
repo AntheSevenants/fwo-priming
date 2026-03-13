@@ -14,6 +14,7 @@ def get_sweeps(sweeps_dir: str) -> List[str]:
     """
 
     sweep_dirs = next(os.walk(sweeps_dir))[1]
+    sweep_dirs = sorted(sweep_dirs)
 
     return sweep_dirs
 
