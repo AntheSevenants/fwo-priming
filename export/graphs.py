@@ -15,6 +15,11 @@ import visualisation.multiplot
 import export.runs
 
 
+class GraphContext:
+    EXPORT = 0
+    DASHBOARD = 1
+
+
 @dataclass
 class GraphConfig:
     data_column: str  # What column does the required data come from?
@@ -23,6 +28,7 @@ class GraphConfig:
         None  # What extra arguments are needed to plot this figure?
     )
     is_mosaic: bool = False
+    context: int = GraphContext.EXPORT
 
 
 @dataclass
@@ -30,6 +36,7 @@ class MosaicConfig:
     layout: List[List[str]]  # Names of other graphs
     size: Tuple[int, int] = (10, 16)
     is_mosaic: bool = True
+    context: int = GraphContext.DASHBOARD
 
 
 graph_configs = {
@@ -62,14 +69,21 @@ graph_configs = {
 }
 
 
-def get_graph_names() -> List[str]:
+def get_graph_names(context: int) -> List[str]:
     """Returns a list of the names of all available graphs
+
+    Args:
+        context (int): Context where the graphs will be used
 
     Returns:
         List[str]: A list of the names of all available graphs
     """
 
-    return list(graph_configs.keys())
+    return [
+        graph_config
+        for graph_config in list(graph_configs.keys())
+        if graph_configs[graph_config].context == context
+    ]
 
 
 def get_graph_config(graph_name: str) -> Union[GraphConfig, MosaicConfig]:

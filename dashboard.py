@@ -107,7 +107,7 @@ def show_interface(live: bool = False):
 
         # GRAPH TYPES
         if aggregate is None:
-            GRAPHS = export.graphs.get_graph_names()
+            GRAPHS = export.graphs.get_graph_names(export.graphs.GraphContext.DASHBOARD)
         else:
             GRAPHS = ["wortels"]  # TODO
 
