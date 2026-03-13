@@ -13,7 +13,7 @@ def plot_ctx_activation_mean(
     max_data: Optional[List[List[float]]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     disable_title: bool = False,
-) -> matplotlib.axes.Axes:
+) -> matplotlib.figure.Figure:
     """Plot the mean activation level across agents.
 
     Args:
@@ -24,7 +24,7 @@ def plot_ctx_activation_mean(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axes: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
 
     return visualisation.core.plot_ratio(
@@ -68,7 +68,7 @@ def plot_ctx_activation_for_agent(
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_index: Optional[int] = None,
     disable_title: bool = False,
-) -> matplotlib.axes.Axes:
+) -> matplotlib.figure.Figure:
     """Plot the activation level evolution of a single agent
 
     Args:
@@ -78,7 +78,7 @@ def plot_ctx_activation_for_agent(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axes: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
 
     visualisation.core.check_if_none("agent_index", agent_index)

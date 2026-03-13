@@ -42,17 +42,20 @@ def check_ax(
     return fig, ax
 
 
-def close_ax_figure(ax: matplotlib.axes.Axes):
-    """Close associated figure of an axis
+def get_ax_figure(ax: matplotlib.axes.Axes):
+    """Retrieve the associated figure of an axis
 
     Args:
-        ax (matplotlib.axes.Axes): The axis of which the figure must be closed
+        ax (matplotlib.axes.Axes): The axis of which to retrieve the figure
+
+    Returns:
+        matplotlib.figure.Figure: The associated figure
     """
 
     if isinstance(ax.figure, matplotlib.figure.SubFigure):
-        plt.close(ax.figure.figure)
+        return ax.figure.figure
     else:
-        plt.close(ax.figure)
+        return ax.figure
 
 
 def filter_for_agent(
@@ -205,7 +208,7 @@ def plot_value(
     max_data: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-) -> matplotlib.axes.Axes:
+) -> matplotlib.figure.Figure:
     """Plot a desired series of values from a model run
 
     Args:
@@ -219,7 +222,7 @@ def plot_value(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
     
     Returns:
-        matplotlib.axes.Axes: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
 
     fig, ax = check_ax(ax, disable_title)
@@ -247,9 +250,10 @@ def plot_value(
     if title is not None and not disable_title:
         ax.set_title(title)
 
-    close_ax_figure(ax)
+    output_fig = get_ax_figure(ax)
+    plt.close(output_fig)
 
-    return ax
+    return output_fig
 
 
 def plot_ratio(
@@ -262,7 +266,7 @@ def plot_ratio(
     max_data: Optional[List[List[float]]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-) -> matplotlib.axes.Axes:
+) -> matplotlib.figure.Figure:
     """Plot a desired series of ratio values from a model run
 
     Args:
@@ -280,7 +284,7 @@ def plot_ratio(
         ValueError: If the number of attributes to plot is larger than the supported number of line styles
 
     Returns:
-        matplotlib.axes.Axes: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
 
     if isinstance(attributes, str):
@@ -317,9 +321,10 @@ def plot_ratio(
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
-    close_ax_figure(ax)
+    output_fig = get_ax_figure(ax)
+    plt.close(output_fig)
 
-    return ax
+    return output_fig
 
 
 def plot_ratio_pass(

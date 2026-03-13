@@ -11,7 +11,7 @@ def plot_ctx_base_rate_mean(
         min_data: Optional[List[List[float]]] = None,
         max_data: Optional[List[List[float]]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
-        disable_title: bool = False) -> matplotlib.axes.Axes:
+        disable_title: bool = False) -> matplotlib.figure.Figure:
     """Plot the mean base rate across agents
 
     Args:
@@ -22,7 +22,7 @@ def plot_ctx_base_rate_mean(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.axes.Axes: The finished graph
+        matplotlib.figure.Figure: The finished graph
     """
     
     return visualisation.core.plot_ratio(
