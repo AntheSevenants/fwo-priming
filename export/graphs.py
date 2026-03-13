@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, Any, Optional, List, Dict, Union
+from typing import Callable, Dict, Any, Optional, List, Dict, Union, Tuple
 
 import matplotlib.axes
 import matplotlib.figure
@@ -10,6 +10,7 @@ import visualisation.activation
 import visualisation.base_rate
 import visualisation.entropy
 import visualisation.probabilities
+import visualisation.multiplot
 
 import export.runs
 
@@ -21,6 +22,14 @@ class GraphConfig:
     extra_args: Optional[Dict[str, Any]] = (
         None  # What extra arguments are needed to plot this figure?
     )
+    is_mosaic: bool = False
+
+
+@dataclass
+class MosaicConfig:
+    layout: List[List[str]]  # Names of other graphs
+    size: Tuple[int, int] = (10, 16)
+    is_mosaic: bool = True
 
 
 graph_configs = {
@@ -43,6 +52,13 @@ graph_configs = {
         data_column="ctx_probs_mean",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
     ),
+    "composite_plot": MosaicConfig(
+        layout=[
+            ["ctx_activation_mean", "ctx_base_rate_mean"],
+            ["ctx_entropy_mean", "ctx_probs_mean"],
+        ],
+        size=(12, 12),
+    ),
 }
 
 
@@ -54,6 +70,26 @@ def get_graph_names() -> List[str]:
     """
 
     return list(graph_configs.keys())
+
+
+def get_graph_config(graph_name: str) -> Union[GraphConfig, MosaicConfig]:
+    """Retrieve the configuration for a graph or mosaic graph
+
+    Args:
+        graph_name (str): Name of the graph
+
+    Raises:
+        ValueError: Raised if name of the graph does not reference an existing config
+
+    Returns:
+        Union[GraphConfig, MosaicConfig]: Configuration associated with the specified graph name
+    """
+
+    # First, retrieve the config for this graph (see above)
+    if not graph_name in graph_configs:
+        raise ValueError(f"'{graph_name}' is not a valid graph")
+
+    return graph_configs[graph_name]
 
 
 def generate_graphs(
@@ -87,24 +123,60 @@ def generate_graphs(
 
     # We go over all requested graphs and generate them
     for graph_name in graphs:
-        # First, retrieve the config for this graph (see above)
-        if not graph_name in graph_configs:
-            raise ValueError(f"'{graph_name}' is not a valid graph")
-        config = graph_configs[graph_name]
+        config = get_graph_config(graph_name)
 
-        # Check if there are other arguments to be supplied, based on data argument
-        kwargs = {}
-        if config.extra_args:
-            for arg_name, arg_func in config.extra_args.items():
-                kwargs[arg_name] = arg_func(data)
+        # Check if mosaic plot
+        if isinstance(config, MosaicConfig):
+            # One by one, we replace the names of the graphs with the actual functions that build them
+            plot_functions = []
+            for row in config.layout:
+                inner_functions = []
+                for references_graph_name in row:
+                    graph_function = generate_inner_lambda(data, references_graph_name)
+                    inner_functions.append(graph_function)
+                plot_functions.append(inner_functions)
+
+            # Make the plot based on the functions
+            figure = visualisation.multiplot.combine(plot_functions, config.size)
+        else:
+            # Make a single plot. We pass ax=None because there is no existing axis to hook into
+            figure, ax = generate_inner_lambda(data, graph_name)(ax=None)
+
+        graphs_output[graph_name] = figure
+
+    return graphs_output
+
+
+def generate_inner_lambda(data: Dict[str, Any], graph_name: str) -> Callable:
+    """Generate the function which builds the graph specified by the graph name
+
+    Args:
+        data (Dict[str, Any]): Data dump of a specific parameter combination
+        graph_name (str): Name of the graph to generate the function for
+
+    Raises:
+        TypeError: Raised if the graph name is associated with a mosaic function
+
+    Returns:
+        Callable: Function which generates the graph specified by the graph name
+    """
+
+    config = get_graph_config(graph_name)
+
+    if isinstance(config, MosaicConfig):
+        raise TypeError("Inner plot function cannot be of mosaic type")
+
+    # Check if there are other arguments to be supplied, based on data argument
+    kwargs = {}
+    if config.extra_args:
+        for arg_name, arg_func in config.extra_args.items():
+            kwargs[arg_name] = arg_func(data)
 
         # Add common args
         kwargs["min_data"] = data[config.data_column]["min"]
         kwargs["max_data"] = data[config.data_column]["max"]
 
-        # Make the actual plot
-        figure, ax = config.plot_func(data[config.data_column]["mean"], **kwargs)
-
-        graphs_output[graph_name] = figure
-
-    return graphs_output
+    # Make the plot function
+    return lambda ax: config.plot_func(
+        data[config.data_column]["mean"], **kwargs, ax=ax
+    )
