@@ -1,0 +1,241 @@
+import os
+import argparse
+import export.cache
+import export.sweeps
+import export.files
+import export.parameters
+import export.graphs
+
+import model.model_defaults
+
+import pandas as pd
+
+from flask import Flask, request, render_template, redirect, url_for, send_file
+
+from typing import List, Optional
+
+PROFILE_NAME = "dashboard"
+
+app = Flask(
+    __name__, template_folder="dashboard/templates/", static_folder="dashboard/static/"
+)
+
+
+@app.route("/live/")
+def live():
+    return show_interface(live=True)
+
+
+@app.route("/")
+def index():
+    return show_interface()
+
+
+# Live = are we looking at graphs from the jupyter notebook?
+def show_interface(live: bool = False):
+    # "sweep" = a complete batch run with multiple parameter combinations
+    sweeps = export.sweeps.get_sweeps(args.sweeps_dir)
+    # "selected sweep" = one of those batch runs
+    selected_sweep = request.args.get("sweep")
+    # You can filter for specific graphs
+    selected_filter = request.args.get("filter")
+
+    # Aggregate parameter allows you to aggregate over multiple parameter combinations
+    aggregate = request.args.get("aggregate")
+
+    # Combinatino of parameters selected
+    selected_parameters = dict(request.args)
+    parameter_mapping = None
+    constants_mapping = None
+    disable_selection = (
+        False  # if only one combination exists, skip parameter selection
+    )
+    combination_id = None  # the ID connected to the selected set of parameters
+
+    # Flag which indicates we have to aggregate over multiple models
+    do_aggregate = False
+
+    # Temp value
+    graphs = []
+    GRAPHS = []
+
+    # There are keywords used by the application, these do not appear as parameters
+    # We filter to check whether the user has made an actual parameter selection
+    no_selection = (
+        len(list(set(selected_parameters) - set(export.parameters.RESERVED_KEYWORDS)))
+        == 0
+    )
+
+    # Run selection logic
+    if selected_sweep is not None:
+        # Get information about all runs in the sweep as a  dataframe
+        run_infos = export.sweeps.get_run_infos(args.sweeps_dir, selected_sweep)
+
+        parameter_mapping, constants_mapping = export.parameters.build_mapping(
+            run_infos
+        )
+
+        if aggregate is not None:
+            selected_parameters = (
+                export.parameters.remove_aggregate_parameter_from_selected(
+                    aggregate, selected_parameters
+                )
+            )
+
+        # If no parameter combination was made, create a parameter selection ourselves
+        if no_selection:
+            for parameter in parameter_mapping:
+                selected_parameters[parameter] = parameter_mapping[parameter][0]
+
+            return redirect(url_for("index", _external=False, **selected_parameters))
+
+        # These are runs that adhere to the parameter selection made
+        selected_runs = export.parameters.find_eligible_runs(
+            run_infos=run_infos, selected_parameters=selected_parameters
+        )
+
+        if selected_runs.shape[0] == 0:
+            raise ValueError("No runs found with the selected parameter combination")
+
+        unique_combination_ids = selected_runs["combination_id"].unique().tolist()
+        if len(unique_combination_ids) > 1:
+            raise ValueError(
+                "Parameter selection does not single out a unique parameter combination"
+            )
+        else:
+            combination_id = unique_combination_ids[0]
+
+        # GRAPH TYPES
+        if aggregate is None:
+            GRAPHS = export.graphs.get_graph_names()
+        else:
+            GRAPHS = ["wortels"]  # TODO
+
+        # Filter logic (what graph should we show?)
+        if selected_filter == "no":
+            selected_filter = None
+        elif selected_filter in GRAPHS:
+            graphs = [selected_filter]
+        else:
+            selected_filter = None
+
+        if selected_filter is None:
+            graphs = GRAPHS.copy()
+
+        prerender_profile_graphs(
+            selected_sweep, combination_id, graphs, aggregate_parameter=aggregate
+        )
+
+        if live:
+            selected_sweep = "live"
+            combination_id = "live"
+            live = True
+            no_selection = False
+
+    return render_template(
+        "index.html",
+        sweeps=sweeps,
+        selected_sweep=selected_sweep,
+        combination_id=combination_id,
+        aggregate_parameter=aggregate,
+        selected_parameters=selected_parameters,
+        selected_filter=selected_filter,
+        parameter_mapping=parameter_mapping,
+        constants_mapping=constants_mapping,
+        live=live,  # opus
+        no_selection=no_selection,
+        graphs=graphs,
+        all_graphs=GRAPHS,
+        get_enum_name=get_enum_name,
+    )
+
+
+def prerender_profile_graphs(
+    selected_sweep: str,
+    combination_id: int,
+    graphs: List[str],
+    aggregate_parameter: Optional[str] = None,
+) -> None:
+    figures_dir = args.figures_dir
+
+    # Get cached graphs
+    cached_graphs = export.cache.get_cached_graphs(
+        selected_sweep, combination_id, graphs, PROFILE_NAME, figures_dir
+    )
+    non_cached_graph_count = len(list(set(graphs) - set(cached_graphs)))
+
+    if non_cached_graph_count == -1:
+        pass
+    # If we still need some graphs, just build all of them again
+    else:
+        # Generate the directory where we will put the figures
+        temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
+            selected_sweep, combination_id, figures_dir
+        )
+
+        # All graphs in a dict representation
+        # Create profile graphs
+        if aggregate_parameter is None:
+            graphs_output = export.graphs.generate_graphs(
+                args.sweeps_dir, selected_sweep, combination_id, graphs
+            )
+        # Else, create aggregate graphs
+        # TODO
+        # else:
+        #     graphs_output = export.aggregate.graphs.generate_graphs(
+        #         selected_sweep,
+        #         selected_run_ids,
+        #         selected_runs,
+        #         aggregate_parameter,
+        #         RUNS_DIR,
+        #     )
+
+        # Save the files to disk!
+        export.files.export_files(graphs_output, PROFILE_NAME, temp_models_figures_dir)
+
+
+@app.route("/graph/<string:selected_sweep>/<string:combination_id>/<string:graph_name>")
+def send_graph(graph_name, selected_sweep, combination_id):
+    # Live graphs live in the same folder always, so we do not need to compute where to find them
+    if selected_sweep == "live" and combination_id == "live":
+        temp_models_figures_dir = args.figures_dir_live
+        profile = "jupyter"
+    else:
+        # Where our figures are stored for this parameter combination
+        temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
+            selected_sweep, combination_id, args.figures_dir
+        )
+        profile = PROFILE_NAME
+
+    # Figure filename
+    figure_filename = export.files.get_figure_filename(profile, graph_name)
+    graph_path = os.path.join(temp_models_figures_dir, figure_filename)
+
+    return send_file(graph_path, mimetype="image/png")
+
+
+# From Le Chat
+def get_enum_name(attribute: str, value: str):
+    cls = model.model_defaults.PARAMETER_ENUM_MAPPING[attribute]
+
+    # Get all attributes of the provided class
+    attributes = [
+        (name, getattr(cls, name)) for name in dir(cls) if not name.startswith("__")
+    ]
+
+    # Create a mapping of values to names
+    enum_mapping = {
+        str(value): name for name, value in attributes if isinstance(value, int)
+    }
+
+    # Return the corresponding enum name or "Unknown" if not found
+    return enum_mapping.get(value, "Unknown")
+
+
+parser = argparse.ArgumentParser(description="dashboard - what's ticking?")
+parser.add_argument("sweeps_dir", help="Directory where all sweeps are stored")
+parser.add_argument("figures_dir", help="Directory where figures will be stored")
+parser.add_argument("figures_live_dir", help="Directory where live figures are stored")
+args = parser.parse_args()
+
+app.run(debug=True, port=8080, host="0.0.0.0")

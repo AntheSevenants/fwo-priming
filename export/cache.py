@@ -1,0 +1,113 @@
+import os
+import export.files
+
+from typing import List
+
+
+def get_combination_id(selected_run_ids: List[int]) -> int:
+    """Turn a list of selected runs into a unique ID identifying those runs
+
+    Args:
+        selected_run_ids (List[int]): List of selected run IDs
+
+    Returns:
+        int: The unique ID for the specified combination of runs
+    """
+
+    return sum(selected_run_ids)
+
+
+def make_temp_sweep_figures_dir(selected_sweep: str, figures_output_dir: str):
+    # This is where we will store the graphs output
+
+    # We create a directory for the selected sweep
+    temp_sweep_figures_dir = os.path.join(figures_output_dir, selected_sweep)
+
+    if not os.path.exists(temp_sweep_figures_dir):
+        os.makedirs(temp_sweep_figures_dir, exist_ok=True)
+
+    return temp_sweep_figures_dir
+
+
+def make_temp_runs_figures_dir(
+    selected_sweep: str, combination_id: int, figures_output_dir: str
+):
+    temp_run_figures_dir = make_temp_sweep_figures_dir(
+        selected_sweep, figures_output_dir
+    )
+
+    # We create a directory for the selected parameter selection
+    temp_models_figures_dir = os.path.join(
+        temp_run_figures_dir, str(combination_id)
+    )
+
+    if not os.path.exists(temp_models_figures_dir):
+        os.makedirs(temp_models_figures_dir, exist_ok=True)
+
+    return temp_models_figures_dir
+
+
+def is_graph_in_cache(
+    selected_sweep: str,
+    combination_id: int,
+    graph_name: str,
+    profile_name: str,
+    figures_output_dir: str,
+) -> bool:
+    """Check whether the specified graph was already created for this sweep and parameter selection
+
+    Args:
+        selected_sweep (str): Name of the selected sweep
+        combination_id (int): Unique ID for the parameter selection
+        graph_name (str): Name of the graph to check
+
+    Returns:
+        bool: Whether the specified graph is cached
+    """
+
+    temp_models_figures_dir = make_temp_runs_figures_dir(
+        selected_sweep, combination_id, figures_output_dir
+    )
+    graph_filename = export.files.get_figure_filename(profile_name, graph_name)
+
+    # Where graph would typically be saved
+    graph_path = os.path.join(temp_models_figures_dir, graph_filename)
+
+    # If it exists, it sits in cache
+    return os.path.exists(graph_path)
+
+
+def get_cached_graphs(
+    selected_sweep: str,
+    combination_id: int,
+    graphs: List[str],
+    profile_name: str,
+    figures_output_dir: str,
+) -> List[str]:
+    """Retrieve a list of all cached graphs for the selected sweep with the specified parameter selection ID
+
+    Args:
+        selected_sweep (str): Name of the selected sweep
+        combination_id (int): Unique ID for the parameter selection
+        graphs (List[str]): List with names of graphs to check whether in cache
+        profile_name (str): Name of the selected profile
+        figures_output_dir (str): Path where figures are written
+
+    Returns:
+        List[str]: List of names with all cached graphs
+    """
+
+    # Check if the graphs we need already exist
+    cached_graphs = []
+
+    for graph_name in graphs:
+        if is_graph_in_cache(
+            selected_sweep,
+            combination_id,
+            graph_name,
+            profile_name,
+            figures_output_dir,
+        ):
+            cached_graphs.append(graph_name)
+
+    return cached_graphs
