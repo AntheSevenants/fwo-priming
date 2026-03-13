@@ -42,6 +42,19 @@ def check_ax(
     return fig, ax
 
 
+def close_ax_figure(ax: matplotlib.axes.Axes):
+    """Close associated figure of an axis
+
+    Args:
+        ax (matplotlib.axes.Axes): The axis of which the figure must be closed
+    """
+
+    if isinstance(ax.figure, matplotlib.figure.SubFigure):
+        plt.close(ax.figure.figure)
+    else:
+        plt.close(ax.figure)
+
+
 def filter_for_agent(
     matrix: np.ndarray, agent_filter: Optional[int] = None
 ) -> np.ndarray:
@@ -234,6 +247,8 @@ def plot_value(
     if title is not None and not disable_title:
         ax.set_title(title)
 
+    close_ax_figure(ax)
+
     return ax
 
 
@@ -301,6 +316,8 @@ def plot_ratio(
 
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
+
+    close_ax_figure(ax)
 
     return ax
 
@@ -386,6 +403,8 @@ def plot_ratio_pass(
 
     fig.axes[0].set_ylabel("Time steps in the simulation")
     fig.axes[0].invert_yaxis()
+
+    plt.close(fig)
 
     return fig
 
