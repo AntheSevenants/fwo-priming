@@ -5,7 +5,7 @@ import model.model
 import model.entropy
 import visualisation.core
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 
 def ylim_from_num_constructions(num_constructions: int):
@@ -29,7 +29,7 @@ def plot_ctx_entropy_mean(
     max_data: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     disable_title: bool = False,
-) -> matplotlib.figure.Figure:
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the mean entropy across agents
 
     Args:
@@ -39,7 +39,7 @@ def plot_ctx_entropy_mean(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.figure.Figure: The finished graph
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
     ylim = ylim_from_num_constructions(num_constructions)
 
@@ -90,7 +90,7 @@ def plot_ctx_entropy_for_agent(
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_index: Optional[int] = None,
     disable_title: bool = False,
-) -> matplotlib.figure.Figure:
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the entropy evolution of a single agent
 
     Args:
@@ -101,7 +101,7 @@ def plot_ctx_entropy_for_agent(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
-        matplotlib.figure.Figure: The finished graph
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
     visualisation.core.check_if_none("agent_index", agent_index)

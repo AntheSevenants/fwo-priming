@@ -208,7 +208,7 @@ def plot_value(
     max_data: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-) -> matplotlib.figure.Figure:
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of values from a model run
 
     Args:
@@ -222,7 +222,7 @@ def plot_value(
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
     
     Returns:
-        matplotlib.figure.Figure: The finished graph
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
     fig, ax = check_ax(ax, disable_title)
@@ -253,7 +253,7 @@ def plot_value(
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
 
-    return output_fig
+    return (output_fig, ax)
 
 
 def plot_ratio(
@@ -266,7 +266,7 @@ def plot_ratio(
     max_data: Optional[List[List[float]]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-) -> matplotlib.figure.Figure:
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of ratio values from a model run
 
     Args:
@@ -284,7 +284,7 @@ def plot_ratio(
         ValueError: If the number of attributes to plot is larger than the supported number of line styles
 
     Returns:
-        matplotlib.figure.Figure: The finished graph
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
     if isinstance(attributes, str):
@@ -324,7 +324,7 @@ def plot_ratio(
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
 
-    return output_fig
+    return (output_fig, ax)
 
 
 def plot_ratio_pass(

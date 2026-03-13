@@ -4,14 +4,14 @@ import matplotlib.figure
 import model.model
 import visualisation.core
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 
 def plot_ctx_base_rate_mean(
         data: Union[model.model.PrimingModel, List[List[float]]],
         min_data: Optional[List[List[float]]] = None,
         max_data: Optional[List[List[float]]] = None,
         ax: Optional[matplotlib.axes.Axes] = None,
-        disable_title: bool = False) -> matplotlib.figure.Figure:
+        disable_title: bool = False) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the mean base rate across agents
 
     Args:

@@ -103,7 +103,7 @@ def generate_graphs(
         kwargs["max_data"] = data[config.data_column]["max"]
 
         # Make the actual plot
-        figure = config.plot_func(data[config.data_column]["mean"], **kwargs)
+        figure, ax = config.plot_func(data[config.data_column]["mean"], **kwargs)
 
         graphs_output[graph_name] = figure
 
