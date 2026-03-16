@@ -8,19 +8,22 @@ import export.sweeps
 from typing import Dict, Any
 
 
-def make_run_data_path(sweeps_dir: str, selected_sweep: str, run_id: int) -> str:
+def make_run_data_path(
+    sweeps_dir: str, selected_sweep: str, run_id: int, create: bool = False
+) -> str:
     """Make the path for where run data JSON is stored
 
     Args:
         sweeps_dir (str): The path to the directory where all sweeps are stored
         selected_sweep (str): The name of the sweep of interest
         run_id (int): ID of the run of interest
+        create (bool): Whether to create any missing directories
 
     Returns:
         str: Path where run data is stored
     """
 
-    sweep_dir = export.sweeps.make_selected_sweep_dir(sweeps_dir, selected_sweep)
+    sweep_dir = export.sweeps.make_selected_sweep_dir(sweeps_dir, selected_sweep, create)
     return os.path.join(sweep_dir, f"{run_id}.json")
 
 
