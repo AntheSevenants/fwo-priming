@@ -13,6 +13,7 @@ import visualisation.probabilities
 import visualisation.multiplot
 
 import export.runs
+import export.combinations
 
 
 class GraphContext:
@@ -133,7 +134,7 @@ def generate_graphs(
     graphs_output = {}
 
     # Retrieve the data for this combination
-    data = export.runs.get_combination_data(sweeps_dir, selected_sweep, combination_id)
+    data = export.combinations.get_combination_data(sweeps_dir, selected_sweep, combination_id)
 
     # We go over all requested graphs and generate them
     for graph_name in graphs:

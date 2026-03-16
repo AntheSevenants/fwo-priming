@@ -13,6 +13,7 @@ import math
 import batch.profiles
 import export.sweeps
 import export.runs
+import export.combinations
 
 from model.model import PrimingModel
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
         
         aggregated_data["combination_id"] = row["combination_id"]
 
-        combination_data_path = export.runs.make_combination_data_path(
+        combination_data_path = export.combinations.make_combination_data_path(
             SWEEPS_DIR,
             current_sweep,
             row["combination_id"]
