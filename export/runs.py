@@ -24,7 +24,9 @@ def make_run_data_path(sweeps_dir: str, selected_sweep: str, run_id: int) -> str
     return os.path.join(sweep_dir, f"{run_id}.json")
 
 
-def make_combination_data_path(sweeps_dir: str, selected_sweep: str, combination_id: int) -> str:
+def make_combination_data_path(
+    sweeps_dir: str, selected_sweep: str, combination_id: int
+) -> str:
     """Make the path for where combnation data JSON is stored
 
     Args:
@@ -78,7 +80,9 @@ def get_combination_data(
         Dict[str, Any]: Unserialised data dump of the specified combination
     """
 
-    combination_data_path = make_combination_data_path(sweeps_dir, selected_sweep, combination_id)
+    combination_data_path = make_combination_data_path(
+        sweeps_dir, selected_sweep, combination_id
+    )
 
     with open(combination_data_path, "rt") as reader:
         data = json.loads(reader.read())
