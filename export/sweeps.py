@@ -71,7 +71,7 @@ def make_selected_sweep_dir(
         FileNotFoundError: Raised if the selected sweep cannot be found in the sweep directory
 
     Returns:
-        str: _description_
+        str: Path to directory for sweep of interest
     """
 
     selected_sweep_dir = os.path.join(sweeps_dir, selected_sweep)
