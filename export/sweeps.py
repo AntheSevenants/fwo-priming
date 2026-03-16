@@ -44,12 +44,15 @@ def get_run_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:
     return pd.read_csv(model_infos_path)
 
 
-def make_selected_sweep_dir(sweeps_dir: str, selected_sweep: str) -> str:
+def make_selected_sweep_dir(
+    sweeps_dir: str, selected_sweep: str, create: bool = False
+) -> str:
     """Make the path for the directory of the sweep of interest in the specified sweeps directory
 
     Args:
         sweeps_dir (str): The path to the directory where all sweeps are stored
         selected_sweep (str): The name of the sweep of interest
+        create (bool): Whether to create the directory
 
     Raises:
         FileNotFoundError: Raised if the selected sweep cannot be found in the sweep directory
@@ -60,6 +63,9 @@ def make_selected_sweep_dir(sweeps_dir: str, selected_sweep: str) -> str:
 
     selected_sweep_dir = os.path.join(sweeps_dir, selected_sweep)
     if not os.path.exists(selected_sweep_dir):
-        raise FileNotFoundError("Sweep directory does not exist")
+        if create:
+            os.makedirs(selected_sweep_dir, exist_ok=True)
+        else:
+            raise FileNotFoundError("Sweep directory does not exist")
 
     return selected_sweep_dir
