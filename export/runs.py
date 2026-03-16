@@ -46,8 +46,7 @@ def load_dataframe(sweeps_dir: str, selected_sweep: str, run_id: int) -> Dict[st
     Args:
         sweeps_dir (str): The path to the directory where all sweeps are stored
         selected_sweep (str): The name of the sweep of interest
-        run_id (int): interest
-        combination_id (int): Unique
+        run_id (int): interID of the run of interest
 
     Returns:
         Dict[str, Any]: Unserialised data dump of the specified run
