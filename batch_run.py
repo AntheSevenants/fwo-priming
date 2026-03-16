@@ -11,6 +11,8 @@ import random
 import math
 
 import batch.profiles
+import export.sweeps
+import export.runs
 
 from model.model import PrimingModel
 
@@ -22,6 +24,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 NUM_STEPS = 10000
+SWEEPS_DIR = "sweeps/"
 
 if not args.profile in batch.profiles.params:
     raise ValueError("Unrecognised profile")
@@ -32,12 +35,13 @@ if __name__ == "__main__":
     now = datetime.now()  # current date and time
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
 
-    run_folder = f"sweeps/{args.profile}-{date_time}/"
-    os.makedirs(run_folder, exist_ok=True)
+    # Name of the current sweep
+    current_sweep = f"{args.profile}-{date_time}"
 
     results = batch_run(
         PrimingModel,
-        run_folder,
+        SWEEPS_DIR,
+        current_sweep,
         parameters=params,
         iterations=args.iterations,
         max_steps=NUM_STEPS,
@@ -46,7 +50,7 @@ if __name__ == "__main__":
         display_progress=True,
     )
 
-    csv_filename = f"{run_folder}run_infos.csv"
+    csv_filename = export.sweeps.make_run_infos_path(SWEEPS_DIR, current_sweep)
     br_df = pd.DataFrame(results)
     br_df = br_df.sort_values(by=['run_id'])
     br_df.to_csv(csv_filename, index=False)
@@ -61,9 +65,7 @@ if __name__ == "__main__":
         # Go over each run associated with this combination
         for run_id in row["run_id"]:
             # Load the run in memory
-            run_dump_path = os.path.join(run_folder, f"{run_id}.json")
-            with open(run_dump_path) as json_reader:
-                json_content = json.loads(json_reader.read())
+            json_content = export.runs.load_dataframe(SWEEPS_DIR, current_sweep, run_id)
 
             for column_name in json_content.keys():
                 if column_name.endswith("_mean"):
@@ -84,9 +86,10 @@ if __name__ == "__main__":
         
         aggregated_data["combination_id"] = row["combination_id"]
 
-        combination_data_path = os.path.join(
-            run_folder,
-            f"combination_{row['combination_id']}.json"
+        combination_data_path = export.runs.make_combination_data_path(
+            SWEEPS_DIR,
+            current_sweep,
+            row["combination_id"]
         )
 
         with open(combination_data_path, "wt") as json_writer:

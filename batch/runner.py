@@ -34,6 +34,8 @@ import multiprocessing
 import json
 import gc
 import random
+import export.runs
+
 from collections.abc import Iterable, Mapping
 from functools import partial
 from multiprocessing import Pool
@@ -50,7 +52,8 @@ multiprocessing.set_start_method("spawn", force=True)
 
 def batch_run(
     model_cls: type[PrimingModel],
-    date_time: str,
+    sweeps_dir: str,
+    current_sweep: str,
     parameters: Mapping[str, Any | Iterable[Any]],
     # We still retain the Optional[int] because users may set it to None (i.e. use all CPUs)
     number_processes: int | None = 1,
@@ -94,7 +97,7 @@ def batch_run(
                 kwargs_pass = kwargs
 
 
-            runs_list.append((run_id, combination_id, iteration, date_time, kwargs_pass))
+            runs_list.append((run_id, combination_id, iteration, sweeps_dir, current_sweep, kwargs_pass))
             run_id += 1
         combination_id += 1
 
@@ -184,7 +187,7 @@ def serialise_data_collector(model):
 
 def _model_run_func(
     model_cls: type[PrimingModel],
-    run: tuple[int, int, int, str, dict[str, Any]],
+    run: tuple[int, int, int, str, str, dict[str, Any]],
     max_steps: int,
     iterations: int,
     data_collection_period: int,
@@ -195,8 +198,8 @@ def _model_run_func(
     ----------
     model_cls : Type[PrimingModel]
         The model class to batch-run
-    run: Tuple[int, int, Dict[str, Any]]
-        The run id, iteration number, and kwargs for this run
+    run: Tuple[int, int, int, str, str, Dict[str, Any]]
+        The run id, combination id, iteration number, sweeps directory, current sweep and kwargs for this run
     max_steps : int
         Maximum number of model steps after which the model halts, by default 1000
     iterations : int
@@ -209,16 +212,16 @@ def _model_run_func(
     List[Dict[str, Any]]
         Return model_data, agent_data from the reporters
     """
-    run_id, combination_id, iteration, run_folder, kwargs = run
+    run_id, combination_id, iteration, sweeps_dir, current_sweep, kwargs = run
     model_params = dict_to_params(kwargs)
     model = model_cls(model_params)
     while model.running and model.steps <= max_steps:
         model.step()
 
-    os.makedirs(run_folder, exist_ok=True)
+    run_data_path = export.runs.make_run_data_path(
+        sweeps_dir, current_sweep, run_id, create=True)
 
-    model_filename = f"{run_folder}{run_id}.json"
-    with open(model_filename, "wt") as model_file:
+    with open(run_data_path, "wt") as model_file:
         output_data = serialise_data_collector(model)
 
         model_file.write(json.dumps(output_data))
