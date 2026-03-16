@@ -34,14 +34,27 @@ def get_run_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:
         pd.DataFrame: Dataframe containing the run info associated with different sweeps
     """
 
-    selected_sweep_dir = make_selected_sweep_dir(sweeps_dir, selected_sweep)
-
     # I am not a French speaker, I just like using the word "infos" because it is goofy
-    model_infos_path = os.path.join(selected_sweep_dir, "run_infos.csv")
+    model_infos_path = make_run_infos_path(sweeps_dir, selected_sweep)
     if not os.path.exists(model_infos_path):
         raise FileNotFoundError("Run infos CSV does nost exist")
 
     return pd.read_csv(model_infos_path)
+
+
+def make_run_infos_path(sweeps_dir: str, selected_sweep: str) -> str:
+    """Make the path for where run infos CSV is stored
+
+    Args:
+        sweeps_dir (str): The path to the directory where all sweeps are stored
+        selected_sweep (str): The name of the sweep fo interest
+
+    Returns:
+        str: Path where run infos CSV is stored
+    """
+
+    selected_sweep_dir = make_selected_sweep_dir(sweeps_dir, selected_sweep)
+    return os.path.join(selected_sweep_dir, "run_infos.csv")
 
 
 def make_selected_sweep_dir(
