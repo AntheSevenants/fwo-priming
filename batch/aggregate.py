@@ -13,18 +13,25 @@ class AggregateColumnOperation:
 
 class AggregateColumnOperations:
     MIN: AggregateColumnOperation = AggregateColumnOperation(
-        name="min", required_columns=["mean"], operation=lambda data: np.min(data, axis=0)
+        name="min",
+        required_columns=["mean"],
+        operation=lambda data: np.min(data, axis=0),
     )
     MAX: AggregateColumnOperation = AggregateColumnOperation(
-        name="max", required_columns=["mean"], operation=lambda data: np.max(data, axis=0)
+        name="max",
+        required_columns=["mean"],
+        operation=lambda data: np.max(data, axis=0),
     )
     MEAN: AggregateColumnOperation = AggregateColumnOperation(
-        name="mean", required_columns=["mean"], operation=lambda data: np.mean(data, axis=0)
+        name="mean",
+        required_columns=["mean"],
+        operation=lambda data: np.mean(data, axis=0),
     )
     DELTA: AggregateColumnOperation = AggregateColumnOperation(
         name="delta",
         required_columns=["min", "max"],
-        operation=lambda min_data, max_data: max_data.mean(axis=0) - min_data.mean(axis=0),
+        operation=lambda min_data, max_data: max_data.mean(axis=0)
+        - min_data.mean(axis=0),
     )
 
 
@@ -43,11 +50,13 @@ class AggregateColumnConfig:
 
 aggregate_column_configs = {
     "entropy": AggregateColumnConfig(data_column="ctx_entropy_mean"),
-    "activation": AggregateColumnConfig(data_column="ctx_activation_mean")
+    "activation": AggregateColumnConfig(data_column="ctx_activation_mean"),
 }
 
 
-def make_aggregate_output_name(aggregate_column_prefix: str, operation_name: str) -> str:
+def make_aggregate_output_name(
+    aggregate_column_prefix: str, operation_name: str
+) -> str:
     """Build the aggregate output column name
 
     Args:
@@ -101,7 +110,9 @@ def get_aggregate_metrics(
 
         for action in config.actions:
             # This will be the name of the column in the output dataframe
-            output_column_name = make_aggregate_output_name(aggregate_column_name, action.name)
+            output_column_name = make_aggregate_output_name(
+                aggregate_column_name, action.name
+            )
             # Automatically retrieve the columns that this specific action operation requires
             required_data = [
                 np.array(aggregated_data[config.data_column][column])
