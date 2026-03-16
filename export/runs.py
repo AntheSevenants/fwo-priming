@@ -3,21 +3,31 @@ import json
 import pandas as pd
 import numpy as np
 
+import export.sweeps
+
 from typing import Dict, Any
 
 
-def load_dataframe(run_path: str) -> Dict[str, Any]:
-    """Load a data dump for a specific run given the data dump path. Currently unused.
+def load_dataframe(sweeps_dir: str, selected_sweep: str, run_id: int) -> Dict[str, Any]:
+    """Load a data dump for a specific run
 
     Args:
-        run_path (str): Path to the JSON data dump
+        sweeps_dir (str): The path to the directory where all sweeps are stored
+        selected_sweep (str): The name of the sweep of interest
+        run_id (int): interest
+        combination_id (int): Unique
 
     Returns:
-        Dict[str, Any]: Unserialised data dump
+        Dict[str, Any]: Unserialised data dump of the specified run
     """
 
+    sweep_dir = export.sweeps.make_selected_sweep_dir(sweeps_dir, selected_sweep)
+    run_data_path = os.path.join(
+        sweep_dir, f"{run_id}.json"
+    )
+
     # Load the selected simulation run from disk
-    with open(run_path, "rt") as run_file:
+    with open(run_data_path, "rt") as run_file:
         # Load the dataframe-as-json from disk
         # There is no need to really turn it into a dataframe, downstream will figure it out
         json_object = json.loads(run_file.read())
@@ -37,8 +47,9 @@ def get_combination_data(sweeps_dir: str, selected_sweep: str, combination_id: i
         Dict[str, Any]: Unserialised data dump of the specified combination
     """
 
+    sweep_dir = export.sweeps.make_selected_sweep_dir(sweeps_dir, selected_sweep)
     combination_data_path = os.path.join(
-        sweeps_dir, selected_sweep, f"combination_{combination_id}.json"
+        sweep_dir, f"combination_{combination_id}.json"
     )
 
     with open(combination_data_path, "rt") as reader:
