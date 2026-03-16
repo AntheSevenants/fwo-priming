@@ -47,6 +47,20 @@ aggregate_column_configs = {
 }
 
 
+def make_aggregate_output_name(aggregate_column_prefix: str, operation_name: str) -> str:
+    """Build the aggregate output column name
+
+    Args:
+        aggregate_column_prefix (str): Prefix for the column
+        operation_name (str): Action that was applied to the colunm (min, max, mean etc.)
+
+    Returns:
+        str: Combined prefix for the column
+    """
+
+    return f"{aggregate_column_prefix}_{operation_name}"
+
+
 def get_aggregate_column_config(aggregate_column_name: str) -> AggregateColumnConfig:
     """Retrieve the configuration for an aggregate column
 
@@ -87,7 +101,7 @@ def get_aggregate_metrics(
 
         for action in config.actions:
             # This will be the name of the column in the output dataframe
-            output_column_name = f"{aggregate_column_name}_{action.name}"
+            output_column_name = make_aggregate_output_name(aggregate_column_name, action.name)
             # Automatically retrieve the columns that this specific action operation requires
             required_data = [
                 np.array(aggregated_data[config.data_column][column])
