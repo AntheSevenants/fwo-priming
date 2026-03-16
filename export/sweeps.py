@@ -57,6 +57,43 @@ def make_run_infos_path(sweeps_dir: str, selected_sweep: str) -> str:
     return os.path.join(selected_sweep_dir, "run_infos.csv")
 
 
+def get_combination_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:
+    """Returns a dataframe containing high-order info associated with different parameter combinations
+
+    Args:
+        sweeps_dir (str): The path to the directory where all sweeps are stored
+        selected_sweep (str): The name of the sweep of interest
+
+    Raises:
+        FileNotFoundError: Raised if the combination infos file cannot be found in the sweep directory
+
+    Returns:
+        pd.DataFrame: Dataframe containing the combination info associated with different parameter combinatinos
+    """
+
+    combination_infos_path = make_combination_infos_path(sweeps_dir, selected_sweep)
+    if not os.path.exists(combination_infos_path):
+        raise FileNotFoundError("Combination infos CSV does nost exist")
+
+    return pd.read_csv(combination_infos_path)
+
+
+def make_combination_infos_path(
+        sweeps_dir: str, selected_sweep: str) -> str:
+    """Make the path for where combination infos CSV is stored
+
+    Args:
+        sweeps_dir (str): The path to the directory where all sweeps are stored
+        selected_sweep (str): The name of the sweep fo interest
+
+    Returns:
+        str: Path where run combination CSV is stored
+    """
+    
+    selected_sweep_dir = make_selected_sweep_dir(sweeps_dir, selected_sweep)
+    return os.path.join(selected_sweep_dir, "combination_infos.csv")
+
+
 def make_selected_sweep_dir(
     sweeps_dir: str, selected_sweep: str, create: bool = False
 ) -> str:
