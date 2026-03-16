@@ -11,6 +11,7 @@ import random
 import math
 
 import batch.profiles
+import batch.aggregate
 import export.sweeps
 import export.runs
 import export.combinations
@@ -58,6 +59,7 @@ if __name__ == "__main__":
 
     # Post runs aggregation
     combinations = br_df.groupby("combination_id")["run_id"].agg(list).reset_index()
+    combination_infos_df_rows = []
     # Go over each combination
     for index, row in combinations.iterrows():
         aggregated_data = { }
@@ -95,3 +97,21 @@ if __name__ == "__main__":
 
         with open(combination_data_path, "wt") as json_writer:
             json_writer.write(json.dumps(aggregated_data_out))
+
+        # Add row to combination_infos records
+        combination_aggregate_metrics = batch.aggregate.get_aggregate_metrics(
+            aggregated_data_out,
+            list(batch.aggregate.aggregate_column_configs.keys())
+        )
+        combination_aggregate_metrics = { 
+            "combination_id": row["combination_id"], 
+            **combination_aggregate_metrics
+        }
+        combination_infos_df_rows.append(combination_aggregate_metrics)
+
+    # Write combination_infos file
+    combination_infos_path = export.sweeps.make_combination_infos_path(
+        SWEEPS_DIR, current_sweep
+    )
+    combination_infos_df = pd.DataFrame.from_records(combination_infos_df_rows)
+    combination_infos_df.to_csv(combination_infos_path, index=False)
