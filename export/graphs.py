@@ -187,9 +187,9 @@ def generate_inner_lambda(data: Dict[str, Any], graph_name: str) -> Callable:
         for arg_name, arg_func in config.extra_args.items():
             kwargs[arg_name] = arg_func(data)
 
-        # Add common args
-        kwargs["min_data"] = data[config.data_column]["min"]
-        kwargs["max_data"] = data[config.data_column]["max"]
+    # Add common args
+    kwargs["min_data"] = data[config.data_column]["min"]
+    kwargs["max_data"] = data[config.data_column]["max"]
 
     # Make the plot function
     return lambda ax: config.plot_func(
