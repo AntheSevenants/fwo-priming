@@ -12,7 +12,7 @@ import pandas as pd
 
 from flask import Flask, request, render_template, redirect, url_for, send_file
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 PROFILE_NAME = "dashboard"
 
@@ -50,7 +50,8 @@ def show_interface(live: bool = False):
     disable_selection = (
         False  # if only one combination exists, skip parameter selection
     )
-    combination_id = None  # the ID connected to the selected set of parameters
+    combination_ids = None  # the ID connected to the selected set of parameters
+    cache_combination_id = None
 
     # Flag which indicates we have to aggregate over multiple models
     do_aggregate = False
@@ -98,18 +99,22 @@ def show_interface(live: bool = False):
             raise ValueError("No runs found with the selected parameter combination")
 
         unique_combination_ids = selected_runs["combination_id"].unique().tolist()
-        if len(unique_combination_ids) > 1:
+        if len(unique_combination_ids) > 1 and aggregate is None:
             raise ValueError(
                 "Parameter selection does not single out a unique parameter combination"
             )
+        elif len(unique_combination_ids) > 1 and aggregate is not None:
+            combination_ids = unique_combination_ids
         else:
-            combination_id = unique_combination_ids[0]
+            combination_ids = unique_combination_ids[0]
 
         # GRAPH TYPES
         if aggregate is None:
             GRAPHS = export.graphs.get_graph_names(export.graphs.GraphContext.DASHBOARD)
         else:
-            GRAPHS = ["wortels"]  # TODO
+            GRAPHS = export.graphs.get_aggregate_graph_names(
+                export.graphs.GraphContext.DASHBOARD
+            )
 
         # Filter logic (what graph should we show?)
         if selected_filter == "no":
@@ -123,8 +128,10 @@ def show_interface(live: bool = False):
             graphs = GRAPHS.copy()
 
         prerender_profile_graphs(
-            selected_sweep, combination_id, graphs, aggregate_parameter=aggregate
+            selected_sweep, combination_ids, graphs, aggregate_parameter=aggregate
         )
+
+        cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
 
         if live:
             selected_sweep = "live"
@@ -136,7 +143,7 @@ def show_interface(live: bool = False):
         "index.html",
         sweeps=sweeps,
         selected_sweep=selected_sweep,
-        combination_id=combination_id,
+        combination_id=cache_combination_id,
         aggregate_parameter=aggregate,
         selected_parameters=selected_parameters,
         selected_filter=selected_filter,
@@ -152,15 +159,17 @@ def show_interface(live: bool = False):
 
 def prerender_profile_graphs(
     selected_sweep: str,
-    combination_id: int,
+    combination_ids: Union[int, List[int]],
     graphs: List[str],
     aggregate_parameter: Optional[str] = None,
 ) -> None:
     figures_dir = args.figures_dir
 
+    cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
+
     # Get cached graphs
     cached_graphs = export.cache.get_cached_graphs(
-        selected_sweep, combination_id, graphs, PROFILE_NAME, figures_dir
+        selected_sweep, cache_combination_id, graphs, PROFILE_NAME, figures_dir
     )
     non_cached_graph_count = len(list(set(graphs) - set(cached_graphs)))
 
@@ -170,25 +179,33 @@ def prerender_profile_graphs(
     else:
         # Generate the directory where we will put the figures
         temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
-            selected_sweep, combination_id, figures_dir
+            selected_sweep, cache_combination_id, figures_dir
         )
 
         # All graphs in a dict representation
         # Create profile graphs
         if aggregate_parameter is None:
             graphs_output = export.graphs.generate_graphs(
-                args.sweeps_dir, selected_sweep, combination_id, graphs
+                args.sweeps_dir, selected_sweep, combination_ids, graphs
             )
+            aggregate_settings = None
         # Else, create aggregate graphs
-        # TODO
-        # else:
-        #     graphs_output = export.aggregate.graphs.generate_graphs(
-        #         selected_sweep,
-        #         selected_run_ids,
-        #         selected_runs,
-        #         aggregate_parameter,
-        #         RUNS_DIR,
-        #     )
+        else:
+            if isinstance(combination_ids, list):
+                aggregate_settings = export.graphs.AggregateSettings(
+                    args.sweeps_dir,
+                    selected_sweep,
+                    combination_ids,
+                    aggregate_parameter,
+                )
+            else:
+                raise ValueError(
+                    "Cannot aggregate with only one combination of parameters"
+                )
+
+        graphs_output = export.graphs.generate_graphs(
+            args.sweeps_dir, selected_sweep, combination_ids, graphs, aggregate=aggregate_settings
+        )
 
         # Save the files to disk!
         export.files.export_files(graphs_output, PROFILE_NAME, temp_models_figures_dir)

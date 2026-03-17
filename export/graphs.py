@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Dict, Any, Optional, List, Dict, Union, Tuple
 
 import matplotlib.axes
@@ -11,9 +11,12 @@ import visualisation.base_rate
 import visualisation.entropy
 import visualisation.probabilities
 import visualisation.multiplot
+import visualisation.aggregate.entropy
 
-import export.runs
+import export.sweeps
 import export.combinations
+
+import batch.aggregate
 
 
 class GraphContext:
@@ -28,6 +31,7 @@ class GraphConfig:
     extra_args: Optional[Dict[str, Any]] = (
         None  # What extra arguments are needed to plot this figure?
     )
+    aggregate: bool = False
     is_mosaic: bool = False
     context: int = GraphContext.EXPORT
 
@@ -38,6 +42,31 @@ class MosaicConfig:
     size: Tuple[int, int] = (10, 16)
     is_mosaic: bool = True
     context: int = GraphContext.DASHBOARD
+    aggregate: bool = False
+
+
+@dataclass
+class AggregateSettings:
+    combination_ids: List[int]
+    parameter: str
+    parameter_values: List[Any]
+
+    def __init__(
+        self,
+        sweeps_dir: str,
+        selected_sweep: str,
+        combination_ids: List[int],
+        parameter: str,
+    ):
+        self.combination_ids = combination_ids
+        self.parameter = parameter
+
+        run_infos = export.sweeps.get_run_infos(sweeps_dir, selected_sweep)
+        self.parameter_values = sorted(
+            run_infos[run_infos["combination_id"].isin(combination_ids)][parameter]
+            .unique()
+            .tolist()
+        )
 
 
 graph_configs = {
@@ -67,6 +96,15 @@ graph_configs = {
         ],
         size=(12, 12),
     ),
+    "aggregate_entropy": GraphConfig(
+        data_column="entropy",
+        plot_func=visualisation.aggregate.entropy.plot_entropy_range,
+        aggregate=True,
+        context=GraphContext.DASHBOARD,
+        extra_args={
+            "num_constructions": lambda data: len(data.iloc[0]["activation_mean"])
+        },
+    ),
 }
 
 
@@ -84,6 +122,25 @@ def get_graph_names(context: int) -> List[str]:
         graph_config
         for graph_config in list(graph_configs.keys())
         if graph_configs[graph_config].context == context
+        and not graph_configs[graph_config].aggregate
+    ]
+
+
+def get_aggregate_graph_names(context: int) -> List[str]:
+    """Returns a list of the names of all available aggregate graphs
+
+    Args:
+        context (int): Context where the graphs will be used
+
+    Returns:
+        List[str]: A list of the names of all available graphs
+    """
+
+    return [
+        graph_config
+        for graph_config in list(graph_configs.keys())
+        if graph_configs[graph_config].context == context
+        and graph_configs[graph_config].aggregate
     ]
 
 
@@ -110,8 +167,9 @@ def get_graph_config(graph_name: str) -> Union[GraphConfig, MosaicConfig]:
 def generate_graphs(
     sweeps_dir: str,
     selected_sweep: str,
-    combination_id: int,
+    combination_ids: Union[int, List[int]],
     graphs: List[str],
+    aggregate: Optional[AggregateSettings] = None,
     disable_title=False,
 ) -> Dict[str, matplotlib.figure.Figure]:
     """Generate the specified graphs depending on the given sweep
@@ -125,6 +183,7 @@ def generate_graphs(
 
     Raises:
         ValueError: Raised if a supplied graph name does not have an associated graph
+        ValueError: Raised if multiple combination IDs appear without an aggregate configuration
 
     Returns:
         Dict[str, matplotlib.figure.Figure]: Dictionary with graph names as keys and generated graphs as values
@@ -133,8 +192,26 @@ def generate_graphs(
     # Now, we can build the desired graphs and save them
     graphs_output = {}
 
-    # Retrieve the data for this combination
-    data = export.combinations.get_combination_data(sweeps_dir, selected_sweep, combination_id)
+    # If only a single combination_id is given, this is a single graph
+    if isinstance(combination_ids, int) and aggregate is None:
+        # Retrieve the data for the single combination
+        combination_id = combination_ids
+        data = export.combinations.get_combination_data(
+            sweeps_dir, selected_sweep, combination_id
+        )
+    elif isinstance(combination_ids, list) and aggregate is not None:
+        # Get the combination infos dataframe
+        combination_infos = export.sweeps.get_combination_infos(
+            sweeps_dir, selected_sweep
+        )
+        # Filter for the required combinations
+        data = combination_infos[
+            combination_infos["combination_id"].isin(combination_ids)
+        ]
+    else:
+        raise ValueError(
+            "Unrecognised combination of combination IDs and aggregate settings"
+        )
 
     # We go over all requested graphs and generate them
     for graph_name in graphs:
@@ -155,19 +232,24 @@ def generate_graphs(
             figure = visualisation.multiplot.combine(plot_functions, config.size)
         else:
             # Make a single plot. We pass ax=None because there is no existing axis to hook into
-            figure, ax = generate_inner_lambda(data, graph_name)(ax=None)
+            figure, ax = generate_inner_lambda(
+                data, graph_name, aggregate_config=aggregate
+            )(ax=None)
 
         graphs_output[graph_name] = figure
 
     return graphs_output
 
 
-def generate_inner_lambda(data: Dict[str, Any], graph_name: str) -> Callable:
+def generate_inner_lambda(
+    data: Union[Dict[str, Any], pd.DataFrame], graph_name: str, aggregate_config=None
+) -> Callable:
     """Generate the function which builds the graph specified by the graph name
 
     Args:
-        data (Dict[str, Any]): Data dump of a specific parameter combination
+        data (Union[Dict[str, Any], pd.DataFrame]): Data dump of a specific parameter combination, or combinations
         graph_name (str): Name of the graph to generate the function for
+        aggregate_config (AggregateSettings): Configuration for aggregate graphs
 
     Raises:
         TypeError: Raised if the graph name is associated with a mosaic function
@@ -187,11 +269,29 @@ def generate_inner_lambda(data: Dict[str, Any], graph_name: str) -> Callable:
         for arg_name, arg_func in config.extra_args.items():
             kwargs[arg_name] = arg_func(data)
 
-    # Add common args
-    kwargs["min_data"] = data[config.data_column]["min"]
-    kwargs["max_data"] = data[config.data_column]["max"]
+    # Regular graph
+    if aggregate_config is None:
+        # Add common args
+        kwargs["min_data"] = data[config.data_column]["min"]
+        kwargs["max_data"] = data[config.data_column]["max"]
 
-    # Make the plot function
-    return lambda ax: config.plot_func(
-        data[config.data_column]["mean"], **kwargs, ax=ax
-    )
+        # Make the plot function
+        return lambda ax: config.plot_func(
+            data[config.data_column]["mean"], **kwargs, ax=ax
+        )
+    else:
+        kwargs["min_data"] = data[
+            batch.aggregate.make_aggregate_output_name(config.data_column, "min")
+        ]
+        kwargs["max_data"] = data[
+            batch.aggregate.make_aggregate_output_name(config.data_column, "max")
+        ]
+
+        return lambda ax: config.plot_func(
+            data[
+                batch.aggregate.make_aggregate_output_name(config.data_column, "mean")
+            ],
+            aggregate_config.parameter_values,
+            **kwargs,
+            ax=ax,
+        )

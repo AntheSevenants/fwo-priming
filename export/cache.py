@@ -1,7 +1,7 @@
 import os
 import export.files
 
-from typing import List
+from typing import List, Union
 
 
 def get_combination_id(selected_run_ids: List[int]) -> int:
@@ -15,6 +15,24 @@ def get_combination_id(selected_run_ids: List[int]) -> int:
     """
 
     return sum(selected_run_ids)
+
+
+def get_cache_combination_id(combination_ids: Union[int, List[int]]) -> int:
+    """Turn combination of combination IDs into a cache ID
+
+    Args:
+        combination_ids (Union[int, List[int]]): List of combination IDs, or a single one
+
+    Returns:
+        int: _description_
+    """
+
+    if isinstance(combination_ids, list):
+        cache_combination_id = get_combination_id(combination_ids)
+    elif isinstance(combination_ids, int):
+        cache_combination_id = combination_ids
+
+    return cache_combination_id
 
 
 def make_temp_sweep_figures_dir(selected_sweep: str, figures_output_dir: str):
