@@ -6,13 +6,15 @@ main {
 }
 
 .sidebar {
-	background-color: #212529;
+	background-color: #394367;
 	overflow-y: scroll;
 	width: 325px; 
 }
 
 .sidebar hr {
-	background-color: #eee;
+	border-color: #888ea3;
+	color: #888ea3;
+	opacity: 1;
 }
 
 .scrollable {
@@ -22,12 +24,16 @@ main {
 
 .card, .list-group-item {
 	background-color: transparent !important;
-	border-color: #54575A !important;
+	border-color: #888ea3 !important;
 }
 
 .card-header {
 	background-color: rgba(255, 255, 255, 0.3) !important;
 	text-align: center;
+	border-bottom: 1px solid #888ea3 !important;
+}
+
+.card-body {
 }
 
 .wrapper {
