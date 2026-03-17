@@ -73,25 +73,25 @@ def get_combination_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:
 
     combination_infos_path = make_combination_infos_path(sweeps_dir, selected_sweep)
     if not os.path.exists(combination_infos_path):
-        raise FileNotFoundError("Combination infos CSV does nost exist")
+        raise FileNotFoundError("Combination infos JSON does nost exist")
 
-    return pd.read_csv(combination_infos_path)
+    return pd.read_json(combination_infos_path, orient='records')
 
 
 def make_combination_infos_path(
         sweeps_dir: str, selected_sweep: str) -> str:
-    """Make the path for where combination infos CSV is stored
+    """Make the path for where combination infos JSON is stored
 
     Args:
         sweeps_dir (str): The path to the directory where all sweeps are stored
         selected_sweep (str): The name of the sweep fo interest
 
     Returns:
-        str: Path where run combination CSV is stored
+        str: Path where combination infos JSON is stored
     """
     
     selected_sweep_dir = make_selected_sweep_dir(sweeps_dir, selected_sweep)
-    return os.path.join(selected_sweep_dir, "combination_infos.csv")
+    return os.path.join(selected_sweep_dir, "combination_infos.json")
 
 
 def make_selected_sweep_dir(

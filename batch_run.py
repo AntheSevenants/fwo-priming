@@ -114,4 +114,7 @@ if __name__ == "__main__":
         SWEEPS_DIR, current_sweep
     )
     combination_infos_df = pd.DataFrame.from_records(combination_infos_df_rows)
-    combination_infos_df.to_csv(combination_infos_path, index=False)
+    combination_infos_df.to_json(
+        combination_infos_path,
+        orient='records'
+    )
