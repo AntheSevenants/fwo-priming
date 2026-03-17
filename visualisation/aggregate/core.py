@@ -10,6 +10,22 @@ from typing import List, Optional, Union, Any, Tuple
 from visualisation.core import COLOURS, LINE_STYLES
 
 
+def make_aggregate_title_infix(parameter: Optional[str] = None) -> str:
+    """Make the correct infix for the title of aggregate graphs
+
+    Args:
+        parameter (Optional[str], optional): The name of the parameter. Defaults to None.
+
+    Returns:
+        str: The given parameter is parameter is not None. Else, the string \"selected parameter\".
+    """
+
+    if parameter is None:
+        return "selected parameter"
+    else:
+        return parameter
+
+
 def plot_aggregate_values(
     data: Union[List[float], List[List[float]]],
     attribute: str,

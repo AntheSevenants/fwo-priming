@@ -292,6 +292,7 @@ def generate_inner_lambda(
                 batch.aggregate.make_aggregate_output_name(config.data_column, "mean")
             ],
             aggregate_config.parameter_values,
+            parameter=aggregate_config.parameter,
             **kwargs,
             ax=ax,
         )
