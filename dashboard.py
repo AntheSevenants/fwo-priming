@@ -77,11 +77,13 @@ def show_interface(live: bool = False):
         )
 
         if aggregate is not None:
-            selected_parameters = (
-                export.parameters.remove_aggregate_parameter_from_selected(
-                    aggregate, selected_parameters
+            if aggregate in selected_parameters:
+                selected_parameters = (
+                    export.parameters.remove_aggregate_parameter_from_selected(
+                        aggregate, selected_parameters
+                    )
                 )
-            )
+                return redirect(url_for("index", _external=False, **selected_parameters))
 
         # If no parameter combination was made, create a parameter selection ourselves
         if no_selection:
