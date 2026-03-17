@@ -96,7 +96,7 @@
                         <div class="wrapper"><i class="bi bi-sliders"></i></div> Parameter selection
                     </div>
                     <div class="card-body">
-                        {% for parameter in parameter_mapping if parameter_mapping[parameter] | length > 1  %}
+                        {% for parameter in parameter_mapping if parameter_mapping[parameter] | length > 1 and parameter != aggregate_parameter %}
                         <div class="input-group">
                             <div class="form-floating flex-grow-1">
                                 <select class="form-select mb-2 interactive" name="{{ parameter }}"
