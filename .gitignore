@@ -210,3 +210,5 @@ __marimo__/
 *.ipynb
 
 sweeps/
+test/
+run.sh
