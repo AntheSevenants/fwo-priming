@@ -85,6 +85,14 @@ graph_configs = {
             "num_constructions": lambda data: len(data["ctx_base_rate_mean"]["mean"][0])
         },
     ),
+    "ctx_base_rate_entropy_mean": GraphConfig(
+        data_column="ctx_base_rate_entropy_mean",
+        plot_func=visualisation.entropy.plot_ctx_entropy_mean,
+        extra_args={
+            "num_constructions": lambda data: len(data["ctx_base_rate_mean"]["mean"][0]),
+            "base_rate": True
+        },
+    ),
     "ctx_probs_mean": GraphConfig(
         data_column="ctx_probs_mean",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
@@ -103,6 +111,16 @@ graph_configs = {
         context=GraphContext.DASHBOARD,
         extra_args={
             "num_constructions": lambda data: len(data.iloc[0]["activation_mean"])
+        },
+    ),
+    "aggregate_base_rate_entropy": GraphConfig(
+        data_column="base_rate_entropy",
+        plot_func=visualisation.aggregate.entropy.plot_entropy_range,
+        aggregate=True,
+        context=GraphContext.DASHBOARD,
+        extra_args={
+            "num_constructions": lambda data: len(data.iloc[0]["activation_mean"]),
+            "base_rate": True
         },
     ),
 }

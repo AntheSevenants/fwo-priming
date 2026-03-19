@@ -50,6 +50,7 @@ class AggregateColumnConfig:
 
 aggregate_column_configs = {
     "entropy": AggregateColumnConfig(data_column="ctx_entropy_mean"),
+    "base_rate_entropy": AggregateColumnConfig(data_column="ctx_base_rate_entropy_mean"),
     "activation": AggregateColumnConfig(data_column="ctx_activation_mean"),
 }
 

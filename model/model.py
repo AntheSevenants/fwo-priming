@@ -65,6 +65,12 @@ class PrimingModel(mesa.Model):
             "ctx_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "entropy", index=-1
             ),
+            "ctx_base_rate_entropy_per_agent": lambda model: model.tracker.get_property_per_agent(
+                "base_rate_entropy", index=-1
+            ),
+            "ctx_base_rate_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
+                "base_rate_entropy", index=-1
+            ),
             "consensus_reached": lambda model: (
                 False
                 if len(model.datacollector.model_vars["ctx_probs_mean"]) == 0

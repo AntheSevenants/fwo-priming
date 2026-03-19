@@ -25,12 +25,15 @@ def ylim_from_num_constructions(num_constructions: int):
 def plot_ctx_entropy_mean(
     data: Union[model.model.PrimingModel, List[float]],
     num_constructions: int,
+    base_rate: bool = False,
     min_data: Optional[List[float]] = None,
     max_data: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     disable_title: bool = False,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the mean entropy across agents
+
+    TODO update these arguments
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
@@ -42,14 +45,15 @@ def plot_ctx_entropy_mean(
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
     ylim = ylim_from_num_constructions(num_constructions)
+    infix = "" if not base_rate else "base rate "
 
     return visualisation.core.plot_value(
         data,
-        "ctx_entropy_mean",
+        "ctx_entropy_mean" if not base_rate else "ctx_base_rate_entropy_mean",
         min_data=min_data,
         max_data=max_data,
         ylim=ylim,
-        title="Mean entropy across agents",
+        title=f"Mean {infix}entropy across agents",
         ax=ax,
         disable_title=disable_title,
     )
@@ -58,6 +62,7 @@ def plot_ctx_entropy_mean(
 def plot_ctx_entropy_per_agent(
     data: Union[model.model.PrimingModel, List[List[float]]],
     num_constructions: int,
+    base_rate: bool = False,
     disable_title: bool = False,
 ) -> matplotlib.figure.Figure:
     """Plot the entropy evolution of each agent on a single graph.
@@ -76,7 +81,7 @@ def plot_ctx_entropy_per_agent(
 
     return visualisation.core.plot_ratio_pass(
         data,
-        "ctx_entropy_per_agent",
+        "ctx_entropy_per_agent" if not base_rate else "ctx_base_rate_entropy_per_agent",
         ylim=ylim,
         baseline=maximum_entropy / 2,
         title="Evolution of preference entropy per agent",
@@ -87,6 +92,7 @@ def plot_ctx_entropy_per_agent(
 def plot_ctx_entropy_for_agent(
     data: Union[model.model.PrimingModel, List[float]],
     num_constructions: int,
+    base_rate: bool = False,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_index: Optional[int] = None,
     disable_title: bool = False,
@@ -110,7 +116,7 @@ def plot_ctx_entropy_for_agent(
 
     return visualisation.core.plot_value(
         data,
-        "ctx_entropy_per_agent",
+        "ctx_entropy_per_agent" if not base_rate else "ctx_base_rate_entropy_per_agent",
         ylim=ylim,
         agent_filter=agent_index,
         title=f"Preference entropy for agent {agent_index}",

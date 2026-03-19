@@ -46,6 +46,17 @@ class PrimingAgent(mesa.Agent):
         new_entropy_value = model.entropy.compute_entropy(self.atts.activation_norm)
         self.atts.entropy = np.concatenate((self.atts.entropy[1:], [ new_entropy_value ]))
 
+    
+    def update_base_rate_entropy_history(self):
+        """We keep a log of the entropy of the base rates for each agent.
+        This function computes the entropy of the current base rate and adds it to the log.
+        """
+
+        new_entropy_value = model.entropy.compute_entropy(self.atts.base_rate)
+        self.atts.base_rate_entropy = np.concatenate(
+            (self.atts.base_rate_entropy[1:], [new_entropy_value])
+        )
+
     def interact_do(self):
         """Each timestep, each agent has the opportunity to interact with another random agent.
         This is an outer wrapper script that decides whether the interaction occurs, 
@@ -171,6 +182,7 @@ class PrimingAgent(mesa.Agent):
 
         # Update internal entropy log
         self.update_entropy_history()
+        self.update_base_rate_entropy_history()
 
         # That's it!
 

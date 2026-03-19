@@ -28,6 +28,9 @@ class Attributes:
     # A "log" of entropy, needed so we can compute the delta
     entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
+    # A "log" of base rate entropy
+    base_rate_entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
+
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
         # the probabilities and starting probabilities and such
@@ -46,6 +49,7 @@ class Attributes:
 
         # We multiply by two because else the delta computation will fail
         self.entropy = np.array([ model.entropy.compute_entropy(self.activation) ] * 2)
+        self.base_rate_entropy = np.array([ model.entropy.compute_entropy(self.base_rate_entropy) ] * 2)
 
     def init_construction_probs(self):
         # Assign starting base rate to the constructions
