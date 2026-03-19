@@ -302,12 +302,12 @@ def generate_inner_lambda(
     # Regular graph
     if aggregate_config is None:
         # Add common args
-        kwargs["min_data"] = data[config.data_column]["min"]
-        kwargs["max_data"] = data[config.data_column]["max"]
+        kwargs["min_data"] = data[config.data_column]["q1"]
+        kwargs["max_data"] = data[config.data_column]["q3"]
 
         # Make the plot function
         return lambda ax: config.plot_func(
-            data[config.data_column]["mean"], **kwargs, ax=ax
+            data[config.data_column]["median"], **kwargs, ax=ax
         )
     else:
         kwargs["min_data"] = data[
