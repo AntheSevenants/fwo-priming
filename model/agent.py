@@ -28,6 +28,16 @@ class PrimingAgent(mesa.Agent):
         # Populate the agent's parameters based off the model parameters
         self.atts = model.agent_defaults.Attributes(priming_model.params)
 
+    @property
+    def construction_probs_norm(self):
+        # If activation levels are enabled, we just use the model as normal
+        if self.model.params.use_activation:
+            return self.atts.activation_norm
+        else:
+        # Else, we're only working with entrenchment. So only return the base rate
+        # (the base rate is always normalised)
+            return self.atts.base_rate
+
     def update_entropy_history(self):
         """We keep a log of the entropy of the activation levels for each agent.
         This function computes the entropy of the current distribution and adds it to the log.
@@ -67,7 +77,7 @@ class PrimingAgent(mesa.Agent):
         # We choose what construction the agent will utter based on the current activation levels
         # "More activated" constructions are more likely to be chosen.
         construction_indices = list(range(len(self.model.params.constructions)))
-        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.atts.activation_norm)
+        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.construction_probs_norm)
 
         # If production is set to affect base rate, update the base rate for the chosen construction
         if model.enums.AffectsBaseRate.affects_production(self.model.params.affects_base_rate):
@@ -142,14 +152,17 @@ class PrimingAgent(mesa.Agent):
             construction_index (int): The index of the chosen construction
         """
 
-        # Now the hearer has to adjust their internal distribution
-        # Maximum activation level is one!
-        self.atts.activation[construction_index] = min(
-            self.atts.activation[construction_index] + self.compute_priming_strength(construction_index),
-            1
-        )
+        # When activation levels are activated
+        if self.model.params.use_activation:
+            # Now the hearer has to adjust their internal distribution
+            # Maximum activation level is one!
+            self.atts.activation[construction_index] = min(
+                self.atts.activation[construction_index] + self.compute_priming_strength(construction_index),
+                1
+            )
 
         # If reception is set to affect base rate, update base rate
+        # This happens regardless whether activation levels are activated or not
         if model.enums.AffectsBaseRate.affects_reception(self.model.params.affects_base_rate):
             self.update_base_rate(construction_index)
 

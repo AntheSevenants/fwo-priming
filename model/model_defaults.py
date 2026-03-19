@@ -38,6 +38,8 @@ class Parameters:
     # Make priming strength dependent on surprisal
     inverse_frequency_exponent: float = 0
     inverse_frequency_max_multiplier: float = 2
+    # Whether to use activation at all
+    use_activation: bool = True
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0
