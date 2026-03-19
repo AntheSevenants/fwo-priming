@@ -27,6 +27,21 @@ class AggregateColumnOperations:
         required_columns=["mean"],
         operation=lambda data: np.mean(data, axis=0),
     )
+    MEDIAN: AggregateColumnOperation = AggregateColumnOperation(
+        name="median",
+        required_columns=["mean"],
+        operation=lambda data: np.median(data, axis=0),
+    )
+    Q1: AggregateColumnOperation = AggregateColumnOperation(
+        name="q1",
+        required_columns=["mean"],
+        operation=lambda data: np.percentile(data, 25, axis=0),
+    )
+    Q3: AggregateColumnOperation = AggregateColumnOperation(
+        name="q3",
+        required_columns=["mean"],
+        operation=lambda data: np.percentile(data, 75, axis=0),
+    )
     DELTA: AggregateColumnOperation = AggregateColumnOperation(
         name="delta",
         required_columns=["min", "max"],
@@ -44,6 +59,9 @@ class AggregateColumnConfig:
             AggregateColumnOperations.MAX,
             AggregateColumnOperations.MEAN,
             AggregateColumnOperations.DELTA,
+            AggregateColumnOperations.MEDIAN,
+            AggregateColumnOperations.Q1,
+            AggregateColumnOperations.Q3,
         ]
     )
 
