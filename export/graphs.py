@@ -97,12 +97,19 @@ graph_configs = {
         data_column="ctx_probs_mean",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
     ),
-    "composite_plot": MosaicConfig(
+    "activation_composite_plot": MosaicConfig(
         layout=[
-            ["ctx_activation_mean", "ctx_base_rate_mean"],
-            ["ctx_entropy_mean", "ctx_probs_mean"],
+            ["ctx_activation_mean", "ctx_probs_mean"],
+            ["ctx_entropy_mean"]
         ],
-        size=(12, 12),
+        size=(12, 12)
+    ),
+    "base_rate_composite_plot": MosaicConfig(
+        layout=[
+            ["ctx_base_rate_mean"],
+            ["ctx_base_rate_entropy_mean"]
+        ],
+        size=(6, 12)
     ),
     "aggregate_entropy": GraphConfig(
         data_column="entropy",
