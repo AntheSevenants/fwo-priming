@@ -12,6 +12,7 @@ import math
 
 import batch.profiles
 import batch.aggregate
+import batch.combination
 import export.sweeps
 import export.runs
 import export.combinations
@@ -82,10 +83,15 @@ if __name__ == "__main__":
         # Now aggregate, then turn into a list
         for column_name in aggregated_data:
             data_matrix = np.array(aggregated_data[column_name])
-            aggregated_data_out[column_name] = {} 
-            aggregated_data_out[column_name]["mean"] = data_matrix.mean(axis=0).tolist()
-            aggregated_data_out[column_name]["min"] = data_matrix.min(axis=0).tolist()
-            aggregated_data_out[column_name]["max"] = data_matrix.max(axis=0).tolist()
+            aggregated_data_out[column_name] = batch.combination.get_combination_metrics(
+                data_matrix,
+                [batch.combination.CombinationOperations.Q1,
+                 batch.combination.CombinationOperations.Q3,
+                 batch.combination.CombinationOperations.MEDIAN,
+                 batch.combination.CombinationOperations.MEAN,
+                 batch.combination.CombinationOperations.MIN,
+                 batch.combination.CombinationOperations.MAX]
+            )
         
         aggregated_data["combination_id"] = row["combination_id"]
 
