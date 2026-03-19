@@ -267,7 +267,12 @@ def generate_inner_lambda(
     kwargs = {}
     if config.extra_args:
         for arg_name, arg_func in config.extra_args.items():
-            kwargs[arg_name] = arg_func(data)
+            # extra_arg is a lambda function
+            if isinstance(arg_func, Callable):
+                kwargs[arg_name] = arg_func(data)
+            # extra_arg is a constant
+            else:
+                kwargs[arg_name] = arg_func
 
     # Regular graph
     if aggregate_config is None:
