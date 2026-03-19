@@ -1,6 +1,7 @@
 from batch.runner import batch_run
 
 from datetime import datetime
+from tqdm.auto import tqdm
 
 import pandas as pd
 import numpy as np
@@ -62,7 +63,11 @@ if __name__ == "__main__":
     combinations = br_df.groupby("combination_id")["run_id"].agg(list).reset_index()
     combination_infos_df_rows = []
     # Go over each combination
-    for index, row in combinations.iterrows():
+    for index, row in tqdm(
+        combinations.iterrows(),
+        total=len(combinations),
+        desc="Computing combination metrics"
+        ):
         aggregated_data = { }
         aggregated_data_out = {}
 
