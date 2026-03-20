@@ -207,7 +207,7 @@ def prerender_profile_graphs(
     )
     non_cached_graph_count = len(list(set(graphs) - set(cached_graphs)))
 
-    if non_cached_graph_count == -1:
+    if non_cached_graph_count == 0:
         pass
     # If we still need some graphs, just build all of them again
     else:
