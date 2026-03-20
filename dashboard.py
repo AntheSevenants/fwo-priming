@@ -39,6 +39,8 @@ def show_interface(live: bool = False):
     selected_sweep = request.args.get("sweep")
     # You can filter for specific graphs
     selected_filter = request.args.get("filter")
+    # You can filter for a specific run
+    selected_run = request.args.get("run")
 
     # Aggregate parameter allows you to aggregate over multiple parameter combinations
     aggregate = request.args.get("aggregate")
@@ -59,13 +61,18 @@ def show_interface(live: bool = False):
     # Temp value
     graphs = []
     GRAPHS = []
+    matched_run_ids = []
 
-    # There are keywords used by the application, these do not appear as parameters
+    # There are keywords used by the application, these do not appear as parameters 
     # We filter to check whether the user has made an actual parameter selection
     no_selection = (
         len(list(set(selected_parameters) - set(export.parameters.RESERVED_KEYWORDS)))
         == 0
     )
+
+    # Clear empty run selection
+    if selected_run == "none":
+        selected_run = None
 
     # Run selection logic
     if selected_sweep is not None:
@@ -109,6 +116,12 @@ def show_interface(live: bool = False):
             combination_ids = unique_combination_ids
         else:
             combination_ids = unique_combination_ids[0]
+            # Get the IDs of all runs which belong to the search results
+            matched_run_ids = selected_runs["run_id"].unique().tolist()
+
+            if selected_run is not None and selected_run != "none":
+                if int(selected_run) not in matched_run_ids:
+                    raise ValueError("Specified run filter does not belong to the selected parameter combination")
 
         # GRAPH TYPES
         if aggregate is None:
@@ -129,8 +142,16 @@ def show_interface(live: bool = False):
         if selected_filter is None:
             graphs = GRAPHS.copy()
 
+        # Cast as int to satisfy type check
+        if selected_run is not None:
+            selected_run = int(selected_run)
+
         prerender_profile_graphs(
-            selected_sweep, combination_ids, graphs, aggregate_parameter=aggregate
+            selected_sweep, 
+            combination_ids, 
+            graphs, 
+            aggregate_parameter=aggregate, 
+            selected_run=selected_run
         )
 
         cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
@@ -155,6 +176,8 @@ def show_interface(live: bool = False):
         no_selection=no_selection,
         graphs=graphs,
         all_graphs=GRAPHS,
+        runs=matched_run_ids,
+        selected_run=selected_run,
         get_enum_name=get_enum_name,
     )
 
@@ -164,14 +187,23 @@ def prerender_profile_graphs(
     combination_ids: Union[int, List[int]],
     graphs: List[str],
     aggregate_parameter: Optional[str] = None,
+    selected_run: Optional[int] = None,
 ) -> None:
     figures_dir = args.figures_dir
+
+    if selected_run is not None and aggregate_parameter is not None:
+        raise ValueError("Single run cannot be isolated if aggregate parameter is defined")
 
     cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
 
     # Get cached graphs
     cached_graphs = export.cache.get_cached_graphs(
-        selected_sweep, cache_combination_id, graphs, PROFILE_NAME, figures_dir
+        selected_sweep,
+        cache_combination_id,
+        graphs,
+        PROFILE_NAME,
+        figures_dir,
+        single_run_id=selected_run
     )
     non_cached_graph_count = len(list(set(graphs) - set(cached_graphs)))
 
@@ -181,15 +213,12 @@ def prerender_profile_graphs(
     else:
         # Generate the directory where we will put the figures
         temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
-            selected_sweep, cache_combination_id, figures_dir
+            selected_sweep, cache_combination_id, figures_dir, single_run_id=selected_run
         )
 
         # All graphs in a dict representation
         # Create profile graphs
         if aggregate_parameter is None:
-            graphs_output = export.graphs.generate_graphs(
-                args.sweeps_dir, selected_sweep, combination_ids, graphs
-            )
             aggregate_settings = None
         # Else, create aggregate graphs
         else:
@@ -206,15 +235,34 @@ def prerender_profile_graphs(
                 )
 
         graphs_output = export.graphs.generate_graphs(
-            args.sweeps_dir, selected_sweep, combination_ids, graphs, aggregate=aggregate_settings
+            args.sweeps_dir,
+            selected_sweep,
+            combination_ids,
+            graphs,
+            single_run=selected_run,
+            aggregate=aggregate_settings
         )
 
         # Save the files to disk!
         export.files.export_files(graphs_output, PROFILE_NAME, temp_models_figures_dir)
 
 
+@app.route("/graph/<string:selected_sweep>/<string:combination_id>/<string:single_run_id>/<string:graph_name>")
+def send_single_run_graph(
+        graph_name: str,
+        selected_sweep: str,
+        combination_id: str,
+        single_run_id: str
+):
+    return send_graph(graph_name, selected_sweep, combination_id, single_run_id=single_run_id)
+
+
 @app.route("/graph/<string:selected_sweep>/<string:combination_id>/<string:graph_name>")
-def send_graph(graph_name, selected_sweep, combination_id):
+def send_combination_graph(graph_name: str, selected_sweep: str, combination_id: str):
+    return send_graph(graph_name, selected_sweep, combination_id)
+
+
+def send_graph(graph_name, selected_sweep, combination_id, single_run_id=None):
     # Live graphs live in the same folder always, so we do not need to compute where to find them
     if selected_sweep == "live" and combination_id == "live":
         temp_models_figures_dir = args.figures_dir_live
@@ -222,7 +270,7 @@ def send_graph(graph_name, selected_sweep, combination_id):
     else:
         # Where our figures are stored for this parameter combination
         temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
-            selected_sweep, combination_id, args.figures_dir
+            selected_sweep, combination_id, args.figures_dir, single_run_id=single_run_id
         )
         profile = PROFILE_NAME
 

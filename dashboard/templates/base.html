@@ -61,6 +61,23 @@
             {% if selected_sweep is not none %}
             <div class="card mb-3">
                 <div class="card-header text-white">
+                    <div class="wrapper"><i class="bi bi-person-walking"></i></div> Run filter
+                    </div>
+                <div class="card-body">
+                    <div class="form-floating">
+                        <select name="run" class="form-select mb-2 interactive"
+                                aria-label="Dropdown external variable selection" id="select_run">
+                            <option {{ "selected" if selected_run is none }} value="none">Combine all runs</option>
+                            {% for run in runs %}
+                                <option value="{{ run }}" {{ "selected" if selected_run==run }}>{{ run }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="select_run">Available runs:</label>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header text-white">
                     <div class="wrapper"><i class="bi bi-funnel-fill"></i></div> Filter graphs
                 </div>
                 <div class="card-body">

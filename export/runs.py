@@ -27,6 +27,30 @@ def make_run_data_path(
     return os.path.join(sweep_dir, f"{run_id}.json")
 
 
+def get_run_data(
+    sweeps_dir: str, selected_sweep: str, run_id: int
+) -> Dict[str, Any]:
+    """Load a data dump for a specific combination
+
+    Args:
+        sweeps_dir (str): The path to the directory where all sweeps are stored
+        selected_sweep (str): The name of the sweep of interest
+        run_id (int): Unique ID for the run of interest
+
+    Returns:
+        Dict[str, Any]: Unserialised data dump of the specified run
+    """
+
+    run_data_path = make_run_data_path(
+        sweeps_dir, selected_sweep, run_id
+    )
+
+    with open(run_data_path, "rt") as reader:
+        data = json.loads(reader.read())
+
+    return data
+
+
 def load_dataframe(sweeps_dir: str, selected_sweep: str, run_id: int) -> Dict[str, Any]:
     """Load a data dump for a specific run
 
