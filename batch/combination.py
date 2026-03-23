@@ -1,7 +1,30 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Callable, Tuple, Union
+from numpy.polynomial import Polynomial
 
 import numpy as np
+
+
+def compute_slope(data_matrix: np.ndarray) -> np.ndarray:
+    if len(data_matrix.shape) == 2:
+        return np.array(
+            [
+                Polynomial.fit(range(len(row)), row, deg=1).convert().coef[1]
+                for row in data_matrix
+            ]
+        )
+    elif len(data_matrix.shape) == 3:
+        return np.array(
+            [
+                [
+                    Polynomial.fit(range(len(col)), col, deg=1).convert().coef[1]
+                    for col in row.T
+                ]
+                for row in data_matrix
+            ]
+        )
+    else:
+        raise ValueError("Slope can only be computed for dimensions 2 and 3")
 
 
 @dataclass
@@ -29,16 +52,16 @@ class CombinationOperations:
     MEAN: CombinationOperation = CombinationOperation(
         name="mean", operation=lambda data_matrix: np.mean(data_matrix, axis=0)
     )
+    SLOPE: CombinationOperation = CombinationOperation(
+        name="slope", operation=compute_slope
+    )
 
 
 def get_combination_metrics(
-    data_matrix: np.ndarray,
-    operations: List[CombinationOperation]
+    data_matrix: np.ndarray, operations: List[CombinationOperation]
 ) -> Dict[str, Union[List[np.float64], List[List[np.float64]]]]:
     combined_data_out = {}
     for operation in operations:
-        combined_data_out[operation.name] = operation.operation(
-            data_matrix
-        ).tolist()
+        combined_data_out[operation.name] = operation.operation(data_matrix).tolist()
 
     return combined_data_out
