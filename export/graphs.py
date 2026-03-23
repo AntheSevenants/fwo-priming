@@ -364,15 +364,15 @@ def generate_inner_lambda(
         return lambda ax: config.plot_func(central_data, **kwargs, ax=ax)
     else:
         kwargs["min_data"] = data[
-            batch.aggregate.make_aggregate_output_name(config.data_column, "min")
+            batch.aggregate.make_aggregate_output_name(config.data_column, "q1")
         ]
         kwargs["max_data"] = data[
-            batch.aggregate.make_aggregate_output_name(config.data_column, "max")
+            batch.aggregate.make_aggregate_output_name(config.data_column, "q3")
         ]
 
         return lambda ax: config.plot_func(
             data[
-                batch.aggregate.make_aggregate_output_name(config.data_column, "mean")
+                batch.aggregate.make_aggregate_output_name(config.data_column, "median")
             ],
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,
