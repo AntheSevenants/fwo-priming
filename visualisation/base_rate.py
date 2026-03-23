@@ -4,51 +4,40 @@ import matplotlib.figure
 import model.model
 import visualisation.core
 
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Any
+
 
 def plot_ctx_base_rate_mean(
-        data: Union[model.model.PrimingModel, List[List[float]]],
-        min_data: Optional[List[List[float]]] = None,
-        max_data: Optional[List[List[float]]] = None,
-        x_scale_factor: int = 1,
-        ax: Optional[matplotlib.axes.Axes] = None,
-        disable_title: bool = False) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
+    data: Union[model.model.PrimingModel, List[List[float]]],
+    **kwargs: Any,
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the mean base rate across agents
 
     Args:
-        data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values
-        min_data (Optional[List[List[float]]], optional): List of minimal values. Needs to be defined together with max_data.
-        max_data (Optional[List[List[float]]], optional): List of maximal values. Needs to be defined together with min_data.
-        x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
-        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
-        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+        data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values.
+        **kwargs: Additional keyword arguments passed to parent plotting function.
 
     Returns:
         matplotlib.figure.Figure: The finished graph
     """
-    
+
     return visualisation.core.plot_ratio(
         data,
         "ctx_base_rate_mean",
-        min_data=min_data,
-        max_data=max_data,
         title="Mean base rate across agents",
-        x_scale_factor=x_scale_factor,
-        ax=ax,
-        disable_title=disable_title,
+        **kwargs
     )
 
+
 def plot_ctx_base_rate_per_agent(
-        data: Union[model.model.PrimingModel, List[List[List[float]]]],
-        y_scale_factor: int = 1,
-        disable_title: bool = False,
+    data: Union[model.model.PrimingModel, List[List[List[float]]]],
+    **kwargs: Any,
 ) -> matplotlib.figure.Figure:
     """Plot the base rate evolution of each agent on a single graph.
 
     Args:
-        data (Union[model.model.PrimingModel, List[List[List[float]]]]): Either a model instance or a list of values
-        y_scale_factor (int, optional): The factor to scale the y axis ticks by. Defaults to 1.
-        disable_title (bool, optional): Whether to show a title for this grpah. Defaults to False.
+        data (Union[model.model.PrimingModel, List[List[List[float]]]]): Either a model instance or a list of values.
+        **kwargs: Additional keyword arguments passed to parent plotting function.
 
     Returns:
         matplotlib.figure.Figure: The finished graph
@@ -61,6 +50,5 @@ def plot_ctx_base_rate_per_agent(
         baseline=0.5,
         # secondary_baseline_attribute="starting_base_rate_per_agent",
         title="Evolution of relative base rate per agent",
-        y_scale_factor=y_scale_factor,
-        disable_title=disable_title
+        **kwargs
     )
