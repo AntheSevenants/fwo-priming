@@ -340,10 +340,11 @@ def generate_inner_lambda(
             else:
                 kwargs[arg_name] = arg_func
 
-    # Set scale factor
-    kwargs["x_scale_factor"] = scale_factor
     # Regular graph
     if aggregate_config is None:
+        # Set scale factor
+        kwargs["x_scale_factor"] = scale_factor
+
         # Combination graph
         if single_run is None:
             # Add common args
