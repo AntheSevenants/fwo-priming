@@ -60,6 +60,7 @@ def batch_run(
     iterations: int = 1,
     data_collection_period: int = -1,
     max_steps: int = 1000,
+    datacollector_step_size: float = 1,
     display_progress: bool = True,
 ) -> list[dict[str, Any]]:
     """Batch run a mesa model with a set of parameter values.
@@ -71,6 +72,7 @@ def batch_run(
         iterations (int, optional): Number of iterations for each parameter combination, by default 1
         data_collection_period (int, optional): Number of steps after which data gets collected, by default -1 (end of episode)
         max_steps (int, optional): Maximum number of model steps after which the model halts, by default 1000
+        datacollector_step_size (int, optional): The step interval between runs of the data collector, by default 1
         display_progress (bool, optional): Display batch run process, by default True
 
     Returns:
@@ -95,7 +97,9 @@ def batch_run(
                 kwargs_pass = { **kwargs, "seed": random.randint(0, 99999999) }
             else:
                 kwargs_pass = kwargs
-
+            
+            # Set the datacollector step size dynamically based on the max steps
+            kwargs_pass["datacollector_step_size"] = datacollector_step_size
 
             runs_list.append((run_id, combination_id, iteration, sweeps_dir, current_sweep, kwargs_pass))
             run_id += 1

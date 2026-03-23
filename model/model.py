@@ -108,8 +108,9 @@ class PrimingModel(mesa.Model):
         # Make all agents interact in a random order
         self.agents.shuffle_do("interact_do")
 
-        # Collect information about this specific model step
-        self.datacollector.collect(self)
+        if self.time % self.params.datacollector_step_size == 0:
+            # Collect information about this specific model step
+            self.datacollector.collect(self)
 
         # Now do decay for all agents
         self.agents.do("do_decay")

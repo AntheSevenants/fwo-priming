@@ -11,9 +11,17 @@ COLOURS = ["blue", "orange", "green", "red", "purple"]
 LINE_STYLES = ["-", "--", ":", "-."]
 
 
-def formatter(x, pos, scale=100):
+def formatter(x: float, pos: float, scale: int):
     del pos
     return str(int(x * scale))
+
+
+def scale_x_axis(ax: matplotlib.axes.Axes, scale: int = 100):
+    # Do nothing if scale is 1
+    if scale == 1:
+        return
+
+    ax.xaxis.set_major_formatter(lambda x, pos: formatter(x, pos, scale=scale))
 
 
 def check_ax(
@@ -202,6 +210,7 @@ def plot_value(
     data: Union[model.model.PrimingModel, List[float]],
     attribute: str,
     ylim: Optional[List[float]] = None,
+    x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_filter: Optional[int] = None,
     min_data: Optional[List[float]] = None,
@@ -215,12 +224,13 @@ def plot_value(
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         attribute (Optional[str]): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
+        x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
         min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
-    
+
     Returns:
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
@@ -244,6 +254,8 @@ def plot_value(
             alpha=0.2,
         )
 
+    scale_x_axis(ax, x_scale_factor)
+
     if ylim is not None:
         ax.set_ylim(*ylim)
 
@@ -260,6 +272,7 @@ def plot_ratio(
     data: Union[model.model.PrimingModel, List[List[float]]],
     attributes: Union[str, List[str]],
     ylim: List[float] = [0, 1],
+    x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_filter: Optional[int] = None,
     min_data: Optional[List[List[float]]] = None,
@@ -273,6 +286,7 @@ def plot_ratio(
         data (Union[model.model.PrimingModel, List[List[float]]): Either a model instance or a list of values
         attributes (Union[str, List[str]]): The names of the series to model. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         ylim (List[float], optional): The expected range of values, will be the y axis. Defaults to [0, 1].
+        x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
         min_data (Optional[List[List[float]]], optional): List of minimal values. Needs to be defined together with max_data.
@@ -318,6 +332,8 @@ def plot_ratio(
     if title is not None and not disable_title:
         ax.set_title(title)
 
+    scale_x_axis(ax, x_scale_factor)
+
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
 
@@ -331,6 +347,7 @@ def plot_ratio_pass(
     data: Union[model.model.PrimingModel, List[List[float]], List[List[List[float]]]],
     attribute: str,
     ylim: Optional[List[float]] = None,
+    y_scale_factor: int = 1,
     baseline: Optional[float] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     title: Optional[str] = None,
@@ -342,6 +359,7 @@ def plot_ratio_pass(
         data (Union[model.model.PrimingModel, List[List[float]], List[List[float]]): Either a model instance or a list of values
         attribute (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
+        y_scale_factor (int, optional): The factor to scale the y axis ticks by. Defaults to 1.
         baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Please do not pass any axes currently. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
@@ -401,6 +419,9 @@ def plot_ratio_pass(
         _ax.set_xticks([])
         # ax.set_xlabel('Construction 0 usage')
         _ax.grid(True)
+
+        # X will become Y further down
+        scale_x_axis(_ax, y_scale_factor)
 
         # Disable ugly boxes
         for spine in _ax.spines.values():

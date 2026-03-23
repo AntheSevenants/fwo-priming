@@ -1,7 +1,8 @@
 import os
+import json
 import pandas as pd
 
-from typing import List
+from typing import List, Union
 
 
 def get_sweeps(sweeps_dir: str) -> List[str]:
@@ -18,6 +19,20 @@ def get_sweeps(sweeps_dir: str) -> List[str]:
     sweep_dirs = sorted(sweep_dirs)
 
     return sweep_dirs
+
+
+def make_sweep_info_path(sweeps_dir: str, selected_sweep: str) -> str:
+    selected_sweep_dir = make_selected_sweep_dir(sweeps_dir, selected_sweep)
+    return os.path.join(selected_sweep_dir, "sweep_info.json")
+
+
+def get_sweep_info(sweep_dir: str, selected_sweep: str) -> dict[str, Union[float, int, str]]:
+    sweep_info_path = make_sweep_info_path(sweep_dir, selected_sweep)
+    if not os.path.exists(sweep_info_path):
+        raise FileNotFoundError("Sweep info JSON does not exist")
+
+    with open(sweep_info_path, "rt") as reader:
+        return json.loads(reader.read())
 
 
 def get_run_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:

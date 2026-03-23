@@ -28,6 +28,7 @@ def plot_ctx_entropy_mean(
     base_rate: bool = False,
     min_data: Optional[List[float]] = None,
     max_data: Optional[List[float]] = None,
+    x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     disable_title: bool = False,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -38,6 +39,7 @@ def plot_ctx_entropy_mean(
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         num_constructions (int): The number of constructions in the simulation.
+        x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
@@ -54,6 +56,7 @@ def plot_ctx_entropy_mean(
         max_data=max_data,
         ylim=ylim,
         title=f"Mean {infix}entropy across agents",
+        x_scale_factor=x_scale_factor,
         ax=ax,
         disable_title=disable_title,
     )
@@ -63,6 +66,7 @@ def plot_ctx_entropy_per_agent(
     data: Union[model.model.PrimingModel, List[List[float]]],
     num_constructions: int,
     base_rate: bool = False,
+    y_scale_factor: int = 1,
     disable_title: bool = False,
 ) -> matplotlib.figure.Figure:
     """Plot the entropy evolution of each agent on a single graph.
@@ -70,6 +74,7 @@ def plot_ctx_entropy_per_agent(
     Args:
         data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values
         num_constructions (int): The number of constructions in the simulation.
+        y_scale_factor (int, optional): The factor to scale the y axis ticks by. Defaults to 1.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
 
     Returns:
@@ -85,6 +90,7 @@ def plot_ctx_entropy_per_agent(
         ylim=ylim,
         baseline=maximum_entropy / 2,
         title="Evolution of preference entropy per agent",
+        y_scale_factor=y_scale_factor,
         disable_title=disable_title,
     )
 
@@ -93,6 +99,7 @@ def plot_ctx_entropy_for_agent(
     data: Union[model.model.PrimingModel, List[float]],
     num_constructions: int,
     base_rate: bool = False,
+    x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_index: Optional[int] = None,
     disable_title: bool = False,
@@ -102,6 +109,7 @@ def plot_ctx_entropy_for_agent(
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
         num_constructions (int): The number of constructions in the simulation.
+        x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
@@ -120,6 +128,7 @@ def plot_ctx_entropy_for_agent(
         ylim=ylim,
         agent_filter=agent_index,
         title=f"Preference entropy for agent {agent_index}",
+        x_scale_factor=x_scale_factor,
         ax=ax,
         disable_title=disable_title,
     )

@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import os
 import argparse
+import dataclasses
 import json
 import random
 import math
@@ -14,6 +15,7 @@ import math
 import batch.profiles
 import batch.aggregate
 import batch.combination
+import batch.sweep_info
 import export.sweeps
 import export.runs
 import export.combinations
@@ -27,7 +29,11 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-NUM_STEPS = 10000
+sweep_info = batch.sweep_info.SweepInfo(
+    num_steps=10000,
+    datacollector_step_ratio=0.1
+)
+
 SWEEPS_DIR = "sweeps/"
 
 if not args.profile in batch.profiles.params:
@@ -48,7 +54,8 @@ if __name__ == "__main__":
         current_sweep,
         parameters=params,
         iterations=args.iterations,
-        max_steps=NUM_STEPS,
+        max_steps=sweep_info.num_steps,
+        datacollector_step_size=sweep_info.datacollector_step_size,
         number_processes=None,
         data_collection_period=100,
         display_progress=True,
@@ -129,3 +136,9 @@ if __name__ == "__main__":
         combination_infos_path,
         orient='records'
     )
+    
+    # Write meta information about this parameter sweep
+    sweep_info_path = export.sweeps.make_sweep_info_path(SWEEPS_DIR, current_sweep)
+    with open(sweep_info_path, "wt") as writer:
+        sweep_info_dict = dataclasses.asdict(sweep_info)
+        writer.write(json.dumps(sweep_info_dict))

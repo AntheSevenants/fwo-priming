@@ -23,6 +23,8 @@ class Parameters:
     seed: Optional[int] = None
     # Allow model to stop early if consensus is reached
     early_stop: bool = False
+    # After how many steps do we collect data?
+    datacollector_step_size: int = 1
 
     # ----
     # Priming-related probabilities

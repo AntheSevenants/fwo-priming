@@ -231,6 +231,12 @@ def generate_graphs(
     # Now, we can build the desired graphs and save them
     graphs_output = {}
 
+    scale_factor: int = int(
+        export.sweeps.get_sweep_info(sweeps_dir, selected_sweep)[
+            "datacollector_step_size"
+        ]
+    )
+
     # If only a single combination_id is given, this is a single graph
     if isinstance(combination_ids, int) and aggregate is None and single_run is None:
         # Retrieve the data for the single combination
@@ -270,6 +276,7 @@ def generate_graphs(
                     graph_function = generate_inner_lambda(
                         data,
                         references_graph_name,
+                        scale_factor=scale_factor,
                         single_run=single_run
                     )
                     inner_functions.append(graph_function)
@@ -280,7 +287,10 @@ def generate_graphs(
         else:
             # Make a single plot. We pass ax=None because there is no existing axis to hook into
             figure, ax = generate_inner_lambda(
-                data, graph_name, aggregate_config=aggregate
+                data,
+                graph_name,
+                scale_factor=scale_factor,
+                aggregate_config=aggregate
             )(ax=None)
 
         graphs_output[graph_name] = figure
@@ -291,6 +301,7 @@ def generate_graphs(
 def generate_inner_lambda(
     data: Union[Dict[str, Any], pd.DataFrame],
     graph_name: str,
+    scale_factor: int = 1,
     single_run: Optional[int] = None,
     aggregate_config: Optional[AggregateSettings] = None
 ) -> Callable:
@@ -329,6 +340,8 @@ def generate_inner_lambda(
             else:
                 kwargs[arg_name] = arg_func
 
+    # Set scale factor
+    kwargs["x_scale_factor"] = scale_factor
     # Regular graph
     if aggregate_config is None:
         # Combination graph
