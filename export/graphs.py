@@ -101,7 +101,7 @@ graph_configs = {
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,
         extra_args={
             "num_constructions": get_num_constructions,
-            "base_rate": True
+            "is_base_rate": True
         },
     ),
     "ctx_probs_mean": GraphConfig(
@@ -138,7 +138,7 @@ graph_configs = {
         context=GraphContext.DASHBOARD,
         extra_args={
             "num_constructions": lambda data: len(data.iloc[0]["activation_mean"]),
-            "base_rate": True
+            "is_base_rate": True
         },
     ),
 }
