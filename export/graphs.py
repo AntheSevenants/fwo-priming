@@ -102,6 +102,14 @@ graph_configs = {
             "num_constructions": get_num_constructions,
         },
     ),
+    "ctx_entropy_mean_slope": GraphConfig(
+        data_column="ctx_entropy_median",
+        action_column="slope",
+        plot_func=lambda data, **kwargs: visualisation.slope.plot_slope_dist(
+            data, "median entropy", **kwargs
+        ),
+        context=GraphContext.DASHBOARD,
+    ),
     "ctx_base_rate_entropy_mean": GraphConfig(
         data_column="ctx_base_rate_entropy_median",
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,

@@ -438,3 +438,36 @@ def plot_ratio_pass(
 def check_if_none(variable_name: str, value: Any):
     if value is None:
         raise ValueError(f'"{variable_name}" cannot be None')
+
+
+def plot_histogram(
+    data: List[float],
+    ax: Optional[matplotlib.axes.Axes] = None,
+    title: Optional[str] = None,
+    disable_title: bool = False,
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
+    """Plot a desired series of values from a model run
+
+    Args:
+        data (List[float]]): A list of values
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
+    """
+
+    fig, ax = check_ax(ax, disable_title)
+
+    ax.hist(data, bins=10, edgecolor='black')
+    ax.set_xlabel("Slope values")
+    ax.set_ylabel("Frequency")
+
+    if title is not None and not disable_title:
+        ax.set_title(title)
+
+    output_fig = get_ax_figure(ax)
+    plt.close(output_fig)
+
+    return (output_fig, ax)

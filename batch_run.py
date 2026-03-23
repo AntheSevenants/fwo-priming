@@ -102,7 +102,8 @@ if __name__ == "__main__":
                  batch.combination.CombinationOperations.MEDIAN,
                  batch.combination.CombinationOperations.MEAN,
                  batch.combination.CombinationOperations.MIN,
-                 batch.combination.CombinationOperations.MAX]
+                 batch.combination.CombinationOperations.MAX,
+                 batch.combination.CombinationOperations.SLOPE]
             )
         
         aggregated_data["combination_id"] = row["combination_id"]
