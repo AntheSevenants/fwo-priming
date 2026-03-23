@@ -31,7 +31,7 @@ args = parser.parse_args()
 
 sweep_info = batch.sweep_info.SweepInfo(
     num_steps=10000,
-    datacollector_step_ratio=0.1
+    datacollector_step_ratio=0.01
 )
 
 SWEEPS_DIR = "sweeps/"
