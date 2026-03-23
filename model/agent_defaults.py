@@ -49,7 +49,7 @@ class Attributes:
 
         # We multiply by two because else the delta computation will fail
         self.entropy = np.array([ model.entropy.compute_entropy(self.activation) ] * 2)
-        self.base_rate_entropy = np.array([ model.entropy.compute_entropy(self.base_rate_entropy) ] * 2)
+        self.base_rate_entropy = np.array([ model.entropy.compute_entropy(self.base_rate) ] * 2)
 
     def init_construction_probs(self):
         # Assign starting base rate to the constructions
