@@ -77,7 +77,7 @@ if __name__ == "__main__":
             json_content = export.runs.load_dataframe(SWEEPS_DIR, current_sweep, run_id)
 
             for column_name in json_content.keys():
-                if column_name.endswith("_mean"):
+                if column_name.endswith("_mean") or column_name.endswith("_median"):
                     if column_name not in aggregated_data:
                         aggregated_data[column_name] = []
 

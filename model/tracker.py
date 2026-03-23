@@ -72,3 +72,19 @@ class Tracker:
         agent_property_dist = self.get_property_per_agent(property_name, index=index)
 
         return agent_property_dist.mean(axis=0)
+    
+    
+    def get_property_median_across_agents(self, property_name: str, index: Optional[int] = None):
+        """Retrieve the median of a requested property value across agents. If a property is multi-dimensional, you can ask to take the median of the values of just one of the dimensions.
+
+        Args:
+            property_name (str): The name of the property that should be retrieved for each agent.
+            index (int, optional): The index of the multi-dimensional value that should be retrieved, if multi-dimensional. Returns entire list if None. Defaults to None.
+
+        Returns:
+            float: A number of the median of the value
+        """
+
+        agent_property_dist = self.get_property_per_agent(property_name, index=index)
+
+        return np.median(agent_property_dist, axis=0)

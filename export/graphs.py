@@ -82,22 +82,22 @@ def get_num_constructions(
 
 graph_configs = {
     "ctx_activation_mean": GraphConfig(
-        data_column="ctx_activation_mean",
+        data_column="ctx_activation_median",
         plot_func=visualisation.activation.plot_ctx_activation_mean,
     ),
     "ctx_base_rate_mean": GraphConfig(
-        data_column="ctx_base_rate_mean",
+        data_column="ctx_base_rate_median",
         plot_func=visualisation.base_rate.plot_ctx_base_rate_mean,
     ),
     "ctx_entropy_mean": GraphConfig(
-        data_column="ctx_entropy_mean",
+        data_column="ctx_entropy_median",
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,
         extra_args={
             "num_constructions": get_num_constructions,
         },
     ),
     "ctx_base_rate_entropy_mean": GraphConfig(
-        data_column="ctx_base_rate_entropy_mean",
+        data_column="ctx_base_rate_entropy_median",
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,
         extra_args={
             "num_constructions": get_num_constructions,
@@ -105,7 +105,7 @@ graph_configs = {
         },
     ),
     "ctx_probs_mean": GraphConfig(
-        data_column="ctx_probs_mean",
+        data_column="ctx_probs_median",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
     ),
     "activation_composite_plot": MosaicConfig(

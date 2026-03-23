@@ -53,10 +53,19 @@ class PrimingModel(mesa.Model):
             "ctx_activation_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "activation"
             ),
+            "ctx_activation_median": lambda model: model.tracker.get_property_median_across_agents(
+                "activation"
+            ),
             "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "activation_norm"
             ),
+            "ctx_probs_median": lambda model: model.tracker.get_property_median_across_agents(
+                "activation_norm"
+            ),
             "ctx_base_rate_mean": lambda model: model.tracker.get_property_mean_across_agents(
+                "base_rate"
+            ),
+            "ctx_base_rate_median": lambda model: model.tracker.get_property_median_across_agents(
                 "base_rate"
             ),
             "ctx_entropy_per_agent": lambda model: model.tracker.get_property_per_agent(
@@ -65,10 +74,16 @@ class PrimingModel(mesa.Model):
             "ctx_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
                 "entropy", index=-1
             ),
+            "ctx_entropy_median": lambda model: model.tracker.get_property_median_across_agents(
+                "entropy", index=-1
+            ),
             "ctx_base_rate_entropy_per_agent": lambda model: model.tracker.get_property_per_agent(
                 "base_rate_entropy", index=-1
             ),
             "ctx_base_rate_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
+                "base_rate_entropy", index=-1
+            ),
+            "ctx_base_rate_entropy_median": lambda model: model.tracker.get_property_median_across_agents(
                 "base_rate_entropy", index=-1
             ),
             "consensus_reached": lambda model: (
