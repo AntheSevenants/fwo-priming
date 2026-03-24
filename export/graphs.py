@@ -318,7 +318,8 @@ def generate_graphs(
                 data,
                 graph_name,
                 scale_factor=scale_factor,
-                aggregate_config=aggregate
+                aggregate_config=aggregate,
+                single_run=single_run
             )(ax=None)
 
         graphs_output[graph_name] = figure
