@@ -7,61 +7,107 @@ import numpy as np
 @dataclass
 class AggregateColumnOperation:
     name: str
-    required_columns: List[str]
     operation: Callable[..., Union[np.ndarray, np.float64]]
 
 
 class AggregateColumnOperations:
     MIN: AggregateColumnOperation = AggregateColumnOperation(
         name="min",
-        required_columns=["mean"],
         operation=lambda data: np.min(data, axis=0),
     )
     MAX: AggregateColumnOperation = AggregateColumnOperation(
         name="max",
-        required_columns=["mean"],
         operation=lambda data: np.max(data, axis=0),
     )
     MEAN: AggregateColumnOperation = AggregateColumnOperation(
         name="mean",
-        required_columns=["mean"],
+        operation=lambda data: np.mean(data, axis=0),
+    )
+    SLOPE_MEAN: AggregateColumnOperation = AggregateColumnOperation(
+        name="slope_mean",
         operation=lambda data: np.mean(data, axis=0),
     )
     MEDIAN: AggregateColumnOperation = AggregateColumnOperation(
         name="median",
-        required_columns=["mean"],
+        operation=lambda data: np.median(data, axis=0),
+    )
+    SLOPE_MEDIAN: AggregateColumnOperation = AggregateColumnOperation(
+        name="slope_median",
         operation=lambda data: np.median(data, axis=0),
     )
     Q1: AggregateColumnOperation = AggregateColumnOperation(
         name="q1",
-        required_columns=["mean"],
         operation=lambda data: np.percentile(data, 25, axis=0),
     )
     Q3: AggregateColumnOperation = AggregateColumnOperation(
         name="q3",
-        required_columns=["mean"],
         operation=lambda data: np.percentile(data, 75, axis=0),
     )
     DELTA: AggregateColumnOperation = AggregateColumnOperation(
         name="delta",
-        required_columns=["min", "max"],
         operation=lambda min_data, max_data: max_data.mean(axis=0)
         - min_data.mean(axis=0),
     )
 
 
 @dataclass
-class AggregateColumnConfig:
-    data_column: str
-    actions: List[AggregateColumnOperation] = field(
-        default_factory=lambda: [
+class ColumnMapping:
+    name: str
+    required_columns: List[str]
+    operations: List[
+        Union[AggregateColumnOperation, Tuple[AggregateColumnOperation, List[str]]]
+    ]
+
+
+class ColumnMappings:
+    MEAN: ColumnMapping = ColumnMapping(
+        name="mean",
+        required_columns=["mean"],
+        operations=[
             AggregateColumnOperations.MIN,
             AggregateColumnOperations.MAX,
             AggregateColumnOperations.MEAN,
-            AggregateColumnOperations.DELTA,
             AggregateColumnOperations.MEDIAN,
             AggregateColumnOperations.Q1,
             AggregateColumnOperations.Q3,
+            (AggregateColumnOperations.DELTA, ["min", "max"]),
+        ]
+    )
+    MEDIAN: ColumnMapping = ColumnMapping(
+        name="median",
+        required_columns=["median"],
+        operations=[
+            AggregateColumnOperations.MIN,
+            AggregateColumnOperations.MAX,
+            AggregateColumnOperations.MEAN,
+            AggregateColumnOperations.MEDIAN,
+            AggregateColumnOperations.Q1,
+            AggregateColumnOperations.Q3,
+            (AggregateColumnOperations.DELTA, ["min", "max"]),
+        ]
+    )
+    SLOPE: ColumnMapping = ColumnMapping(
+        name="slope",
+        required_columns=["slope"],
+        operations=[
+            AggregateColumnOperations.MIN,
+            AggregateColumnOperations.MAX,
+            AggregateColumnOperations.MEAN,
+            AggregateColumnOperations.MEDIAN,
+            AggregateColumnOperations.Q1,
+            AggregateColumnOperations.Q3
+        ]
+    )
+
+
+@dataclass
+class AggregateColumnConfig:
+    data_column: str
+    column_mappings: List[ColumnMapping] = field(
+        default_factory=lambda: [
+            ColumnMappings.MEAN,
+            ColumnMappings.MEDIAN,
+            ColumnMappings.SLOPE,
         ]
     )
 
@@ -74,19 +120,20 @@ aggregate_column_configs = {
 
 
 def make_aggregate_output_name(
-    aggregate_column_prefix: str, operation_name: str
+    aggregate_column_prefix: str, column_name: str, operation_name: str
 ) -> str:
     """Build the aggregate output column name
 
     Args:
         aggregate_column_prefix (str): Prefix for the column
-        operation_name (str): Action that was applied to the colunm (min, max, mean etc.)
+        aggregate_column_prefix (str): Name of the column that we will apply the action to
+        operation_name (str): Action that was applied to the colcolumnunm (min, max, mean etc.)
 
     Returns:
         str: Combined prefix for the column
     """
 
-    return f"{aggregate_column_prefix}_{operation_name}"
+    return f"{aggregate_column_prefix}_{column_name}_{operation_name}"
 
 
 def get_aggregate_column_config(aggregate_column_name: str) -> AggregateColumnConfig:
@@ -126,19 +173,32 @@ def get_aggregate_metrics(
 
     for aggregate_column_name in aggregate_column_names:
         config = get_aggregate_column_config(aggregate_column_name)
+        data_column = config.data_column
 
-        for action in config.actions:
-            # This will be the name of the column in the output dataframe
-            output_column_name = make_aggregate_output_name(
-                aggregate_column_name, action.name
-            )
-            # Automatically retrieve the columns that this specific action operation requires
-            required_data = [
-                np.array(aggregated_data[config.data_column][column])
-                for column in action.required_columns
-            ]
-            aggregate_result = action.operation(*required_data)
+        # What deeper columns need to be "actioned" on?
+        for column_mapping in config.column_mappings:
+            base_columns = column_mapping.required_columns
+            for operation_tuple in column_mapping.operations:
+                required_columns = base_columns
+                if isinstance(operation_tuple, AggregateColumnOperation):
+                    operation = operation_tuple
+                elif isinstance(operation_tuple, tuple):
+                    operation, required_columns = operation_tuple
+                else:
+                    raise TypeError("Unrecognised action structure")
 
-            aggregate_metrics[output_column_name] = aggregate_result
+                # This will be the name of the column in the output dataframe
+                output_column_name = make_aggregate_output_name(
+                    aggregate_column_name, column_mapping.name, operation.name
+                )
+
+                # Automatically retrieve the columns that this specific action operation requires
+                required_data = [
+                    np.array(aggregated_data[config.data_column][column])
+                    for column in required_columns
+                ]
+                aggregate_result = operation.operation(*required_data)
+
+                aggregate_metrics[output_column_name] = aggregate_result
 
     return aggregate_metrics

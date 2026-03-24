@@ -14,6 +14,7 @@ import visualisation.probabilities
 import visualisation.slope
 import visualisation.multiplot
 import visualisation.aggregate.entropy
+import visualisation.aggregate.slope
 
 import export.sweeps
 import export.runs
@@ -36,6 +37,7 @@ class GraphConfig:
         None  # What extra arguments are needed to plot this figure?
     )
     action_column: str = "median"
+    action_column_inner: str = "median"
     aggregate: bool = False
     is_mosaic: bool = False
     context: int = GraphContext.EXPORT
@@ -145,7 +147,7 @@ graph_configs = {
         context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
         extra_args={
-            "num_constructions": lambda data: len(data.iloc[0]["activation_mean"])
+            "num_constructions": lambda data: len(data.iloc[0]["activation_mean_mean"])
         },
     ),
     "aggregate_base_rate_entropy": GraphConfig(
@@ -155,9 +157,17 @@ graph_configs = {
         context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
         extra_args={
-            "num_constructions": lambda data: len(data.iloc[0]["activation_mean"]),
+            "num_constructions": lambda data: len(data.iloc[0]["activation_mean_mean"]),
             "is_base_rate": True
         },
+    ),
+    "aggregate_entropy_slope_mean": GraphConfig(
+        data_column="entropy",
+        action_column_inner="slope",
+        plot_func=visualisation.aggregate.slope.plot_slope_range,
+        aggregate=True,
+        context=GraphContext.DASHBOARD,
+        common_args=["min_data", "max_data"],
     ),
 }
 
@@ -385,17 +395,17 @@ def generate_inner_lambda(
             value = None
             if common_arg == "min_data":
                 value = data[
-                    batch.aggregate.make_aggregate_output_name(config.data_column, "q1")
+                    batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, "q1")
                     ]
             elif common_arg == "max_data":
                 value = kwargs["max_data"] = data[
-                    batch.aggregate.make_aggregate_output_name(config.data_column, "q3")
+                    batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, "q3")
                     ]
             kwargs[common_arg] = value
 
         return lambda ax: config.plot_func(
             data[
-                batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column)
+                batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, config.action_column)
             ],
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,
