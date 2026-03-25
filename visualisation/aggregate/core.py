@@ -50,7 +50,7 @@ def plot_aggregate_values(
         else [np.abs(value_list - _min_data), np.abs(_max_data - value_list)]
     )
 
-    plt.errorbar(
+    ax.errorbar(
         x,
         value_list,
         yerr=_yerr,
