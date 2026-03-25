@@ -98,6 +98,16 @@ class ColumnMappings:
             AggregateColumnOperations.Q3
         ]
     )
+    CONSENSUS: ColumnMapping = ColumnMapping(
+        name="consensus",
+        required_columns=["raw"],
+        operations=[
+            AggregateColumnOperation(
+                name="raw",
+                operation=lambda data: np.float64(data),
+            )
+        ]
+    )
 
 
 @dataclass
@@ -116,6 +126,9 @@ aggregate_column_configs = {
     "entropy": AggregateColumnConfig(data_column="ctx_entropy_mean"),
     "base_rate_entropy": AggregateColumnConfig(data_column="ctx_base_rate_entropy_mean"),
     "activation": AggregateColumnConfig(data_column="ctx_activation_mean"),
+    "consensus": AggregateColumnConfig(
+        data_column="consensus_reached",
+        column_mappings=[ColumnMappings.CONSENSUS]),
 }
 
 
