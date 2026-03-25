@@ -125,7 +125,10 @@ def show_interface(live: bool = False):
 
         # GRAPH TYPES
         if aggregate is None:
-            GRAPHS = export.graphs.get_graph_names(export.graphs.GraphContext.DASHBOARD)
+            GRAPHS = export.graphs.get_graph_names(
+                export.graphs.GraphContext.DASHBOARD,
+                is_single_run=selected_run is not None
+            )
         else:
             GRAPHS = export.graphs.get_aggregate_graph_names(
                 export.graphs.GraphContext.DASHBOARD

@@ -40,6 +40,7 @@ class GraphConfig:
     action_column_inner: str = "median"
     aggregate: bool = False
     is_mosaic: bool = False
+    single_run_sensible: bool = True
     context: int = GraphContext.EXPORT
 
 
@@ -49,6 +50,7 @@ class MosaicConfig:
     size: Tuple[int, int] = (10, 16)
     is_mosaic: bool = True
     context: int = GraphContext.DASHBOARD
+    single_run_sensible: bool = True
     aggregate: bool = False
 
 
@@ -111,6 +113,7 @@ graph_configs = {
             data, "median entropy", **kwargs
         ),
         context=GraphContext.DASHBOARD,
+        single_run_sensible=False
     ),
     "ctx_base_rate_entropy_mean": GraphConfig(
         data_column="ctx_base_rate_entropy_median",
@@ -172,11 +175,12 @@ graph_configs = {
 }
 
 
-def get_graph_names(context: int) -> List[str]:
+def get_graph_names(context: int, is_single_run: bool = False) -> List[str]:
     """Returns a list of the names of all available graphs
 
     Args:
         context (int): Context where the graphs will be used
+        is_single_run (bool): Whether the graphs are meant for a single run display
 
     Returns:
         List[str]: A list of the names of all available graphs
@@ -187,6 +191,7 @@ def get_graph_names(context: int) -> List[str]:
         for graph_config in list(graph_configs.keys())
         if graph_configs[graph_config].context == context
         and not graph_configs[graph_config].aggregate
+        and (not is_single_run or graph_configs[graph_config].single_run_sensible)
     ]
 
 
@@ -293,6 +298,10 @@ def generate_graphs(
     # We go over all requested graphs and generate them
     for graph_name in graphs:
         config = get_graph_config(graph_name)
+
+        # Skip graphs that do not make sense in single run view
+        if single_run is not None and not config.single_run_sensible:
+            continue
 
         # Check if mosaic plot
         if isinstance(config, MosaicConfig):
