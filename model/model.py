@@ -88,11 +88,11 @@ class PrimingModel(mesa.Model):
             ),
             "consensus_reached": lambda model: (
                 False
-                if len(model.datacollector.model_vars["ctx_probs_mean"]) == 0
+                if len(model.datacollector.model_vars["ctx_base_rate_mean"]) == 0
                 else (
                     np.any(
                         np.isclose(
-                            model.datacollector.model_vars["ctx_probs_mean"][-1], 1
+                            model.datacollector.model_vars["ctx_base_rate_mean"][-1], 1
                         )
                     )
                     is np.True_
