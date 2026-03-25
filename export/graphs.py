@@ -16,6 +16,7 @@ import visualisation.consensus
 import visualisation.multiplot
 import visualisation.aggregate.entropy
 import visualisation.aggregate.slope
+import visualisation.aggregate.consensus
 
 import export.sweeps
 import export.runs
@@ -182,6 +183,14 @@ graph_configs = {
         context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
     ),
+    "aggregate_consensus": GraphConfig(
+        data_column="consensus",
+        action_column="raw",
+        action_column_inner="consensus",
+        plot_func=visualisation.aggregate.consensus.plot_consensus_aggregate,
+        aggregate=True,
+        context=GraphContext.DASHBOARD,
+    ),
 }
 
 
@@ -280,6 +289,7 @@ def generate_graphs(
         ]
     )
 
+    data: Union[dict[str, Any], pd.DataFrame]
     # If only a single combination_id is given, this is a single graph
     if isinstance(combination_ids, int) and aggregate is None and single_run is None:
         # Retrieve the data for the single combination
@@ -426,7 +436,7 @@ def generate_inner_lambda(
         return lambda ax: config.plot_func(
             data[
                 batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, config.action_column)
-            ],
+            ].tolist(),
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,
             **kwargs,
