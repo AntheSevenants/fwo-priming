@@ -505,7 +505,7 @@ def plot_bar(
     
     fix, ax = check_ax(ax, disable_title)
 
-    ax.bar(x, data)
+    ax.bar(x, data, edgecolor='black')
 
     if ylim is not None:
         ax.set_ylim(*ylim)
