@@ -471,3 +471,44 @@ def plot_histogram(
     plt.close(output_fig)
 
     return (output_fig, ax)
+
+def plot_bar(
+    data: List[float],
+    x: List[str],
+    ax: Optional[matplotlib.axes.Axes] = None,
+    x_label: Optional[str] = None,
+    y_label: Optional[str] = None,
+    title: Optional[str] = None,
+    disable_title: bool = False
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
+    """Plot a bar chart with values from a model run
+
+    Args:
+        data (List[float]): A list of values
+        x (List[str]): A list of values for the X axis
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        x_label (Optional[str], optional): The label for the X axis. Defaults to None.
+        y_label (Optional[str], optional): The label for the Y axis. Defaults to None.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
+    """
+    
+    fix, ax = check_ax(ax, disable_title)
+
+    ax.bar(x, data)
+
+    if x_label is not None:
+        ax.set_xlabel(x_label)
+    if y_label is not None:
+        ax.set_ylabel(y_label)
+
+    if title is not None and not disable_title:
+        ax.set_title(title)
+
+    output_fig = get_ax_figure(ax)
+    plt.close(output_fig)
+
+    return (output_fig, ax)

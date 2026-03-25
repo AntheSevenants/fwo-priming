@@ -12,6 +12,7 @@ import visualisation.base_rate
 import visualisation.entropy
 import visualisation.probabilities
 import visualisation.slope
+import visualisation.consensus
 import visualisation.multiplot
 import visualisation.aggregate.entropy
 import visualisation.aggregate.slope
@@ -111,6 +112,15 @@ graph_configs = {
         action_column="slope",
         plot_func=lambda data, **kwargs: visualisation.slope.plot_slope_dist(
             data, "median entropy", **kwargs
+        ),
+        context=GraphContext.DASHBOARD,
+        single_run_sensible=False
+    ),
+    "consensus_reached": GraphConfig(
+        data_column="consensus_reached",
+        action_column="raw",
+        plot_func=lambda data, **kwargs: visualisation.consensus.plot_consensus_dist(
+            data, **kwargs
         ),
         context=GraphContext.DASHBOARD,
         single_run_sensible=False
