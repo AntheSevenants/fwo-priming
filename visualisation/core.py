@@ -475,6 +475,7 @@ def plot_histogram(
 def plot_bar(
     data: List[float],
     x: List[str],
+    ylim: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
@@ -486,6 +487,7 @@ def plot_bar(
     Args:
         data (List[float]): A list of values
         x (List[str]): A list of values for the X axis
+        ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         x_label (Optional[str], optional): The label for the X axis. Defaults to None.
         y_label (Optional[str], optional): The label for the Y axis. Defaults to None.
@@ -499,6 +501,9 @@ def plot_bar(
     fix, ax = check_ax(ax, disable_title)
 
     ax.bar(x, data)
+
+    if ylim is not None:
+        ax.set_ylim(*ylim)
 
     if x_label is not None:
         ax.set_xlabel(x_label)
