@@ -443,6 +443,7 @@ def check_if_none(variable_name: str, value: Any):
 def plot_histogram(
     data: List[float],
     ax: Optional[matplotlib.axes.Axes] = None,
+    bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -460,7 +461,11 @@ def plot_histogram(
 
     fig, ax = check_ax(ax, disable_title)
 
-    ax.hist(data, bins=10, edgecolor='black')
+    _bins = 10
+    if bin_range is not None:
+        _bins = bin_range
+
+    ax.hist(data, bins=_bins, edgecolor='black')
     ax.set_xlabel("Slope values")
     ax.set_ylabel("Frequency")
 
