@@ -157,6 +157,7 @@ graph_configs = {
             ["ctx_entropy_mean_slope"],
             ["consensus_reached"]
         ],
+        single_run_sensible=False,
         size=(6, 12)
     ),
     "aggregate_entropy": GraphConfig(
@@ -328,10 +329,6 @@ def generate_graphs(
     for graph_name in graphs:
         config = get_graph_config(graph_name)
 
-        # Skip graphs that do not make sense in single run view
-        if single_run is not None and not config.single_run_sensible:
-            continue
-
         # Check if mosaic plot
         if isinstance(config, MosaicConfig):
             # One by one, we replace the names of the graphs with the actual functions that build them
@@ -339,6 +336,10 @@ def generate_graphs(
             for row in config.layout:
                 inner_functions = []
                 for references_graph_name in row:
+                    # Skip graphs that do not make sense in single run view
+                    if single_run is not None and not get_graph_config(references_graph_name).single_run_sensible:
+                        continue
+
                     graph_function = generate_inner_lambda(
                         data,
                         references_graph_name,
@@ -347,7 +348,11 @@ def generate_graphs(
                         single_run=single_run,
                     )
                     inner_functions.append(graph_function)
-                plot_functions.append(inner_functions)
+                
+                # Because we filter graphs, it can be that the row is empty
+                # So check first
+                if len(inner_functions) > 0:
+                    plot_functions.append(inner_functions)
 
             # Make the plot based on the functions
             figure = visualisation.multiplot.combine(plot_functions, config.size)
