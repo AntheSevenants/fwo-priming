@@ -148,14 +148,14 @@ graph_configs = {
     "base_rate_composite_plot": MosaicConfig(
         layout=[
             ["ctx_base_rate_mean"],
-            ["consensus_reached"]
+            ["ctx_base_rate_entropy_mean"]
         ],
         size=(6, 12)
     ),
     "other_graphs": MosaicConfig(
         layout=[
             ["ctx_entropy_mean_slope"],
-            ["ctx_base_rate_entropy_mean"]
+            ["consensus_reached"]
         ],
         size=(6, 12)
     ),
