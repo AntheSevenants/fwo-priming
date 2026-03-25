@@ -3,6 +3,8 @@ import matplotlib.axes
 
 import visualisation.core
 
+import numpy as np
+
 from typing import Optional, Union, List, Tuple, Any
 
 
@@ -21,6 +23,7 @@ def plot_slope_dist(
 
     return visualisation.core.plot_histogram(
         data,
+        bin_range=np.arange(-0.005, 0.006, 0.001).tolist(),
         title=f"Slope distribution of {attribute} for chosen parameter combination",
         **kwargs,
     )
