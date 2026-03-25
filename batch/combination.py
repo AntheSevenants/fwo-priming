@@ -27,10 +27,16 @@ def compute_slope(data_matrix: np.ndarray) -> np.ndarray:
         raise ValueError("Slope can only be computed for dimensions 2 and 3")
 
 
+def compute_bool_perc(data_matrix: np.ndarray) -> float:
+    convergence_results = data_matrix[:, -1]
+    percentage_true = np.sum(convergence_results) / len(convergence_results)
+
+    return percentage_true
+
 @dataclass
 class CombinationOperation:
     name: str
-    operation: Callable[[np.ndarray], np.ndarray]
+    operation: Callable[[np.ndarray], Any]
 
 
 class CombinationOperations:
@@ -54,6 +60,9 @@ class CombinationOperations:
     )
     SLOPE: CombinationOperation = CombinationOperation(
         name="slope", operation=compute_slope
+    )
+    BOOL_PERC: CombinationOperation = CombinationOperation(
+        name="bool_perc", operation=compute_bool_perc
     )
 
 

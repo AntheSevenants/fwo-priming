@@ -84,27 +84,29 @@ if __name__ == "__main__":
             json_content = export.runs.load_dataframe(SWEEPS_DIR, current_sweep, run_id)
 
             for column_name in json_content.keys():
-                if column_name.endswith("_mean") or column_name.endswith("_median"):
-                    if column_name not in aggregated_data:
-                        aggregated_data[column_name] = []
+                if column_name not in aggregated_data:
+                    aggregated_data[column_name] = []
 
-                    aggregated_data[column_name].append(
-                        json_content[column_name]
-                    )
+                aggregated_data[column_name].append(
+                    json_content[column_name]
+                )
             
         # Now aggregate, then turn into a list
         for column_name in aggregated_data:
             data_matrix = np.array(aggregated_data[column_name])
-            aggregated_data_out[column_name] = batch.combination.get_combination_metrics(
-                data_matrix,
-                [batch.combination.CombinationOperations.Q1,
-                 batch.combination.CombinationOperations.Q3,
-                 batch.combination.CombinationOperations.MEDIAN,
-                 batch.combination.CombinationOperations.MEAN,
-                 batch.combination.CombinationOperations.MIN,
-                 batch.combination.CombinationOperations.MAX,
-                 batch.combination.CombinationOperations.SLOPE]
-            )
+            if column_name.endswith("_mean") or column_name.endswith("_median"):
+                aggregated_data_out[column_name] = batch.combination.get_combination_metrics(
+                    data_matrix,
+                    [batch.combination.CombinationOperations.Q1,
+                     batch.combination.CombinationOperations.Q3,
+                     batch.combination.CombinationOperations.MEDIAN,
+                     batch.combination.CombinationOperations.MEAN,
+                     batch.combination.CombinationOperations.MIN,
+                     batch.combination.CombinationOperations.MAX,
+                     batch.combination.CombinationOperations.SLOPE]
+                )
+            if column_name == "consensus_reached":
+                aggregated_data_out[column_name] = { "raw": batch.combination.compute_bool_perc(data_matrix) }
         
         aggregated_data["combination_id"] = row["combination_id"]
 
