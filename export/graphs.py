@@ -73,11 +73,11 @@ class AggregateSettings:
         self.parameter = parameter
 
         run_infos = export.sweeps.get_run_infos(sweeps_dir, selected_sweep)
-        self.parameter_values = sorted(
+        self.parameter_values = [ str(item) for item in sorted(
             run_infos[run_infos["combination_id"].isin(combination_ids)][parameter]
             .unique()
             .tolist()
-        )
+        ) ]
 
 def get_num_constructions(
     data: Dict[str, Any],
