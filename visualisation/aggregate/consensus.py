@@ -20,9 +20,6 @@ def plot_consensus_aggregate(
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
-    print(data)
-
-
     title_infix = visualisation.aggregate.core.make_aggregate_title_infix(parameter)
 
     return visualisation.core.plot_bar(
