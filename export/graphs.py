@@ -343,7 +343,8 @@ def generate_graphs(
                         data,
                         references_graph_name,
                         scale_factor=scale_factor,
-                        single_run=single_run
+                        aggregate_config=aggregate,
+                        single_run=single_run,
                     )
                     inner_functions.append(graph_function)
                 plot_functions.append(inner_functions)
