@@ -114,7 +114,6 @@ graph_configs = {
         plot_func=lambda data, **kwargs: visualisation.slope.plot_slope_dist(
             data, "median entropy", **kwargs
         ),
-        context=GraphContext.DASHBOARD,
         single_run_sensible=False
     ),
     "consensus_reached": GraphConfig(
@@ -123,7 +122,6 @@ graph_configs = {
         plot_func=lambda data, **kwargs: visualisation.consensus.plot_consensus_dist(
             data, **kwargs
         ),
-        context=GraphContext.DASHBOARD,
         single_run_sensible=False
     ),
     "ctx_base_rate_entropy_mean": GraphConfig(
@@ -150,6 +148,13 @@ graph_configs = {
     "base_rate_composite_plot": MosaicConfig(
         layout=[
             ["ctx_base_rate_mean"],
+            ["consensus_reached"]
+        ],
+        size=(6, 12)
+    ),
+    "other_graphs": MosaicConfig(
+        layout=[
+            ["ctx_entropy_mean_slope"],
             ["ctx_base_rate_entropy_mean"]
         ],
         size=(6, 12)
@@ -158,7 +163,6 @@ graph_configs = {
         data_column="entropy",
         plot_func=visualisation.aggregate.entropy.plot_entropy_range,
         aggregate=True,
-        context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
         extra_args={
             "num_constructions": lambda data: len(data.iloc[0]["activation_mean_mean"])
@@ -168,7 +172,6 @@ graph_configs = {
         data_column="base_rate_entropy",
         plot_func=visualisation.aggregate.entropy.plot_entropy_range,
         aggregate=True,
-        context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
         extra_args={
             "num_constructions": lambda data: len(data.iloc[0]["activation_mean_mean"]),
@@ -180,7 +183,6 @@ graph_configs = {
         action_column_inner="slope",
         plot_func=visualisation.aggregate.slope.plot_slope_range,
         aggregate=True,
-        context=GraphContext.DASHBOARD,
         common_args=["min_data", "max_data"],
     ),
     "aggregate_consensus": GraphConfig(
@@ -189,7 +191,14 @@ graph_configs = {
         action_column_inner="consensus",
         plot_func=visualisation.aggregate.consensus.plot_consensus_aggregate,
         aggregate=True,
-        context=GraphContext.DASHBOARD,
+    ),
+    "aggregate_stuff": MosaicConfig(
+        layout=[
+            ["aggregate_entropy", "aggregate_base_rate_entropy"],
+            ["aggregate_entropy_slope_mean", "aggregate_consensus"]
+        ],
+        aggregate=True,
+        size=(12, 12)
     ),
 }
 
