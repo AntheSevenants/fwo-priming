@@ -27,6 +27,12 @@ class Parameters:
     datacollector_step_size: int = 1
 
     # ----
+    # Base rate-related frequencies
+    # ----
+    base_frequency: int = 10
+
+
+    # ----
     # Priming-related probabilities
     # ----
 
@@ -36,7 +42,6 @@ class Parameters:
     # If EQUAL, we can provide a custom distribution
     starting_probabilities: Optional[List[float]] = None
     priming_strength: float = 0.4
-    base_rate_change_strength: float = 0.1
     # Make priming strength dependent on surprisal
     inverse_frequency_exponent: float = 0
     inverse_frequency_max_multiplier: float = 2

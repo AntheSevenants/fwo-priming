@@ -111,10 +111,7 @@ class PrimingAgent(mesa.Agent):
         """
 
         # Add a constant rate to the current base rate, and then ...
-        self.atts.base_rate[construction_index] += self.model.params.base_rate_change_strength
-        
-        # ... renormalise so the sum sums to one.
-        self.atts.base_rate = np.divide(self.atts.base_rate, self.atts.base_rate.sum())
+        self.atts.base_frequency[construction_index] += 1
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).

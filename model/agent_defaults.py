@@ -13,9 +13,9 @@ import model.entropy
 class Attributes:
     model_params: model.model_defaults.Parameters
 
-    # The internal probability distribution of agents
-    # This is for "long-term" priming
-    base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
+    # The internal frequency distribution of agents
+    # This is for "long-term" priming effects
+    base_frequency: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # For posterity: the base rate that the agents were initialised with
     starting_base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
@@ -53,21 +53,47 @@ class Attributes:
 
     def init_construction_probs(self):
         # Assign starting base rate to the constructions
-        self.base_rate = np.zeros(self.model_params.num_constructions)
+        self.base_frequency = np.zeros(self.model_params.num_constructions)
 
         # If all agents start with an equal probability distribution, adhere to this distribution
-        if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
+        if (
+            self.model_params.starting_probabilities_type
+            == model.enums.StartingProbabilities.EQUAL
+        ):
             # If we start without predetermined probabilities, do equal probabilities
             if self.model_params.starting_probabilities is None:
-                self.base_rate = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
+                self.base_frequency = np.round(
+                    np.full(
+                        self.model_params.num_constructions,
+                        self.model_params.base_frequency,
+                    )
+                    / self.model_params.num_constructions
+                )
             # Else, adopt the given starting probabilities
             else:
-                self.base_rate = np.array(self.model_params.starting_probabilities)
-        elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
+                self.base_frequency = np.round(
+                    np.array(self.model_params.starting_probabilities)
+                    * self.model_params.base_frequency
+                )
+        elif (
+            self.model_params.starting_probabilities_type
+            == model.enums.StartingProbabilities.RANDOM
+        ):
             raise NotImplementedError
-            random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
+            random_numbers = self.model.nprandom.random(
+                self.model_params.num_constructions
+            )
             # Normalise
             self.base_rate = random_numbers / random_numbers.sum()
+    
+    @property
+    def base_rate(self):
+        """The normalised base frequency. All values sum to one.
+
+        Returns:
+            np.array(float): A numpy array containing the base rate, normalised to sum to one.
+        """
+        return np.divide(self.base_frequency, np.sum(self.base_frequency))
     
     @property
     def activation_norm(self):
