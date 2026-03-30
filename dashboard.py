@@ -159,11 +159,18 @@ def show_interface(live: bool = False):
 
         cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
 
-        if live:
-            selected_sweep = "live"
-            combination_id = "live"
-            live = True
-            no_selection = False
+    if live:
+        selected_sweep = "live"
+        cache_combination_id = "live"
+        live = True
+        no_selection = False
+        selected_run=-1
+
+        GRAPHS = export.graphs.get_graph_names(
+            export.graphs.GraphContext.DASHBOARD,
+            is_single_run=True
+        )
+        graphs = GRAPHS
 
     return render_template(
         "index.html",
@@ -305,7 +312,7 @@ def get_enum_name(attribute: str, value: str):
 parser = argparse.ArgumentParser(description="dashboard - what's ticking?")
 parser.add_argument("sweeps_dir", help="Directory where all sweeps are stored")
 parser.add_argument("figures_dir", help="Directory where figures will be stored")
-parser.add_argument("figures_live_dir", help="Directory where live figures are stored")
+parser.add_argument("figures_dir_live", help="Directory where live figures are stored")
 args = parser.parse_args()
 
 app.run(debug=True, port=8080, host="0.0.0.0")

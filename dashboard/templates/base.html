@@ -58,7 +58,7 @@
                     </div>
             </div>
             {% endif %}
-            {% if selected_sweep is not none %}
+            {% if selected_sweep is not none and not live %}
             <div class="card mb-3">
                 <div class="card-header text-white">
                     <div class="wrapper"><i class="bi bi-person-walking"></i></div> Run filter
@@ -67,9 +67,9 @@
                     <div class="form-floating">
                         <select name="run" class="form-select mb-2 interactive"
                                 aria-label="Dropdown external variable selection" id="select_run">
-                            <option {{ "selected" if selected_run is none }} value="none">Combine all runs</option>
+                            <option {{ "selected" if selected_sweep is none }} value="none">Combine all runs</option>
                             {% for run in runs %}
-                                <option value="{{ run }}" {{ "selected" if selected_run==run }}>{{ run }}</option>
+                                <option value="{{ run }}" {{ "selected" if selected_sweep==run }}>{{ run }}</option>
                             {% endfor %}
                         </select>
                         <label for="select_run">Available runs:</label>

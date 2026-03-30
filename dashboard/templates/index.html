@@ -18,7 +18,7 @@
     <input id="input_note" spellcheck="false">
     <div class="container d-flex align-items-center {{ 'justify-content-center' if selected_filter is not none }}" style="min-height: 100vh;">
     {% for graph_name in graphs %}
-        {% if selected_run is none %}
+        {% if selected_sweep is none %}
             <img src='{{ url_for("send_combination_graph", graph_name=graph_name, selected_sweep=selected_sweep, combination_id=combination_id) }}?v=99999'>
         {% else %}
             <img src='{{ url_for("send_single_run_graph", graph_name=graph_name, selected_sweep=selected_sweep, combination_id=combination_id, single_run_id=selected_run) }}?v=99999'>
