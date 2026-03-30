@@ -290,9 +290,6 @@ def generate_graphs(
         Dict[str, matplotlib.figure.Figure]: Dictionary with graph names as keys and generated graphs as values
     """
 
-    # Now, we can build the desired graphs and save them
-    graphs_output = {}
-
     scale_factor: int = int(
         export.sweeps.get_sweep_info(sweeps_dir, selected_sweep)[
             "datacollector_step_size"
@@ -324,6 +321,25 @@ def generate_graphs(
         raise ValueError(
             "Unrecognised combination of combination IDs and aggregate settings"
         )
+    
+    return generate_graphs_inner(
+        data,
+        graphs,
+        aggregate,
+        single_run,
+        scale_factor
+    )
+    
+def generate_graphs_inner(
+    data: Union[dict[str, Any], pd.DataFrame],
+    graphs: List[str],
+    aggregate: Optional[AggregateSettings] = None,
+    single_run: Optional[int] = None,
+    scale_factor: int = 1,
+) -> Dict[str, matplotlib.figure.Figure]:
+    
+    # Now, we can build the desired graphs and save them
+    graphs_output = {}
 
     # We go over all requested graphs and generate them
     for graph_name in graphs:
