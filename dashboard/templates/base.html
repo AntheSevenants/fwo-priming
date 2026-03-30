@@ -67,9 +67,9 @@
                     <div class="form-floating">
                         <select name="run" class="form-select mb-2 interactive"
                                 aria-label="Dropdown external variable selection" id="select_run">
-                            <option {{ "selected" if selected_sweep is none }} value="none">Combine all runs</option>
+                            <option {{ "selected" if selected_run is none }} value="none">Combine all runs</option>
                             {% for run in runs %}
-                                <option value="{{ run }}" {{ "selected" if selected_sweep==run }}>{{ run }}</option>
+                                <option value="{{ run }}" {{ "selected" if selected_run==run }}>{{ run }}</option>
                             {% endfor %}
                         </select>
                         <label for="select_run">Available runs:</label>
