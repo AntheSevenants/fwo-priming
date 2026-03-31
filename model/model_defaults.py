@@ -29,7 +29,7 @@ class Parameters:
     # ----
     # Base rate-related frequencies
     # ----
-    base_frequency: int = 10
+    memory_size: int = 1000
 
 
     # ----

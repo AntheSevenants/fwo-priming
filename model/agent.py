@@ -110,8 +110,10 @@ class PrimingAgent(mesa.Agent):
             construction_index (int): The index of the chosen construction
         """
 
-        # Add a constant rate to the current base rate, and then ...
-        self.atts.base_frequency[construction_index] += 1
+        # Update memory by replacing a random memory position with the chosen index
+        # This maintains the original distribution over time
+        random_index = np.random.randint(0, self.model.params.memory_size)
+        self.atts.memory[random_index] = construction_index
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).
