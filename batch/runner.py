@@ -29,12 +29,14 @@ put the code inside an ``if __name__ == '__main__':`` code black as shown below:
 """
 
 import os
+import math
 import itertools
 import multiprocessing
 import json
 import gc
 import random
 import export.runs
+import batch.messaging
 
 from collections.abc import Iterable, Mapping
 from functools import partial
@@ -49,6 +51,7 @@ from batch.params import dict_to_params
 
 multiprocessing.set_start_method("spawn", force=True)
 
+last_update_percentage = 0
 
 def batch_run(
     model_cls: type[PrimingModel],
@@ -62,6 +65,7 @@ def batch_run(
     max_steps: int = 1000,
     datacollector_step_size: float = 1,
     display_progress: bool = True,
+    webhook: batch.messaging.Webhook | None = None,
 ) -> list[dict[str, Any]]:
     """Batch run a mesa model with a set of parameter values.
 
@@ -74,6 +78,7 @@ def batch_run(
         max_steps (int, optional): Maximum number of model steps after which the model halts, by default 1000
         datacollector_step_size (int, optional): The step interval between runs of the data collector, by default 1
         display_progress (bool, optional): Display batch run process, by default True
+        webhook (batch.messaging.Webhook, optional): Webhook info to be used during batch run
 
     Returns:
         List[Dict[str, Any]]
@@ -122,11 +127,15 @@ def batch_run(
                 data = process_func(run)
                 results.extend(data)
                 pbar.update()
+                if webhook is not None:
+                    check_webhook_update(pbar, current_sweep, webhook)
         else:
             with Pool(number_processes, maxtasksperchild=1) as p:
                 for data in p.imap_unordered(process_func, runs_list):
                     results.extend(data)
                     pbar.update()
+                    if webhook is not None:
+                        check_webhook_update(pbar, current_sweep, webhook)
 
     return results
 
@@ -187,6 +196,28 @@ def serialise_data_collector(model):
         )
 
     return output_dict
+
+
+def check_webhook_update(pbar: tqdm, selected_sweep: str, webhook: batch.messaging.Webhook):
+    global last_update_percentage
+
+    progress = int(pbar.n / pbar.total * 100)
+
+    # Not enough models to really be a long batch run
+    if pbar.total < 100:
+        return
+
+    if progress >= last_update_percentage + 10 and progress < 100:
+        last_update_percentage = math.floor(progress / 10) * 10
+
+        webhook.handle_event(
+            batch.messaging.Event(
+                selected_sweep,
+                batch.messaging.EventState.PROGRESS,
+                batch.messaging.EventType.BATCH_RUN,
+                progress=progress
+            )
+        )
 
 
 def _model_run_func(

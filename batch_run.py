@@ -9,6 +9,7 @@ import json
 
 import batch.profiles
 import batch.sweep_info
+import batch.messaging
 import export.sweeps
 import batch_run_post
 
@@ -19,17 +20,34 @@ parser.add_argument("profile", type=str, help="regular")
 parser.add_argument(
     "iterations", type=int, default=1, help="number of iterations, default = 1"
 )
+parser.add_argument(
+    "--webhook_info",
+    type=str,
+    default=None,
+    help="path to webhook info json, default = disabled",
+)
 args = parser.parse_args()
 
-sweep_info = batch.sweep_info.SweepInfo(
-    num_steps=50000,
-    datacollector_step_ratio=0.01
-)
+sweep_info = batch.sweep_info.SweepInfo(num_steps=1000, datacollector_step_ratio=0.01)
 
 SWEEPS_DIR = "sweeps/"
 
 if not args.profile in batch.profiles.params:
     raise ValueError("Unrecognised profile")
+
+webhook = None
+if args.webhook_info is not None:
+    with open(args.webhook_info, "rt") as reader:
+        webhook_info = json.loads(reader.read())
+
+    required_fields = ["endpoint", "payload", "api_key"]
+    for required_field in required_fields:
+        if required_field not in webhook_info:
+            raise ValueError(f"Field '{required_field}' missing from webhook info")
+
+    webhook = batch.messaging.Webhook(
+        webhook_info["endpoint"], webhook_info["api_key"], webhook_info["payload"]
+    )
 
 params = batch.profiles.params[args.profile]
 
@@ -51,13 +69,23 @@ if __name__ == "__main__":
         number_processes=None,
         data_collection_period=100,
         display_progress=True,
+        webhook=webhook
     )
 
     csv_filename = export.sweeps.make_run_infos_path(SWEEPS_DIR, current_sweep)
     br_df = pd.DataFrame(results)
-    br_df = br_df.sort_values(by=['run_id'])
+    br_df = br_df.sort_values(by=["run_id"])
     br_df.to_csv(csv_filename, index=False)
-    
+
+    if webhook is not None:
+        webhook.handle_event(
+            batch.messaging.Event(
+                current_sweep,
+                batch.messaging.EventState.FINISHED,
+                batch.messaging.EventType.BATCH_RUN,
+            )
+        )
+
     # Write meta information about this parameter sweep
     sweep_info_path = export.sweeps.make_sweep_info_path(SWEEPS_DIR, current_sweep)
     with open(sweep_info_path, "wt") as writer:
@@ -65,3 +93,12 @@ if __name__ == "__main__":
         writer.write(json.dumps(sweep_info_dict))
 
     batch_run_post.do_post_run_aggregation(current_sweep)
+
+    if webhook is not None:
+        webhook.handle_event(
+            batch.messaging.Event(
+                current_sweep,
+                batch.messaging.EventState.FINISHED,
+                batch.messaging.EventType.AGGREGATION,
+            )
+        )
