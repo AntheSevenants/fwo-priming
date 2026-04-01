@@ -18,6 +18,9 @@ from model.model import PrimingModel
 parser = argparse.ArgumentParser(description="batch_run - volt go brr again")
 parser.add_argument("profile", type=str, help="regular")
 parser.add_argument(
+    "num_steps", type=int, default=1, help="number of steps, default = 1"
+)
+parser.add_argument(
     "iterations", type=int, default=1, help="number of iterations, default = 1"
 )
 parser.add_argument(
@@ -28,7 +31,9 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-sweep_info = batch.sweep_info.SweepInfo(num_steps=1000, datacollector_step_ratio=0.01)
+sweep_info = batch.sweep_info.SweepInfo(
+    num_steps=args.num_steps, datacollector_step_ratio=0.01
+)
 
 SWEEPS_DIR = "sweeps/"
 
