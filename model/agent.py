@@ -118,7 +118,7 @@ class PrimingAgent(mesa.Agent):
 
         # First, we select a random count to remove from
         deletion_index = self.model.nprandom.choice(
-            self.model.params.construction_indices, p=self.construction_probs_norm
+            self.model.params.construction_indices, p=self.atts.base_rate # dit eventueel vervangen door activation based?
         )
         self.atts.memory_counts[deletion_index] = max(
             self.atts.memory_counts[deletion_index] - 1, 0
