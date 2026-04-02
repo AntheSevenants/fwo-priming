@@ -87,8 +87,10 @@ class PrimingAgent(mesa.Agent):
 
         # We choose what construction the agent will utter based on the current activation levels
         # "More activated" constructions are more likely to be chosen.
-        construction_indices = list(range(len(self.model.params.constructions)))
-        chosen_construction_index = self.model.nprandom.choice(construction_indices, p=self.construction_probs_norm)
+        chosen_construction_index = self.model.nprandom.choice(
+            self.model.params.construction_indices,
+            p=self.construction_probs_norm
+        )
 
         # If production is set to affect base rate, update the base rate for the chosen construction
         if model.enums.AffectsBaseRate.affects_production(self.model.params.affects_base_rate):
@@ -112,8 +114,21 @@ class PrimingAgent(mesa.Agent):
 
         # Update memory by replacing a random memory position with the chosen index
         # This maintains the original distribution over time
-        random_index = np.random.randint(0, self.model.params.memory_size)
-        self.atts.memory[random_index] = construction_index
+        # I found out how to speed this up this operation.
+
+        # First, we select a random count to remove from
+        deletion_index = self.model.nprandom.choice(
+            self.model.params.construction_indices, p=self.construction_probs_norm
+        )
+        self.atts.memory_counts[deletion_index] = max(
+            self.atts.memory_counts[deletion_index] - 1, 0
+        )
+        
+        # Then, we add to the chosen index
+        self.atts.memory_counts[construction_index] = min(
+            self.model.params.memory_size, self.atts.memory_counts[construction_index] + 1
+        )
+        # This has the same effect as replacement in true full-size array, but without the overhead of the array
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).

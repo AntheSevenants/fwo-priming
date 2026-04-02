@@ -74,10 +74,7 @@ class Attributes:
 
     def init_memory(self):
         # Fill memory
-        memory = []
-        for index, prob in enumerate(self.base_rate_probs):
-            memory += [index] * int(prob * self.model_params.memory_size)
-        self.memory = np.array(memory, dtype=np.int64)
+        self.memory_counts = np.array(self.base_rate_probs) * self.model_params.memory_size
     
     @property
     def base_rate(self):
@@ -87,8 +84,7 @@ class Attributes:
             np.array(float): A numpy array containing the base rate, normalised to sum to one.
         """
         
-        unique_values, counts = np.unique(self.memory, return_counts=True)
-        return np.divide(counts, self.model_params.memory_size)
+        return np.divide(self.memory_counts, self.model_params.memory_size)
 
     @property
     def activation_norm(self):

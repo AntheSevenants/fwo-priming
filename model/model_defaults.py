@@ -70,6 +70,8 @@ class Parameters:
     def __post_init__(self):
         # After the fact, compute the number of constructions
         self.num_constructions = len(self.constructions)
+        # Populate the construction indices
+        self.construction_indices = list(range(self.num_constructions))
 
         # Uniform distribution
         self.uniform_dist = np.ones(self.num_constructions) / self.num_constructions
