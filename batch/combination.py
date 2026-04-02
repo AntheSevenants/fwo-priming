@@ -46,7 +46,7 @@ def compute_bool_perc(data_matrix: np.ndarray) -> float:
         data_matrix (np.ndarray): The input consensus matrix
 
     Returns:
-        float: _description_
+        float: Percentage of model runs in this combination with a consensus, as a float range.
     """
 
     convergence_results = data_matrix[:, -1]
