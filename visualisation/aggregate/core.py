@@ -36,7 +36,24 @@ def plot_aggregate_values(
     max_data: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-):
+) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
+    """Plot an error bar plot with values from an aggregation
+
+    Args:
+        data (Union[List[float], List[List[float]]]): A list of aggregate values
+        attribute (str): Name of the parameter of which the values are being aggregated
+        x (List[str]): A list of values for the X axis
+        ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
+        ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
+        min_data (Optional[List[List[float]]], optional): List of minimal values. Needs to be defined together with max_data.
+        max_data (Optional[List[List[float]]], optional): List of maximal values. Needs to be defined together with min_data.
+        title (Optional[str], optional): The title for the graph. Defaults to None.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+
+    Returns:
+        Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
+    """
+
     fig, ax = visualisation.core.check_ax(ax, disable_title)
 
     value_list = visualisation.core.get_value_lists(data, attribute)[0]

@@ -436,6 +436,16 @@ def plot_ratio_pass(
 
 
 def check_if_none(variable_name: str, value: Any):
+    """Check if a value is None when it should not be.
+
+    Args:
+        variable_name (str): Name of the variable that is being checked.
+        value (Any): Value of the variable that is being checked.
+
+    Raises:
+        ValueError: Raised if the value is None.
+    """
+
     if value is None:
         raise ValueError(f'"{variable_name}" cannot be None')
 
