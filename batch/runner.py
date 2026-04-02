@@ -41,7 +41,7 @@ import batch.messaging
 from collections.abc import Iterable, Mapping
 from functools import partial
 from multiprocessing import Pool
-from typing import Any
+from typing import Any, Dict
 from tqdm.auto import tqdm
 
 from mesa.model import Model
@@ -184,7 +184,16 @@ def _make_model_kwargs(
     return kwargs_list
 
 
-def serialise_data_collector(model):
+def serialise_data_collector(model: PrimingModel) -> Dict[str, Any]:
+    """Serialised a datacollector by turning numpy arrays into lists recursively
+
+    Args:
+        model (model.PrimingModel): the model of which to serialise the datacollector
+
+    Returns:
+        Dict: the serialised data collector, as a dict
+    """
+
     output_dict = {}
     df = model.datacollector.get_model_vars_dataframe()
     for column in df.columns:
@@ -199,6 +208,14 @@ def serialise_data_collector(model):
 
 
 def check_webhook_update(pbar: tqdm, selected_sweep: str, webhook: batch.messaging.Webhook):
+    """Sends a webhook update during the batch run process.
+
+    Args:
+        pbar (tqdm): the tqdm progress bar
+        selected_sweep (str): the name of the sweep currently in progress
+        webhook (batch.messaging.Webhook): the webhook configuration
+    """
+
     global last_update_percentage
 
     progress = int(pbar.n / pbar.total * 100)

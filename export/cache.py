@@ -35,7 +35,17 @@ def get_cache_combination_id(combination_ids: Union[int, List[int]]) -> int:
     return cache_combination_id
 
 
-def make_temp_sweep_figures_dir(selected_sweep: str, figures_output_dir: str):
+def make_temp_sweep_figures_dir(selected_sweep: str, figures_output_dir: str) -> str:
+    """Create the directory where figures for this sweep will be stored temporarily.
+
+    Args:
+        selected_sweep (str): Name of the selected sweep
+        figures_output_dir (str): Path to where the figures are stored
+
+    Returns:
+        str: Path to where figures will be stored for the selected sweep
+    """
+
     # This is where we will store the graphs output
 
     # We create a directory for the selected sweep
@@ -52,7 +62,19 @@ def make_temp_runs_figures_dir(
     combination_id: int,
     figures_output_dir: str,
     single_run_id: Optional[int] = None
-):
+) -> str:
+    """Create the directory where figures for this sweep and parameter combination will be stored temporarily.
+
+    Args:
+        selected_sweep (str): Name of the selected sweep
+        combination_id (int): Unique ID for the parameter selection
+        figures_output_dir (str): Path to where figures are stored
+        single_run_id (Optional[int], optional): ID of the single run, if applicable. Defaults to None.
+
+    Returns:
+        str: Path to where figures will be stored for the selected sweep and parameter combination
+    """
+
     temp_run_figures_dir = make_temp_sweep_figures_dir(
         selected_sweep, figures_output_dir
     )

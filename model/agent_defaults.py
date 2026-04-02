@@ -55,6 +55,12 @@ class Attributes:
         self.base_rate_entropy = np.array([ model.entropy.compute_entropy(self.base_rate) ] * 2)
 
     def init_construction_probs(self):
+        """Initialies the base rate starting probabilities based on the starting probability mode.
+
+        Raises:
+            NotImplementedError: Randomised starting probabilities are not implemented yet
+        """
+
         # Assign starting base rate to the constructions
         self.base_rate_probs = np.zeros(self.model_params.num_constructions)
 
@@ -73,6 +79,10 @@ class Attributes:
             self.base_rate_probs = random_numbers / random_numbers.sum()
 
     def init_memory(self):
+        """Initialise the memory counts of this agent.
+        This happens based on the base rate initialisation probability, and memory size.
+        """
+
         # Fill memory
         self.memory_counts = np.array(self.base_rate_probs) * self.model_params.memory_size
     

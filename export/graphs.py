@@ -26,38 +26,52 @@ import batch.aggregate
 
 
 class GraphContext:
+    """Describes the context in which a graph can appear. This can be either be: (1) export for paper output (2) dashboard for analysis and exploration.
+    """
+
     EXPORT = 0
     DASHBOARD = 1
 
 
 @dataclass
 class GraphConfig:
+    """The configuration for a single graph. It defines what column the graph data comes from, what function needs to be called to create the graph, how extra parameters can be retrieved, etc.
+    """
+
     data_column: str  # What column does the required data come from?
     plot_func: Callable  # How can the figure be made?
+    # Shorthands for common operations that are given to plot functions.
+    # can be: x_scale_factor, min_data or max_data
     common_args: List[str] = field(default_factory=lambda: [])
     extra_args: Optional[Dict[str, Any]] = (
         None  # What extra arguments are needed to plot this figure?
-    )
-    action_column: str = "median"
-    action_column_inner: str = "median"
-    aggregate: bool = False
-    is_mosaic: bool = False
-    single_run_sensible: bool = True
-    context: int = GraphContext.EXPORT
+    ) # These can be either Callables or constants
+    action_column: str = "median" # Aggregate operation column to use data from
+    action_column_inner: str = "median" # Combination operation column to use data from
+    aggregate: bool = False # Aggregate graph or not?
+    is_mosaic: bool = False # Is this a mosaic graph?
+    single_run_sensible: bool = True # Does it make sense to show this graph for a single run?
+    context: int = GraphContext.EXPORT # In what context should this graph be shown?
 
 
 @dataclass
 class MosaicConfig:
+    """The configuration for a mosaic graph. It defines what other graphs are part of the mosaic, and in what order they need to be arranged on the mosaic.
+    """
+
     layout: List[List[str]]  # Names of other graphs
-    size: Tuple[int, int] = (10, 16)
-    is_mosaic: bool = True
-    context: int = GraphContext.DASHBOARD
-    single_run_sensible: bool = True
-    aggregate: bool = False
+    size: Tuple[int, int] = (10, 16) # Size of the mosaic
+    is_mosaic: bool = True # Is this a mosaic graph?
+    context: int = GraphContext.DASHBOARD # In what context should this graph be shown?
+    single_run_sensible: bool = True # Does it make sense to show this graph for a single run?
+    aggregate: bool = False # Aggregate graph or not?
 
 
 @dataclass
 class AggregateSettings:
+    """Configuration in aggregate situations, i.e. when model output is abstracted over several parameter combinations.
+    """
+
     combination_ids: List[int]
     parameter: str
     parameter_values: List[Any]
@@ -69,9 +83,20 @@ class AggregateSettings:
         combination_ids: List[int],
         parameter: str,
     ):
+        """Initialise an aggregate configuration.
+
+        Args:
+            sweeps_dir (str): The path to the directory where all sweeps are stored
+            selected_sweep (str): The name of the sweep of interest
+            combination_ids (List[int]): Unique IDs for the selected parameter combinations
+            parameter (str): The parameter of which the permutations are currently under scrutiny
+        """
+
         self.combination_ids = combination_ids
         self.parameter = parameter
 
+        # We want to know what possible values are they for the parameter that is being expanded
+        # So then for each parameter value, we will check what the outcomes are from that combination
         run_infos = export.sweeps.get_run_infos(sweeps_dir, selected_sweep)
         self.parameter_values = [ str(item) for item in sorted(
             run_infos[run_infos["combination_id"].isin(combination_ids)][parameter]
@@ -83,12 +108,23 @@ def get_num_constructions(
     data: Dict[str, Any],
     is_single_run: bool = False,
 ) -> int:
+    """Get the number of constructions from a model run evolution of combination of run evolutions.
+
+    Args:
+        data (Dict[str, Any]): Run evolution or series of run evolutions. 
+        is_single_run (bool, optional): Whether the input is a single run. Defaults to False.
+
+    Returns:
+        int: The number of constructions
+    """
+
     if not is_single_run:
         return len(data["ctx_base_rate_mean"]["mean"][0])
     else:
         return len(data["ctx_base_rate_mean"][0])
 
 
+# These are all definitions of graphs
 graph_configs = {
     "ctx_activation_mean": GraphConfig(
         data_column="ctx_activation_median",

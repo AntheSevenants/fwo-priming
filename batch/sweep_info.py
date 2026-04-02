@@ -3,6 +3,9 @@ from typing import Optional
 
 @dataclass
 class SweepInfo:
+    """Configuration information for sweeps. Sets the number of steps and datacollector step size.
+    """
+
     num_steps: int
     datacollector_step_ratio: float
     datacollector_step_size: int = 1

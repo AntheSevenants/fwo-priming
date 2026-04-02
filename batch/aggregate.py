@@ -6,6 +6,9 @@ import numpy as np
 
 @dataclass
 class AggregateColumnOperation:
+    """An aggreaget operation defines the operation that is applied to the combination metrics that are pooled from different simulations. Usually, a combination operation is applied to axis 0, which means across combinations. In our case, this entails a loss of a dimension.
+    """
+
     name: str
     operation: Callable[..., Union[np.ndarray, np.float64]]
 
@@ -52,6 +55,9 @@ class AggregateColumnOperations:
 
 @dataclass
 class ColumnMapping:
+    """Defines what combination columns should have which operations applied to them. For example, for the column 'mean', we might want to know the minimum mean, maximum mean, etc. For the column 'median', we might want to know Q1 across means, Q3 across means. These can all be defined individually here. The operations are known combination operations.
+    """
+
     name: str
     required_columns: List[str]
     operations: List[
@@ -112,6 +118,8 @@ class ColumnMappings:
 
 @dataclass
 class AggregateColumnConfig:
+    """Defines a column and its associated colum mappings. For example, for entropy we might want to get info about its median and slope, but not for consensus."""
+
     data_column: str
     column_mappings: List[ColumnMapping] = field(
         default_factory=lambda: [
