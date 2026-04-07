@@ -47,6 +47,8 @@ class Parameters:
     inverse_frequency_max_multiplier: float = 2
     # Whether to use activation at all
     use_activation: bool = True
+    # Whether there should be an activation cap
+    activation_cap: bool = True
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0

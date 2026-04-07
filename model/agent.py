@@ -181,10 +181,10 @@ class PrimingAgent(mesa.Agent):
         if self.model.params.use_activation:
             # Now the hearer has to adjust their internal distribution
             # Maximum activation level is one!
-            self.atts.activation[construction_index] = min(
-                self.atts.activation[construction_index] + self.compute_priming_strength(construction_index),
-                1
-            )
+            new_activation_level = self.atts.activation[construction_index] + self.compute_priming_strength(construction_index)
+            if self.model.params.activation_cap:
+                new_activation_level = min(new_activation_level, 1)
+            self.atts.activation[construction_index] = new_activation_level
 
         # If reception is set to affect base rate, update base rate
         # This happens regardless whether activation levels are activated or not
