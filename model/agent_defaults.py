@@ -99,8 +99,13 @@ class Attributes:
     @property
     def activation_norm(self):
         """The normalised activation levels. All values sum to one.
+        If perception is logarithmic, a log10 pass is applied first.
 
         Returns:
             np.array(float): A numpy array containing the activation levels, normalised to sum to one.
         """
-        return np.divide(self.activation, np.sum(self.activation))
+        to_normalise = self.activation
+        if self.model_params.logarithmic_perception:
+            to_normalise = np.log10(self.activation)
+
+        return np.divide(to_normalise, np.sum(to_normalise))

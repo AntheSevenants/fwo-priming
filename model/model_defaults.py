@@ -50,6 +50,8 @@ class Parameters:
     use_activation: bool = True
     # Whether there should be an activation cap
     activation_cap: bool = True
+    # Is activation logarithmically perceived?
+    logarithmic_perception: bool = False
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0
