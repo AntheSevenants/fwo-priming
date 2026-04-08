@@ -30,6 +30,7 @@ class Parameters:
     # Base rate-related frequencies
     # ----
     memory_size: int = 1000
+    base_rate_lateral_inhibition: bool = False
 
 
     # ----
