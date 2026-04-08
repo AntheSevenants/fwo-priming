@@ -13,6 +13,7 @@ params = {
         "decay_to": model.enums.DecayTo.BASE_RATE,
         "affects_base_rate": [ model.enums.AffectsBaseRate.RECEPTION, model.enums.AffectsBaseRate.ALL ],
         "allow_decay_stop": False,
+        "activation_cap": False,
     },
     "lite": {
         "num_agents": 10,
@@ -25,6 +26,7 @@ params = {
         "decay_to": model.enums.DecayTo.BASE_RATE,
         "affects_base_rate": model.enums.AffectsBaseRate.RECEPTION,
         "allow_decay_stop": False,
+        "activation_cap": False,
     },
 }
 
