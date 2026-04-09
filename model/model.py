@@ -112,8 +112,9 @@ class PrimingModel(mesa.Model):
             # Collect information about this specific model step
             self.datacollector.collect(self)
 
-        # Now do decay for all agents
-        self.agents.do("do_decay")
+        if self.params.use_activation:
+            # Now do decay for all agents
+            self.agents.do("do_decay")
 
         # Stop the simulation if consensus is reached and early stopping is allowed
         if (
