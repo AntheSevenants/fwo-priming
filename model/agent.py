@@ -118,11 +118,11 @@ class PrimingAgent(mesa.Agent):
         # TODO make this work with more than two constructions? maybe
 
         # First, we select a random count to remove from
-        if not self.model.params.base_rate_lateral_inhibition:
+        if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.COUNT:
             deletion_index = self.model.nprandom.choice(
                 self.model.params.construction_indices, p=self.atts.base_rate # dit eventueel vervangen door activation based?
             )
-        else:
+        elif self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION:
             # Choose the other index (TODO only works for two constructions)
             deletion_index = np.abs(construction_index - 1)
 

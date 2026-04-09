@@ -20,3 +20,8 @@ class AffectsBaseRate:
     @classmethod
     def affects_production(cls, value):
         return (value & cls.PRODUCTION) != 0
+    
+class BaseRateUpdateMechanism:
+    RENORMALISE = 0
+    LATERAL_INHIBITION = 1
+    COUNT = 2
