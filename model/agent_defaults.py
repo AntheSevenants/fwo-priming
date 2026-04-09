@@ -106,6 +106,7 @@ class Attributes:
         """
         to_normalise = self.activation
         if self.model_params.logarithmic_perception:
-            to_normalise = np.log10(self.activation)
+            # Prevent negative log through addition of 1
+            to_normalise = np.log10(1 + self.activation)
 
         return np.divide(to_normalise, np.sum(to_normalise))
