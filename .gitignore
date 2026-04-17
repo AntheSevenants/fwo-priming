@@ -208,3 +208,8 @@ __marimo__/
 
 # Ignore notebooks
 *.ipynb
+
+sweeps/
+test/
+run.sh
+webhook.json
