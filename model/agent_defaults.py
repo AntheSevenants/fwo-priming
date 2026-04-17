@@ -20,6 +20,7 @@ class Attributes:
     )
 
     # For posterity: the base rate that the agents were initialised with
+    base_rate_level: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
     starting_base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # Activation rate
@@ -41,7 +42,11 @@ class Attributes:
         
         # Set the initial probabilities
         self.init_construction_probs()
-        self.init_memory()
+        if self.model_params.base_rate_update_mechanism in [
+            model.enums.BaseRateUpdateMechanism.COUNT,
+            model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION,
+        ]:
+            self.init_memory()
 
         # Now that the initial probabilities have been set, do some housekeeping
         # (copying the starting probs, computing entropy etc.)
@@ -61,22 +66,45 @@ class Attributes:
             NotImplementedError: Randomised starting probabilities are not implemented yet
         """
 
-        # Assign starting base rate to the constructions
-        self.base_rate_probs = np.zeros(self.model_params.num_constructions)
+        if self.model_params.base_rate_update_mechanism in [
+            model.enums.BaseRateUpdateMechanism.COUNT,
+            model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION,
+        ]:
+            # Assign starting base rate to the constructions
+            self.base_rate_probs = np.zeros(self.model_params.num_constructions)
 
-        # If all agents start with an equal probability distribution, adhere to this distribution
-        if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
-            # If we start without predetermined probabilities, do equal probabilities
-            if self.model_params.starting_probabilities is None:
-                self.base_rate_probs = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
-            # Else, adopt the given starting probabilities
-            else:
-                self.base_rate_probs = np.array(self.model_params.starting_probabilities)
-        elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
-            raise NotImplementedError
-            random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
-            # Normalise
-            self.base_rate_probs = random_numbers / random_numbers.sum()
+            # If all agents start with an equal probability distribution, adhere to this distribution
+            if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
+                # If we start without predetermined probabilities, do equal probabilities
+                if self.model_params.starting_probabilities is None:
+                    self.base_rate_probs = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
+                # Else, adopt the given starting probabilities
+                else:
+                    self.base_rate_probs = np.array(self.model_params.starting_probabilities)
+            elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
+                raise NotImplementedError
+                random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
+                # Normalise
+                self.base_rate_probs = random_numbers / random_numbers.sum()
+        elif self.model_params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.RENORMALISE:
+            # Assign starting base rate to the constructions
+            self.base_rate_level = np.zeros(self.model_params.num_constructions)
+
+            # If all agents start with an equal probability distribution, adhere to this distribution
+            if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
+                # If we start without predetermined probabilities, do equal probabilities
+                if self.model_params.starting_probabilities is None:
+                    self.base_rate_level = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
+                # Else, adopt the given starting probabilities
+                else:
+                    self.base_rate_level = np.array(self.model_params.starting_probabilities)
+            elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
+                raise NotImplementedError
+                random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
+                # Normalise
+                self.base_rate_level = random_numbers / random_numbers.sum()
+        else:
+            raise ValueError("Base rate update mechanism not recognised")
 
     def init_memory(self):
         """Initialise the memory counts of this agent.
@@ -94,7 +122,10 @@ class Attributes:
             np.array(float): A numpy array containing the base rate, normalised to sum to one.
         """
         
-        return np.divide(self.memory_counts, self.model_params.memory_size)
+        if self.model_params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.RENORMALISE:
+            return self.base_rate_level
+        else:
+            return np.divide(self.memory_counts, self.model_params.memory_size)
 
     @property
     def activation_norm(self):

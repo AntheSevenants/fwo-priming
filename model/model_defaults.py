@@ -31,6 +31,7 @@ class Parameters:
     # ----
     memory_size: int = 1000
     base_rate_update_mechanism: int = model.enums.BaseRateUpdateMechanism.COUNT
+    base_rate_change_strength: float = 0.01
 
 
     # ----

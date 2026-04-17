@@ -116,25 +116,29 @@ class PrimingAgent(mesa.Agent):
         # This maintains the original distribution over time
         # I found out how to speed this up this operation.
         # TODO make this work with more than two constructions? maybe
+        
+        deletion_index = np.abs(construction_index - 1)
 
         # First, we select a random count to remove from
         if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.COUNT:
             deletion_index = self.model.nprandom.choice(
                 self.model.params.construction_indices, p=self.atts.base_rate # dit eventueel vervangen door activation based?
             )
-        elif self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION:
-            # Choose the other index (TODO only works for two constructions)
-            deletion_index = np.abs(construction_index - 1)
 
-        self.atts.memory_counts[deletion_index] = max(
-            self.atts.memory_counts[deletion_index] - 1, 0
-        )
-        
-        # Then, we add to the chosen index
-        self.atts.memory_counts[construction_index] = min(
-            self.model.params.memory_size, self.atts.memory_counts[construction_index] + 1
-        )
-        # This has the same effect as replacement in true full-size array, but without the overhead of the array
+        if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.RENORMALISE:
+            self.atts.base_rate_level[construction_index] = min(1, self.atts.base_rate_level[construction_index] + self.model.params.base_rate_change_strength)
+            self.atts.base_rate_level[deletion_index] = max(0, self.atts.base_rate_level[deletion_index] - self.model.params.base_rate_change_strength)
+
+        else:
+            self.atts.memory_counts[deletion_index] = max(
+                self.atts.memory_counts[deletion_index] - 1, 0
+            )
+            
+            # Then, we add to the chosen index
+            self.atts.memory_counts[construction_index] = min(
+                self.model.params.memory_size, self.atts.memory_counts[construction_index] + 1
+            )
+            # This has the same effect as replacement in true full-size array, but without the overhead of the array
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).
