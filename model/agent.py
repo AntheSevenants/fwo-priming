@@ -102,6 +102,16 @@ class PrimingAgent(mesa.Agent):
         # Now, the other agent "hears" the construction that we just chose.
         hearer_agent.receive_construction(chosen_construction_index)
 
+    def do_linear_increase(self, n: int = 1):
+        """Artificially "hear" the innovative construction n times to boost the frequency of that construction.
+
+        Args:
+            n (int, optional): The number of times to hear the innovative construction. Defaults to 1.
+        """
+
+        for i in range(n):
+            self.update_base_rate(self.atts.linear_increase_index)
+
     def update_base_rate(self, construction_index: int):
         """This function describes what happens when the base rate needs to be increased for
         a specific construction. This will cause the construction to be more likely to be chosen

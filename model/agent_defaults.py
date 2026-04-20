@@ -34,6 +34,9 @@ class Attributes:
     # A "log" of base rate entropy
     base_rate_entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
+    # Which is the least frequent construction at the start?
+    linear_increase_index: int = -1
+
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
         # the probabilities and starting probabilities and such
@@ -47,6 +50,11 @@ class Attributes:
             model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION,
         ]:
             self.init_memory()
+
+        # The construction to increase is the one with the lowest frequency currently
+        # If the hardcoded linear increase is set, this is the construction we will augment
+        base_rate_probs = self.base_rate.tolist()
+        self.linear_increase_index = base_rate_probs.index(min(base_rate_probs))
 
         # Now that the initial probabilities have been set, do some housekeeping
         # (copying the starting probs, computing entropy etc.)
