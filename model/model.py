@@ -108,20 +108,6 @@ class PrimingModel(mesa.Model):
         # Make all agents interact in a random order
         self.agents.shuffle_do("interact_do")
 
-        # Increase innovative form if required
-        if self.params.linear_increase > 0:
-            if self.params.linear_increase < 1:
-                if self.nprandom.random() < self.params.linear_increase:
-                    self.agents.do(
-                        "do_linear_increase",
-                        n=1
-                    )
-            else:
-                self.agents.do(
-                    "do_linear_increase",
-                    n=self.params.linear_increase
-                )
-
         if self.time % self.params.datacollector_step_size == 0:
             # Collect information about this specific model step
             self.datacollector.collect(self)

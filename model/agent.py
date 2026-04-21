@@ -102,16 +102,6 @@ class PrimingAgent(mesa.Agent):
         # Now, the other agent "hears" the construction that we just chose.
         hearer_agent.receive_construction(chosen_construction_index)
 
-    def do_linear_increase(self, n: int = 1):
-        """Artificially "hear" the innovative construction n times to boost the frequency of that construction.
-
-        Args:
-            n (int, optional): The number of times to hear the innovative construction. Defaults to 1.
-        """
-
-        for i in range(n):
-            self.update_base_rate(self.atts.linear_increase_index)
-
     def update_base_rate(self, construction_index: int):
         """This function describes what happens when the base rate needs to be increased for
         a specific construction. This will cause the construction to be more likely to be chosen
@@ -122,33 +112,7 @@ class PrimingAgent(mesa.Agent):
             construction_index (int): The index of the chosen construction
         """
 
-        # Update memory by replacing a random memory position with the chosen index
-        # This maintains the original distribution over time
-        # I found out how to speed this up this operation.
-        # TODO make this work with more than two constructions? maybe
-        
-        deletion_index = np.abs(construction_index - 1)
-
-        # First, we select a random count to remove from
-        if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.COUNT:
-            deletion_index = self.model.nprandom.choice(
-                self.model.params.construction_indices, p=self.atts.base_rate # dit eventueel vervangen door activation based?
-            )
-
-        if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.RENORMALISE:
-            self.atts.base_rate_level[construction_index] = min(1, self.atts.base_rate_level[construction_index] + self.model.params.base_rate_change_strength)
-            self.atts.base_rate_level[deletion_index] = max(0, self.atts.base_rate_level[deletion_index] - self.model.params.base_rate_change_strength)
-
-        else:
-            self.atts.memory_counts[deletion_index] = max(
-                self.atts.memory_counts[deletion_index] - 1, 0
-            )
-            
-            # Then, we add to the chosen index
-            self.atts.memory_counts[construction_index] = min(
-                self.model.params.memory_size, self.atts.memory_counts[construction_index] + 1
-            )
-            # This has the same effect as replacement in true full-size array, but without the overhead of the array
+        # TODO !!!
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).
