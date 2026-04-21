@@ -29,9 +29,14 @@ class PrimingModel(mesa.Model):
         super().__init__(rng=self.params.seed)
         self.nprandom = np.random.default_rng(self.params.seed)
 
+        # Calculate the number of innovators and imitators
+        num_innovators = round(self.params.num_agents * self.params.innovators_share)
+        num_imitators = self.params.num_agents - num_innovators
+        agent_types = [True] * num_innovators + [False] * num_imitators
+
         # Agents
         agents = model.agent.PrimingAgent.create_agents(
-            model=self, n=self.params.num_agents
+            model=self, n=self.params.num_agents, is_innovator=agent_types
         )
 
         # Model data collection

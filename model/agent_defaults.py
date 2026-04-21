@@ -12,6 +12,7 @@ import model.entropy
 @dataclass
 class Attributes:
     model_params: model.model_defaults.Parameters
+    is_innovator: bool
 
     # The internal memory of agents
     # This is for "long-term" priming effects
@@ -35,7 +36,7 @@ class Attributes:
     base_rate_entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
     # Which is the least frequent construction at the start?
-    innovation_index: int = -1
+    innovation_index: int = 0
 
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
@@ -45,11 +46,6 @@ class Attributes:
         
         # Set the initial probabilities
         self.init_construction_probs()
-
-        # The construction to increase is the one with the lowest frequency currently
-        # If the hardcoded linear increase is set, this is the construction we will augment
-        base_rate_probs = self.base_rate.tolist()
-        self.innovation_index = base_rate_probs.index(min(base_rate_probs))
 
         # Now that the initial probabilities have been set, do some housekeeping
         # (copying the starting probs, computing entropy etc.)
@@ -70,21 +66,20 @@ class Attributes:
         """
 
         # Assign starting base rate to the constructions
-        self.base_rate_level = np.zeros(self.model_params.num_constructions)
-
-        # If all agents start with an equal probability distribution, adhere to this distribution
-        if self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.EQUAL:
-            # If we start without predetermined probabilities, do equal probabilities
-            if self.model_params.starting_probabilities is None:
-                self.base_rate_level = np.ones(self.model_params.num_constructions) / self.model_params.num_constructions
-            # Else, adopt the given starting probabilities
-            else:
-                self.base_rate_level = np.array(self.model_params.starting_probabilities)
-        elif self.model_params.starting_probabilities_type == model.enums.StartingProbabilities.RANDOM:
-            raise NotImplementedError
-            random_numbers = self.model.nprandom.random(self.model_params.num_constructions)
-            # Normalise
-            self.base_rate_level = random_numbers / random_numbers.sum()
+        if self.is_innovator:
+            self.base_rate_level = np.array(
+                [
+                    self.model_params.innovator_innovation_share,
+                    1 - self.model_params.innovator_innovation_share,
+                ]
+            )
+        else:
+            self.base_rate_level = np.array(
+                [
+                    self.model_params.conservator_innovation_share,
+                    1 - self.model_params.conservator_innovation_share
+                ]
+            )
     
     @property
     def base_rate(self):

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
 
-    def __init__(self, priming_model: PrimingModel):
+    def __init__(self, priming_model: PrimingModel, is_innovator: bool):
         """Initialise a PrimingModel agent
 
         Args:
@@ -25,8 +25,11 @@ class PrimingAgent(mesa.Agent):
         # Pass the parameters to the parent class.
         super().__init__(priming_model)
 
+        self.is_innovator = is_innovator
         # Populate the agent's parameters based off the model parameters
-        self.atts = model.agent_defaults.Attributes(priming_model.params)
+        self.atts = model.agent_defaults.Attributes(
+            model_params=priming_model.params, is_innovator=is_innovator
+        )
 
     @property
     def construction_probs_norm(self):

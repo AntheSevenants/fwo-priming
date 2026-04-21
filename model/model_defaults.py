@@ -2,7 +2,7 @@ import model.enums
 import numpy as np
 
 from dataclasses import dataclass, asdict, field
-from typing import List, Optional, Dict, Type
+from typing import List, Optional, Dict, Type, Any, Tuple
 
 
 # Mapping of parameter names to their enum classes
@@ -29,19 +29,23 @@ class Parameters:
     # ----
     # Base rate-related frequencies
     # ----
-    memory_size: int = 1000
     base_rate_change_strength: float = 0.01
 
+    # ----
+    # Population-related probabilities
+    # ---
+    # How many in the population are innovators?
+    innovators_share: float = 0.2
+    # How many forms are innovations? (for innovators)
+    innovator_innovation_share: float = 0.9
+    # How many forms are innovations? (for conservators)
+    conservator_innovation_share: float | int = 0.0
+    
 
     # ----
     # Priming-related probabilities
     # ----
 
-    # How should the starting probabilities be initialised?
-    # Can be EQUAL (everyone the same) or RANDOM (everyone different)
-    starting_probabilities_type: int = model.enums.StartingProbabilities.EQUAL
-    # If EQUAL, we can provide a custom distribution
-    starting_probabilities: Optional[List[float]] = None
     priming_strength: float = 0.4
     # Make priming strength dependent on surprisal
     inverse_frequency_exponent: float = 0
