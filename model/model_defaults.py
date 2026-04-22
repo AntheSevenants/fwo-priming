@@ -61,6 +61,7 @@ class Parameters:
     # can be used to emulate an innovation becoming more popular
     linear_increase: float = 0.0
     innovation_index: int = 0
+    replicator_selection: bool = False
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0

@@ -116,7 +116,7 @@ class PrimingAgent(mesa.Agent):
         """
 
         base_rate_change_strength = self.model.params.base_rate_change_strength
-        if construction_index == self.model.params.innovation_index:
+        if construction_index == self.model.params.innovation_index and self.model.params.replicator_selection:
             base_rate_change_strength *= 2
 
         self.atts.base_rate_level[construction_index] = np.divide(
