@@ -35,9 +35,6 @@ class Attributes:
     # A "log" of base rate entropy
     base_rate_entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
 
-    # Which is the least frequent construction at the start?
-    innovation_index: int = 0
-
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
         # the probabilities and starting probabilities and such

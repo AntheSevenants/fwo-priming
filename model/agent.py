@@ -115,7 +115,20 @@ class PrimingAgent(mesa.Agent):
             construction_index (int): The index of the chosen construction
         """
 
-        # TODO !!!
+        base_rate_change_strength = self.model.params.base_rate_change_strength
+        if construction_index == self.model.params.innovation_index:
+            base_rate_change_strength *= 2
+
+        self.atts.base_rate_level[construction_index] = np.divide(
+            self.atts.base_rate_level[construction_index]
+            + base_rate_change_strength,
+            1 + base_rate_change_strength,
+        )
+        other_index = np.abs(construction_index - 1)
+        self.atts.base_rate_level[other_index] = np.divide(
+            self.atts.base_rate_level[other_index],
+            1 + base_rate_change_strength,
+        )
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).
