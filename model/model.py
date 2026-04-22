@@ -5,10 +5,11 @@ import numpy as np
 import model.agent
 import model.enums
 import model.tracker
+import model.reporters
 import model.model_defaults
 
 from dataclasses import dataclass, asdict
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 
 class PrimingModel(mesa.Model):
@@ -18,7 +19,7 @@ class PrimingModel(mesa.Model):
         """Initialise the Priming Model
 
         Args:
-            params (model.model_defaults.Parameters): 
+            params (model.model_defaults.Parameters):
             Parameters object detailing what parameters the simulation should use
         """
 
@@ -42,68 +43,21 @@ class PrimingModel(mesa.Model):
         # Model data collection
         self.tracker = model.tracker.Tracker(self)
 
-        model_reporters = {
-            "ctx_activation_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "activation"
-            ),
-            "ctx_probs_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "activation_norm"
-            ),
-            "ctx_base_rate_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "base_rate"
-            ),
-            "starting_probs_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "starting_base_rate"
-            ),
-            "ctx_activation_mean": lambda model: model.tracker.get_property_mean_across_agents(
-                "activation"
-            ),
-            "ctx_activation_median": lambda model: model.tracker.get_property_median_across_agents(
-                "activation"
-            ),
-            "ctx_probs_mean": lambda model: model.tracker.get_property_mean_across_agents(
-                "activation_norm"
-            ),
-            "ctx_probs_median": lambda model: model.tracker.get_property_median_across_agents(
-                "activation_norm"
-            ),
-            "ctx_base_rate_mean": lambda model: model.tracker.get_property_mean_across_agents(
-                "base_rate"
-            ),
-            "ctx_base_rate_median": lambda model: model.tracker.get_property_median_across_agents(
-                "base_rate"
-            ),
-            "ctx_entropy_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "entropy", index=-1
-            ),
-            "ctx_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
-                "entropy", index=-1
-            ),
-            "ctx_entropy_median": lambda model: model.tracker.get_property_median_across_agents(
-                "entropy", index=-1
-            ),
-            "ctx_base_rate_entropy_per_agent": lambda model: model.tracker.get_property_per_agent(
-                "base_rate_entropy", index=-1
-            ),
-            "ctx_base_rate_entropy_mean": lambda model: model.tracker.get_property_mean_across_agents(
-                "base_rate_entropy", index=-1
-            ),
-            "ctx_base_rate_entropy_median": lambda model: model.tracker.get_property_median_across_agents(
-                "base_rate_entropy", index=-1
-            ),
-            "consensus_reached": lambda model: (
-                False
-                if len(model.datacollector.model_vars["ctx_base_rate_mean"]) == 0
-                else (
-                    np.any(
-                        np.isclose(
-                            model.datacollector.model_vars["ctx_base_rate_mean"][-1], 1
-                        )
+        model_reporters = model.reporters.get_model_reporters()
+        consensus_lambda: Callable[[PrimingModel], bool] = lambda model: (
+            False
+            if len(model.datacollector.model_vars["ctx_base_rate_mean"]) == 0
+            else (
+                np.any(
+                    np.isclose(
+                        model.datacollector.model_vars["ctx_base_rate_mean"][-1], 1
                     )
-                    is np.True_
                 )
-            ),
-        }
+                is np.True_
+            )
+        )
+        model_reporters["consensus_reached"] = consensus_lambda
+
         self.datacollector = mesa.DataCollector(model_reporters=model_reporters)
         self.datacollector.collect(self)
 

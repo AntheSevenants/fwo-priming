@@ -1,0 +1,174 @@
+from dataclasses import dataclass, asdict, field
+from typing import List, Callable, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from model.model import PrimingModel
+
+import numpy as np
+
+
+# What needs to be done with the tracked data?
+class ReporterType:
+    SINGULAR = 0
+    MEAN = 1
+    MEDIAN = 2
+
+
+# For which agent types does the computation need to be done?
+class AgentType:
+    INNOVATOR = 0
+    CONSERVATOR = 1
+    ALL = 2
+
+
+# Definition of a single model reporter
+@dataclass
+class ModelReporter:
+    property_name: str
+    reporter_types: List[int] = field(
+        default_factory=lambda: [
+            ReporterType.SINGULAR,
+            ReporterType.MEAN,
+            ReporterType.MEDIAN,
+        ]
+    )
+    for_all_types: bool = True
+    index: int | None = None
+
+    def __post_init__(self):
+        if self.for_all_types:
+            self.agent_types = [
+                AgentType.INNOVATOR,
+                AgentType.CONSERVATOR,
+                AgentType.ALL,
+            ]
+        else:
+            self.agent_types = [AgentType.ALL]
+
+
+# Basic properties for which to construct model reporters
+model_reporters_base = {
+    "ctx_activation": ModelReporter(property_name="activation"),
+    "ctx_probs": ModelReporter(property_name="activation_norm"),
+    "ctx_base_rate": ModelReporter(
+        property_name="base_rate",
+    ),
+    "ctx_entropy": ModelReporter(property_name="entropy", index=-1),
+    "ctx_base_rate_entropy": ModelReporter(property_name="base_rate_entropy", index=-1),
+}
+
+# Create a specialised tracking function depending on:
+# - property name
+# - index
+# - innovator profile
+# - data operation (no / mean / median)
+function_translation: Dict[
+    int, Callable[[str, int | None, bool | None], Callable[['PrimingModel'], np.ndarray]]
+] = {
+    ReporterType.SINGULAR: lambda property_name, index, for_innovator: lambda model: model.tracker.get_property_per_agent(
+        property_name,
+        index=index,
+        for_innovator=for_innovator,
+    ),
+    ReporterType.MEAN: lambda property_name, index, for_innovator: lambda model: model.tracker.get_property_mean_across_agents(
+        property_name,
+        index=index,
+        for_innovator=for_innovator,
+    ),
+    ReporterType.MEDIAN: lambda property_name, index, for_innovator: lambda model: model.tracker.get_property_median_across_agents(
+        property_name,
+        index=index,
+        for_innovator=for_innovator,
+    ),
+}
+
+# For the reporter keys
+agent_type_translation = {
+    AgentType.INNOVATOR: "_innovator",
+    AgentType.CONSERVATOR: "_conservator",
+    AgentType.ALL: "",
+}
+
+# For the reporter keys
+reporter_type_translation = {
+    ReporterType.SINGULAR: "_per_agent",
+    ReporterType.MEAN: "_mean",
+    ReporterType.MEDIAN: "_median",
+}
+
+# Translate type to an argument value for the tracker methods
+agent_type_arg_translation = {
+    AgentType.INNOVATOR: True,
+    AgentType.CONSERVATOR: False,
+    AgentType.ALL: None,
+}
+
+
+def get_model_reporter_key(
+    reporter_name: str, reporter_type: int, agent_type: int
+) -> str:
+    """Generates a unique key for a model reporter based on the given parameters.
+
+    Args:
+        reporter_name (str): The name of the reporter.
+        reporter_type (int): The type of the reporter, will be translated to its corresponding string representation.
+        agent_type (int): The type of the agent, will be be translated to its corresponding string representation.
+
+    Returns:
+        str: The generated key, a concatenation of the reporter name, the string representation of the reporter type,
+        and the string representation of the agent type.
+    """
+
+    reporter_type_ = reporter_type_translation[reporter_type]
+    agent_type_ = agent_type_translation[agent_type]
+
+    return f"{reporter_name}{reporter_type_}{agent_type_}"
+
+
+def get_model_reporter_function(
+    reporter_type: int, property_name: str, agent_type: int, property_index: int | None
+) -> Callable[['PrimingModel'], np.ndarray]:
+    """Builds the appropriate lambda function for a model reporter based on the given parameters.
+
+    Args:
+        reporter_type (int): The type of the reporter, which determines what tracker function is called.
+        property_name (str): The name of the tracked property to be processed.
+        agent_type (int): The type of the agent (innovator / conservator / none).
+        property_index (int | None): The index of the property, if necessary. Defaults to None.
+
+    Returns:
+        Callable: The model reporter function built from the given parameters.
+    """
+
+    agent_type_arg_translation_ = agent_type_arg_translation[agent_type]
+
+    return function_translation[reporter_type](
+        property_name, property_index, agent_type_arg_translation_
+    )
+
+
+def get_model_reporters() -> Dict[str, Callable[['PrimingModel'], np.ndarray | bool]]:
+    """Build a full Dict of model reporters based on the (hard-coded) model reporter definitions.
+
+    Returns:
+        Dict[str, Callable[[PrimingModel], np.ndarray | bool]]: A Dict with the model reporter names as keys and the correct lambda functions as values.
+    """
+
+    model_reporters = {}
+    for model_reporter_name in model_reporters_base:
+        model_reporter_config = model_reporters_base[model_reporter_name]
+
+        for agent_type in model_reporter_config.agent_types:
+            for reporter_type in model_reporter_config.reporter_types:
+                # Set the model reporter key
+                model_reporter_key = get_model_reporter_key(
+                    model_reporter_name, reporter_type, agent_type
+                )
+                model_reporters[model_reporter_key] = get_model_reporter_function(
+                    reporter_type,
+                    model_reporter_config.property_name,
+                    agent_type,
+                    model_reporter_config.index,
+                )
+
+    return model_reporters
