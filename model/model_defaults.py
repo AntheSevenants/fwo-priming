@@ -31,6 +31,7 @@ class Parameters:
     # ----
     base_rate_update_mechanism: int = model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION
     base_rate_change_strength: float = 0.01
+    memory_size: int = 1000
 
     # ----
     # Population-related probabilities

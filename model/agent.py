@@ -8,8 +8,10 @@ import numpy as np
 import copy
 
 from typing import Self, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from model.model import PrimingModel
+
 
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
@@ -18,7 +20,7 @@ class PrimingAgent(mesa.Agent):
         """Initialise a PrimingModel agent
 
         Args:
-            priming_model (PrimingModel): 
+            priming_model (PrimingModel):
             The PrimingModel for which the agent is initialised
         """
 
@@ -37,8 +39,8 @@ class PrimingAgent(mesa.Agent):
         if self.model.params.use_activation:
             return self.atts.activation.norm
         else:
-        # Else, we're only working with entrenchment. So only return the base rate
-        # (the base rate is always normalised)
+            # Else, we're only working with entrenchment. So only return the base rate
+            # (the base rate is always normalised)
             return self.atts.base_rate
 
     def update_entropy_history(self):
@@ -46,23 +48,18 @@ class PrimingAgent(mesa.Agent):
         This function computes the entropy of the current distribution and adds it to the log.
         """
 
-        self.atts.activation.entropy.update(
-            self.atts.activation.norm
-        )
+        self.atts.activation.entropy.update(self.atts.activation.norm)
 
-    
     def update_base_rate_entropy_history(self):
         """We keep a log of the entropy of the base rates for each agent.
         This function computes the entropy of the current base rate and adds it to the log.
         """
 
-        self.atts.base_rate.entropy.update(
-            self.atts.base_rate.level
-        )
+        self.atts.base_rate.entropy.update(self.atts.base_rate.level)
 
     def interact_do(self):
         """Each timestep, each agent has the opportunity to interact with another random agent.
-        This is an outer wrapper script that decides whether the interaction occurs, 
+        This is an outer wrapper script that decides whether the interaction occurs,
         and/or whether there needs to be decay instead.
         """
 
@@ -91,12 +88,13 @@ class PrimingAgent(mesa.Agent):
         # We choose what construction the agent will utter based on the current activation levels
         # "More activated" constructions are more likely to be chosen.
         chosen_construction_index = self.model.nprandom.choice(
-            self.model.params.construction_indices,
-            p=self.construction_probs_norm
+            self.model.params.construction_indices, p=self.construction_probs_norm
         )
 
         # If production is set to affect base rate, update the base rate for the chosen construction
-        if model.enums.AffectsBaseRate.affects_production(self.model.params.affects_base_rate):
+        if model.enums.AffectsBaseRate.affects_production(
+            self.model.params.affects_base_rate
+        ):
             self.update_base_rate(chosen_construction_index)
 
         # In the model tracker, register that this construction was chosen
@@ -115,20 +113,13 @@ class PrimingAgent(mesa.Agent):
             construction_index (int): The index of the chosen construction
         """
 
-        base_rate_change_strength = self.model.params.base_rate_change_strength
-        if construction_index == self.model.params.innovation_index and self.model.params.replicator_selection:
-            base_rate_change_strength *= 2
+        deletion_index = np.abs(construction_index - 1)
+        if self.model.params.base_rate_update_mechanism == model.enums.BaseRateUpdateMechanism.COUNT:
+            deletion_index = self.model.nprandom.choice(
+                self.model.params.construction_indices, p=self.atts.base_rate.level
+            )
 
-        self.atts.base_rate.level[construction_index] = np.divide(
-            self.atts.base_rate.level[construction_index]
-            + base_rate_change_strength,
-            1 + base_rate_change_strength,
-        )
-        other_index = np.abs(construction_index - 1)
-        self.atts.base_rate.level[other_index] = np.divide(
-            self.atts.base_rate.level[other_index],
-            1 + base_rate_change_strength,
-        )
+        self.atts.base_rate.update(construction_index, deletion_index)
 
     def compute_priming_strength(self, construction_index: int):
         """Computes the priming strength (= the float that will be added to the current activation level).
@@ -156,9 +147,8 @@ class PrimingAgent(mesa.Agent):
         epsilon = 0.001
 
         multiplier = np.power(
-            np.divide(priming_strength_base + epsilon,
-                      current_probability + epsilon),
-            self.model.params.inverse_frequency_exponent
+            np.divide(priming_strength_base + epsilon, current_probability + epsilon),
+            self.model.params.inverse_frequency_exponent,
         )
 
         # Cap the multiplier to a predetermined maximum
@@ -181,14 +171,18 @@ class PrimingAgent(mesa.Agent):
         if self.model.params.use_activation:
             # Now the hearer has to adjust their internal distribution
             # Maximum activation level is one!
-            new_activation_level = self.atts.activation.level[construction_index] + self.compute_priming_strength(construction_index)
+            new_activation_level = self.atts.activation.level[
+                construction_index
+            ] + self.compute_priming_strength(construction_index)
             if self.model.params.activation_cap:
                 new_activation_level = min(new_activation_level, 1)
             self.atts.activation.level[construction_index] = new_activation_level
 
         # If reception is set to affect base rate, update base rate
         # This happens regardless whether activation levels are activated or not
-        if model.enums.AffectsBaseRate.affects_reception(self.model.params.affects_base_rate):
+        if model.enums.AffectsBaseRate.affects_reception(
+            self.model.params.affects_base_rate
+        ):
             self.update_base_rate(construction_index)
 
         # Renormalise all probabilities
@@ -228,7 +222,10 @@ class PrimingAgent(mesa.Agent):
         # Apply decay for each construction
         for construction_index in range(self.model.params.num_constructions):
             # Compute difference with the uniform distribution (or base rate)
-            activation_delta = self.atts.activation.level[construction_index] - uniform_dist[construction_index]
+            activation_delta = (
+                self.atts.activation.level[construction_index]
+                - uniform_dist[construction_index]
+            )
 
             # Multiply by decay strength to attenuate
             decay = activation_delta * self.model.params.decay_strength
@@ -238,5 +235,10 @@ class PrimingAgent(mesa.Agent):
 
             # Snap to decay goal if within a certain range
             RANGE = 0.05
-            if self.atts.activation.level[construction_index] - RANGE <= self.atts.base_rate.level[construction_index]:
-                self.atts.activation.level[construction_index] = self.atts.base_rate.level[construction_index]
+            if (
+                self.atts.activation.level[construction_index] - RANGE
+                <= self.atts.base_rate.level[construction_index]
+            ):
+                self.atts.activation.level[construction_index] = (
+                    self.atts.base_rate.level[construction_index]
+                )

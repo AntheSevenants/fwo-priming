@@ -25,3 +25,4 @@ class BaseRateUpdateMechanism:
     RENORMALISE = 0
     LATERAL_INHIBITION = 1
     COUNT = 2
+    DEKKER = 3
