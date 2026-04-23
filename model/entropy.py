@@ -27,3 +27,13 @@ def compute_maximum_entropy(n: int) -> float:
     """
 
     return float(entropy(np.ones(n) / n, base=ENTROPY_BASE))
+
+
+class Entropy:
+    def __init__(self, level: np.ndarray):
+        # A "logbook" of entropy, needed so we can compute the delta
+        self.history: np.ndarray = np.array([compute_entropy(level)] * 2)
+
+    def update(self, new_value):
+        new_entropy_value = compute_entropy(new_value)
+        self.history = np.concatenate((self.history[1:], [new_entropy_value]))
