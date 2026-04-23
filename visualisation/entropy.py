@@ -24,6 +24,7 @@ def ylim_from_num_constructions(num_constructions: int):
 
 def plot_ctx_entropy_mean(
     data: Union[model.model.PrimingModel, List[float]],
+    attributes: str | List[str],
     num_constructions: int,
     is_base_rate: bool = False,
     **kwargs: Any,
@@ -32,6 +33,7 @@ def plot_ctx_entropy_mean(
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values.
+        attributes (str | List[str]): The column to fetch data from. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         num_constructions (int): The number of constructions in the simulation.
         is_base_rate (bool, optional): Whether the entropy measures are derived from the base rate. Defaults to False.
         **kwargs: Additional keyword arguments passed to parent plotting function.
@@ -44,7 +46,7 @@ def plot_ctx_entropy_mean(
 
     return visualisation.core.plot_value(
         data,
-        "ctx_entropy_mean" if not is_base_rate else "ctx_base_rate_entropy_mean",
+        attributes,
         ylim=ylim,
         title=f"Mean {infix}entropy across agents",
         **kwargs
@@ -53,6 +55,7 @@ def plot_ctx_entropy_mean(
 
 def plot_ctx_entropy_per_agent(
     data: Union[model.model.PrimingModel, List[List[float]]],
+    attribute: str,
     num_constructions: int,
     is_base_rate: bool = False,
     **kwargs: Any,
@@ -61,6 +64,7 @@ def plot_ctx_entropy_per_agent(
 
     Args:
         data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values.
+        attribute (str): The column to fetch data from.
         num_constructions (int): The number of constructions in the simulation.
         is_base_rate (bool, optional): Whether the entropy measures are derived from the base rate. Defaults to False.
         **kwargs: Additional keyword arguments passed to parent plotting function.
@@ -74,7 +78,7 @@ def plot_ctx_entropy_per_agent(
 
     return visualisation.core.plot_ratio_pass(
         data,
-        "ctx_entropy_per_agent" if not is_base_rate else "ctx_base_rate_entropy_per_agent",
+        attribute,
         ylim=ylim,
         baseline=maximum_entropy / 2,
         title="Evolution of preference entropy per agent",
@@ -84,6 +88,7 @@ def plot_ctx_entropy_per_agent(
 
 def plot_ctx_entropy_for_agent(
     data: Union[model.model.PrimingModel, List[float]],
+    attribute: str,
     num_constructions: int,
     is_base_rate: bool = False,
     agent_index: Optional[int] = None,
@@ -93,6 +98,7 @@ def plot_ctx_entropy_for_agent(
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values.
+        attribute (str): The column to fetch data from.
         num_constructions (int): The number of constructions in the simulation.
         is_base_rate (bool, optional): Whether the entropy measures are derived from the base rate. Defaults to False.
         agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
@@ -108,7 +114,7 @@ def plot_ctx_entropy_for_agent(
 
     return visualisation.core.plot_value(
         data,
-        "ctx_entropy_per_agent" if not is_base_rate else "ctx_base_rate_entropy_per_agent",
+        attribute,
         ylim=ylim,
         agent_filter=agent_index,
         title=f"Preference entropy for agent {agent_index}",

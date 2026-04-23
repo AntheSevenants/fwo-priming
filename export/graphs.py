@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+import model.reporters
+
 import visualisation.activation
 import visualisation.base_rate
 import visualisation.entropy
@@ -38,8 +40,11 @@ class GraphConfig:
     """The configuration for a single graph. It defines what column the graph data comes from, what function needs to be called to create the graph, how extra parameters can be retrieved, etc.
     """
 
-    data_column: str  # What column does the required data come from?
+    reporter_name: str  # What model reporter does the required data come from?
     plot_func: Callable  # How can the figure be made?
+    reporter_type: int = model.reporters.ReporterType.MEDIAN # MEAN, MEDIAN, NONE
+    data_columns: List[str] = field(default_factory=lambda: [])
+    agent_types: List[int] = field(default_factory=lambda: [model.reporters.AgentType.ALL])
     # Shorthands for common operations that are given to plot functions.
     # can be: x_scale_factor, min_data or max_data
     common_args: List[str] = field(default_factory=lambda: [])
@@ -52,6 +57,24 @@ class GraphConfig:
     is_mosaic: bool = False # Is this a mosaic graph?
     single_run_sensible: bool = True # Does it make sense to show this graph for a single run?
     context: int = GraphContext.EXPORT # In what context should this graph be shown?
+
+    # Allow setting data columns directly if needed
+    disable_autogenerate_columns: bool = False
+
+    def __post_init__(self):
+        if self.disable_autogenerate_columns:
+            return
+        
+        if self.aggregate:
+            self.data_columns = [ self.reporter_name ]
+            return
+        
+        self.data_columns = [
+            model.reporters.get_model_reporter_key(
+                self.reporter_name, self.reporter_type, agent_type
+            )
+            for agent_type in self.agent_types
+        ]
 
 
 @dataclass
@@ -127,17 +150,17 @@ def get_num_constructions(
 # These are all definitions of graphs
 graph_configs = {
     "ctx_activation_mean": GraphConfig(
-        data_column="ctx_activation_median",
+        reporter_name="ctx_activation",
         plot_func=visualisation.activation.plot_ctx_activation_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
     ),
     "ctx_base_rate_mean": GraphConfig(
-        data_column="ctx_base_rate_median",
+        reporter_name="ctx_base_rate",
         plot_func=visualisation.base_rate.plot_ctx_base_rate_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
     ),
     "ctx_entropy_mean": GraphConfig(
-        data_column="ctx_entropy_median",
+        reporter_name="ctx_entropy",
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
         extra_args={
@@ -145,7 +168,7 @@ graph_configs = {
         },
     ),
     "ctx_entropy_mean_slope": GraphConfig(
-        data_column="ctx_entropy_median",
+        reporter_name="ctx_entropy",
         action_column="slope",
         plot_func=lambda data, **kwargs: visualisation.slope.plot_slope_dist(
             data, "median entropy", **kwargs
@@ -153,7 +176,9 @@ graph_configs = {
         single_run_sensible=False
     ),
     "consensus_reached": GraphConfig(
-        data_column="consensus_reached",
+        reporter_name="consensus_reached",
+        data_columns=["consensus_reached"],
+        disable_autogenerate_columns=True,
         action_column="raw",
         plot_func=lambda data, **kwargs: visualisation.consensus.plot_consensus_dist(
             data, **kwargs
@@ -161,7 +186,7 @@ graph_configs = {
         single_run_sensible=False
     ),
     "ctx_base_rate_entropy_mean": GraphConfig(
-        data_column="ctx_base_rate_entropy_median",
+        reporter_name="ctx_base_rate_entropy",
         plot_func=visualisation.entropy.plot_ctx_entropy_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
         extra_args={
@@ -170,7 +195,7 @@ graph_configs = {
         },
     ),
     "ctx_probs_mean": GraphConfig(
-        data_column="ctx_probs_median",
+        reporter_name="ctx_probs",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
     ),
@@ -197,7 +222,7 @@ graph_configs = {
         size=(6, 12)
     ),
     "aggregate_entropy": GraphConfig(
-        data_column="entropy",
+        reporter_name="entropy",
         plot_func=visualisation.aggregate.entropy.plot_entropy_range,
         aggregate=True,
         common_args=["min_data", "max_data"],
@@ -206,7 +231,7 @@ graph_configs = {
         },
     ),
     "aggregate_base_rate_entropy": GraphConfig(
-        data_column="base_rate_entropy",
+        reporter_name="base_rate_entropy",
         plot_func=visualisation.aggregate.entropy.plot_entropy_range,
         aggregate=True,
         common_args=["min_data", "max_data"],
@@ -216,14 +241,14 @@ graph_configs = {
         },
     ),
     "aggregate_entropy_slope_mean": GraphConfig(
-        data_column="entropy",
+        reporter_name="entropy",
         action_column_inner="slope",
         plot_func=visualisation.aggregate.slope.plot_slope_range,
         aggregate=True,
         common_args=["min_data", "max_data"],
     ),
     "aggregate_consensus": GraphConfig(
-        data_column="consensus",
+        reporter_name="consensus",
         action_column="raw",
         action_column_inner="consensus",
         plot_func=visualisation.aggregate.consensus.plot_consensus_aggregate,
@@ -467,42 +492,48 @@ def generate_inner_lambda(
 
     # Regular graph
     if aggregate_config is None:
-        for common_arg in config.common_args:
-            value = None
-            if common_arg == "x_scale_factor":
-                value = scale_factor
-            elif common_arg == "min_data" and single_run is None:
-                value = data[config.data_column]["q1"]
-            elif common_arg == "max_data" and single_run is None:
-                value = data[config.data_column]["q3"]
+        central_data = []
+        for data_column in config.data_columns:
+            for common_arg in config.common_args:
+                value = None
+                if common_arg == "x_scale_factor":
+                    value = scale_factor
+                elif common_arg == "min_data" and single_run is None:
+                    value = data[data_column]["q1"]
+                elif common_arg == "max_data" and single_run is None:
+                    value = data[data_column]["q3"]
 
-            kwargs[common_arg] = value
+                kwargs[common_arg] = value
 
-        # Combination graph
-        if single_run is None:
-            central_data = data[config.data_column][config.action_column]
-        else:
-            # No need for aggregation
-            central_data = data[config.data_column]
+            kwargs["attributes"] = config.data_columns
+
+            # Combination graph
+            if single_run is None:
+                central_data.append(data[data_column][config.action_column])
+            else:
+                # No need for aggregation
+                central_data.append(data[data_column])
 
         # Make the plot function
         return lambda ax: config.plot_func(central_data, **kwargs, ax=ax)
+    # Aggregate graph
     else:
+        data_column = config.data_columns[0] # temporary workaround for aggregate graphs
         for common_arg in config.common_args:
             value = None
             if common_arg == "min_data":
                 value = data[
-                    batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, "q1")
+                    batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, "q1")
                     ]
             elif common_arg == "max_data":
                 value = kwargs["max_data"] = data[
-                    batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, "q3")
+                    batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, "q3")
                     ]
             kwargs[common_arg] = value
 
         return lambda ax: config.plot_func(
             data[
-                batch.aggregate.make_aggregate_output_name(config.data_column, config.action_column_inner, config.action_column)
+                batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, config.action_column)
             ].tolist(),
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,

@@ -9,12 +9,14 @@ from typing import Optional, Union, List, Tuple, Any
 
 def plot_ctx_probs_mean(
     data: Union[model.model.PrimingModel, List[List[float]]],
+    attributes: str | List[str] = "ctx_probs_mean",
     **kwargs: Any
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the mean preference probabilities across agents.
 
     Args:
         data (Union[model.model.PrimingModel, List[List[float]]): Either a model instance or a list of values.
+        attributes (str | List[str]): The column to fetch data from. Always supply, even if input data is not a model, so dimensionality of the data can be assessed. Defaults to "ctx_probs_mean".
         **kwargs: Additional keyword arguments passed to parent plotting function.
 
     Returns:
@@ -23,7 +25,7 @@ def plot_ctx_probs_mean(
 
     return visualisation.core.plot_ratio(
         data,
-        "ctx_probs_mean",
+        attributes,
         title="Mean probabilities per construction across agents",
         **kwargs
     )
@@ -31,12 +33,14 @@ def plot_ctx_probs_mean(
 
 def plot_ctx_probs_per_agent(
     data: Union[model.model.PrimingModel, List[List[List[float]]]],
+    attribute: str = "ctx_probs_per_agent",
     **kwargs: Any
 ) -> matplotlib.figure.Figure:
     """Plot the preference probabilities evolution of each agent on a single graph.
 
     Args:
         data (Union[model.model.PrimingModel, List[List[List[float]]]]): Either a model instance or a list of values.
+        attribute (str): The column to fetch data from. Defaults to "ctx_probs_per_agent".
         **kwargs: Additional keyword arguments passed to parent plotting function.
 
     Returns:
@@ -45,7 +49,7 @@ def plot_ctx_probs_per_agent(
 
     return visualisation.core.plot_ratio_pass(
         data,
-        "ctx_probs_per_agent",
+        attribute,
         ylim=[0, 1],
         baseline=0.5,
         # secondary_baseline_attribute="starting_probs_per_agent",
@@ -56,6 +60,7 @@ def plot_ctx_probs_per_agent(
 
 def plot_ctx_probs_for_agent(
     data: Union[model.model.PrimingModel, List[List[float]]],
+    attribute: str = "ctx_probs_per_agent",
     agent_index: Optional[int] = None,
     **kwargs: Any
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -63,6 +68,7 @@ def plot_ctx_probs_for_agent(
 
     Args:
         data (Union[model.model.PrimingModel, List[List[float]]]): Either a model instance or a list of values.
+        attribute (str): The column to fetch data from. Defaults to "ctx_probs_per_agent".
         agent_index (Optional[int], optional): The index of the agent to filter for. Defaults to None.
         **kwargs: Additional keyword arguments passed to parent plotting function.
 
@@ -74,7 +80,7 @@ def plot_ctx_probs_for_agent(
 
     return visualisation.core.plot_ratio(
         data,
-        "ctx_probs_per_agent",
+        attribute,
         agent_filter=agent_index,
         title=f"Probability per construction for agent {agent_index}",
         **kwargs

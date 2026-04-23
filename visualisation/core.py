@@ -1,14 +1,15 @@
 import model.model
+import model.reporters
 
 import matplotlib.figure
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 
-from typing import List, Optional, Union, Any, Tuple
+from typing import List, Optional, Union, Any, Tuple, List
 
 COLOURS = ["blue", "orange", "green", "red", "purple"]
-LINE_STYLES = ["-", "--", ":", "-."]
+LINE_STYLES = ["-", "dotted", "dashdot"]
 
 
 def formatter(x: float, pos: float, scale: int):
@@ -48,6 +49,50 @@ def check_ax(
         plt.tight_layout()
 
     return fig, ax
+
+
+def check_attributes(
+    attributes: str | List[str]
+) -> List[str]:
+    """Turn an attributes argument into a list, always!
+
+    Args:
+        attributes (str | List[str]): _description_
+
+    Returns:
+        List[str]: _description_
+    """
+
+    if isinstance(attributes, str):
+        attributes = [
+            attributes
+        ]  # Convert single string to list for uniform processing
+
+    return attributes
+
+
+def get_line_style(index: int, total_groups: int):
+    if total_groups == 1:
+        return LINE_STYLES[0]
+    else:
+        return LINE_STYLES[index + 1]
+
+
+def make_legend_label(agent_type_index: int, construction_index: int | None = None):
+    agent_type_translation = {
+        model.reporters.AgentType.INNOVATOR: "innovator",
+        model.reporters.AgentType.CONSERVATOR: "conservator",
+    }
+
+    construction_type_translation = {
+        0: "new ctx",
+        1: "old ctx"
+    }
+
+    if construction_index is not None:
+        return f"{construction_type_translation[construction_index]} ({agent_type_translation[agent_type_index]})"
+    else:
+        return agent_type_translation[agent_type_index]
 
 
 def get_ax_figure(ax: matplotlib.axes.Axes):
@@ -152,7 +197,9 @@ def get_value_lists(
 
         # If just a single value list is supplied, wrap in an outer list
         if len(attributes) == 1:
-            _data = [data]
+            _data = data
+            # _data = [data]
+            pass
         else:
             _data = data
 
@@ -208,7 +255,7 @@ def check_min_max_data(
 
 def plot_value(
     data: Union[model.model.PrimingModel, List[float]],
-    attribute: str,
+    attributes: str | List[str],
     ylim: Optional[List[float]] = None,
     x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
@@ -222,7 +269,7 @@ def plot_value(
 
     Args:
         data (Union[model.model.PrimingModel, List[float]]): Either a model instance or a list of values
-        attribute (Optional[str]): The name of the series to model.
+        attributes (Union[str, List[str]]): The names of the series to model. Always supply, even if input data is not a model, so dimensionality of the data can be assessed.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
@@ -235,24 +282,34 @@ def plot_value(
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
-    fig, ax = check_ax(ax, disable_title)
+    # Convert single string to list for uniform processing
+    attributes = check_attributes(attributes)
 
     # Get the right data based on the supplied arguments
-    value_list = get_value_lists(data, attribute, agent_filter)[0]
+    value_lists = get_value_lists(data, attributes, agent_filter)
+    num_groups = len(value_lists)
     # Check if min and max data are supplied correctly
     _min_data, _max_data = check_min_max_data(data, min_data, max_data)
 
-    ax.plot(value_list, color=COLOURS[0])
+    fig, ax = check_ax(ax, disable_title)
 
-    # Plot the shaded area between min and max values
-    if _min_data is not None and _max_data is not None:
-        ax.fill_between(
-            x=range(len(value_list)),
-            y1=_min_data,
-            y2=_max_data,
+    for attribute_idx, value_list in enumerate(value_lists):
+        ax.plot(
+            value_list,
             color=COLOURS[0],
-            alpha=0.2,
+            linestyle=get_line_style(attribute_idx, num_groups),
+            label=make_legend_label(attribute_idx)
         )
+
+        # Plot the shaded area between min and max values
+        if _min_data is not None and _max_data is not None:
+            ax.fill_between(
+                x=range(len(value_list)),
+                y1=_min_data,
+                y2=_max_data,
+                color=COLOURS[0],
+                alpha=0.2,
+            )
 
     scale_x_axis(ax, x_scale_factor)
 
@@ -261,6 +318,9 @@ def plot_value(
 
     if title is not None and not disable_title:
         ax.set_title(title)
+
+    if num_groups > 1:
+        ax.legend()
 
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
@@ -308,6 +368,7 @@ def plot_ratio(
 
     # Get the right data based on the supplied arguments
     value_lists = get_value_lists(data, attributes, agent_filter)
+    num_groups = len(value_lists)
     # Check if min and max data are supplied correctly
     _min_data, _max_data = check_min_max_data(data, min_data, max_data)
 
@@ -316,7 +377,8 @@ def plot_ratio(
     for attribute_idx, matrix in enumerate(value_lists):
         for i in range(matrix.shape[1]):
             ax.plot(
-                matrix[:, i], color=COLOURS[i], linestyle=LINE_STYLES[attribute_idx]
+                matrix[:, i], color=COLOURS[i], linestyle=get_line_style(attribute_idx, num_groups),
+                label=make_legend_label(attribute_idx, i)
             )
 
             # Plot the shaded area between min and max values
@@ -336,6 +398,9 @@ def plot_ratio(
 
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
+
+    if num_groups > 1:
+        ax.legend()
 
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
