@@ -48,13 +48,13 @@ class ModelReporter:
 
 # Basic properties for which to construct model reporters
 model_reporters_base = {
-    "ctx_activation": ModelReporter(property_name="activation"),
-    "ctx_probs": ModelReporter(property_name="activation_norm"),
+    "ctx_activation": ModelReporter(property_name="activation.level"),
+    "ctx_probs": ModelReporter(property_name="activation.norm"),
     "ctx_base_rate": ModelReporter(
-        property_name="base_rate",
+        property_name="base_rate.level",
     ),
-    "ctx_entropy": ModelReporter(property_name="entropy", index=-1),
-    "ctx_base_rate_entropy": ModelReporter(property_name="base_rate_entropy", index=-1),
+    "ctx_entropy": ModelReporter(property_name="activation.entropy.history", index=-1),
+    "ctx_base_rate_entropy": ModelReporter(property_name="base_rate.entropy.history", index=-1),
 }
 
 # Create a specialised tracking function depending on:

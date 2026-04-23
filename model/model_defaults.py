@@ -29,6 +29,7 @@ class Parameters:
     # ----
     # Base rate-related frequencies
     # ----
+    base_rate_update_mechanism: int = model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION
     base_rate_change_strength: float = 0.01
 
     # ----

@@ -4,6 +4,27 @@ import numpy as np
 from typing import Optional
 
 
+def get_nested_attr(obj, attr_path):
+    """
+    Get a nested attribute from an object using dot notation.
+
+    Args:
+        obj: The object to get attributes from.
+        attr_path: The attribute path in dot notation (e.g., "activation.level").
+
+    Returns:
+        The value of the nested attribute.
+    """
+    attributes = attr_path.split('.')
+    current = obj
+    try:
+        for attr in attributes:
+            current = getattr(current, attr)
+        return current
+    except AttributeError as e:
+        raise AttributeError(f"Attribute '{attr_path}' not found") from e
+
+
 class Tracker:
     """The tracker is the facilitates keeping track of the current model state.
     """
@@ -57,7 +78,7 @@ class Tracker:
             if for_innovator is not None and agent.is_innovator != for_innovator:
                 continue 
 
-            property_value = getattr(agent.atts, property_name)
+            property_value = get_nested_attr(agent.atts, property_name)
             if index is not None:
                 property_value = property_value[index]
             agent_property_dist.append(property_value)

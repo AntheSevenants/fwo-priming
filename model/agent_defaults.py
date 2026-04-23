@@ -14,46 +14,79 @@ class Attributes:
     model_params: model.model_defaults.Parameters
     is_innovator: bool
 
-    # The internal memory of agents
-    # This is for "long-term" priming effects
-    memory: np.ndarray = field(
-        default_factory=lambda: np.array([], np.int64)
-    )
-
-    # For posterity: the base rate that the agents were initialised with
-    base_rate_level: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
-    starting_base_rate: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
-
-    # Activation rate
-    # This is for "short-term" priming
-    # Each value has a legal range from 0 to 1
-    activation: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
-
-    # A "log" of entropy, needed so we can compute the delta
-    entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
-
-    # A "log" of base rate entropy
-    base_rate_entropy: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.float64))
-
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
         # the probabilities and starting probabilities and such
         if self.model_params is None:
-            raise ValueError("model_parameters cannot be None")
+            raise ValueError("Model parameters cannot be None")
         
-        # Set the initial probabilities
+        # Set base rate and initial levels
+        self.base_rate = BaseRate(
+            self.model_params,
+            update_mechanism=self.model_params.base_rate_update_mechanism,
+            is_innovator=self.is_innovator,
+        )
+
+        # Set activation and initial levels
+        self.activation = Activation(
+            self.model_params, copy.deepcopy(self.base_rate.level)
+        )
+
+
+class Entropy:
+    def __init__(self, level: np.ndarray):
+        # A "logbook" of entropy, needed so we can compute the delta
+        self.history: np.ndarray = np.array([model.entropy.compute_entropy(level)] * 2)
+
+    def update(self, new_value):
+        new_entropy_value = model.entropy.compute_entropy(new_value)
+        self.history = np.concatenate((self.history[1:], [new_entropy_value]))
+
+
+class Activation:
+    def __init__(
+        self, model_params: model.model_defaults.Parameters, init_level: np.ndarray
+    ):
+        self.model_params = model_params
+
+        # Each value has a legal range from 0 to infinity
+        self.level = init_level
+        self.entropy = Entropy(self.level)
+        
+
+    @property
+    def norm(self):
+        """The normalised activation levels. All values sum to one.
+        If perception is logarithmic, a log10 pass is applied first.
+
+        Returns:
+            np.array(float): A numpy array containing the activation levels, normalised to sum to one.
+        """
+        to_normalise = self.level
+        if self.model_params.logarithmic_perception:
+            # Prevent negative log through addition of 1
+            to_normalise = np.log10(1 + self.level)
+
+        return np.divide(to_normalise, np.sum(to_normalise))
+
+
+class BaseRate:
+    def __init__(
+        self,
+        model_params: model.model_defaults.Parameters,
+        update_mechanism: int,
+        is_innovator: bool,
+    ):
+        self.model_params = model_params
+        self.update_mechanism = update_mechanism
+        self.is_innovator = is_innovator
+
+        self.level: np.ndarray = field(
+            default_factory=lambda: np.array([], dtype=np.float64)
+        )
         self.init_construction_probs()
 
-        # Now that the initial probabilities have been set, do some housekeeping
-        # (copying the starting probs, computing entropy etc.)
-        self.starting_base_rate = copy.deepcopy(self.base_rate)
-
-        # Since we start from a neutral position, copy the base rate to activation levels
-        self.activation = copy.deepcopy(self.base_rate)
-
-        # We multiply by two because else the delta computation will fail
-        self.entropy = np.array([ model.entropy.compute_entropy(self.activation) ] * 2)
-        self.base_rate_entropy = np.array([ model.entropy.compute_entropy(self.base_rate) ] * 2)
+        self.entropy = Entropy(self.level)
 
     def init_construction_probs(self):
         """Initialies the base rate starting probabilities based on the starting probability mode.
@@ -64,41 +97,21 @@ class Attributes:
 
         # Assign starting base rate to the constructions
         if self.is_innovator:
-            self.base_rate_level = np.array(
+            self.level = np.array(
                 [
                     self.model_params.innovator_innovation_share,
                     1 - self.model_params.innovator_innovation_share,
                 ]
             )
         else:
-            self.base_rate_level = np.array(
+            self.level = np.array(
                 [
                     self.model_params.conservator_innovation_share,
-                    1 - self.model_params.conservator_innovation_share
+                    1 - self.model_params.conservator_innovation_share,
                 ]
             )
-    
-    @property
-    def base_rate(self):
-        """The normalised base frequency. All values sum to one.
 
-        Returns:
-            np.array(float): A numpy array containing the base rate, normalised to sum to one.
-        """
-        
-        return self.base_rate_level
-
-    @property
-    def activation_norm(self):
-        """The normalised activation levels. All values sum to one.
-        If perception is logarithmic, a log10 pass is applied first.
-
-        Returns:
-            np.array(float): A numpy array containing the activation levels, normalised to sum to one.
-        """
-        to_normalise = self.activation
-        if self.model_params.logarithmic_perception:
-            # Prevent negative log through addition of 1
-            to_normalise = np.log10(1 + self.activation)
-
-        return np.divide(to_normalise, np.sum(to_normalise))
+    def __post_init__(self):
+        # Now that the initial probabilities have been set, do some housekeeping
+        # (copying the starting probs, computing entropy etc.)
+        self.starting_level = copy.deepcopy(self.level)

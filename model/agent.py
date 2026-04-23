@@ -35,7 +35,7 @@ class PrimingAgent(mesa.Agent):
     def construction_probs_norm(self):
         # If activation levels are enabled, we just use the model as normal
         if self.model.params.use_activation:
-            return self.atts.activation_norm
+            return self.atts.activation.norm
         else:
         # Else, we're only working with entrenchment. So only return the base rate
         # (the base rate is always normalised)
@@ -46,8 +46,9 @@ class PrimingAgent(mesa.Agent):
         This function computes the entropy of the current distribution and adds it to the log.
         """
 
-        new_entropy_value = model.entropy.compute_entropy(self.atts.activation_norm)
-        self.atts.entropy = np.concatenate((self.atts.entropy[1:], [ new_entropy_value ]))
+        self.atts.activation.entropy.update(
+            self.atts.activation.norm
+        )
 
     
     def update_base_rate_entropy_history(self):
@@ -55,9 +56,8 @@ class PrimingAgent(mesa.Agent):
         This function computes the entropy of the current base rate and adds it to the log.
         """
 
-        new_entropy_value = model.entropy.compute_entropy(self.atts.base_rate)
-        self.atts.base_rate_entropy = np.concatenate(
-            (self.atts.base_rate_entropy[1:], [new_entropy_value])
+        self.atts.base_rate.entropy.update(
+            self.atts.base_rate.level
         )
 
     def interact_do(self):
@@ -119,14 +119,14 @@ class PrimingAgent(mesa.Agent):
         if construction_index == self.model.params.innovation_index and self.model.params.replicator_selection:
             base_rate_change_strength *= 2
 
-        self.atts.base_rate_level[construction_index] = np.divide(
-            self.atts.base_rate_level[construction_index]
+        self.atts.base_rate.level[construction_index] = np.divide(
+            self.atts.base_rate.level[construction_index]
             + base_rate_change_strength,
             1 + base_rate_change_strength,
         )
         other_index = np.abs(construction_index - 1)
-        self.atts.base_rate_level[other_index] = np.divide(
-            self.atts.base_rate_level[other_index],
+        self.atts.base_rate.level[other_index] = np.divide(
+            self.atts.base_rate.level[other_index],
             1 + base_rate_change_strength,
         )
 
@@ -147,10 +147,10 @@ class PrimingAgent(mesa.Agent):
         # The priming strength we will use as a baseline to attenuate / boost
         priming_strength_base = self.model.params.priming_strength
         # What is the highest probability currently?
-        compare_probability = np.max(self.atts.base_rate)
+        compare_probability = np.max(self.atts.base_rate.level)
         # What is the current probability of this construction?
         # Depending on whether it is high or low, we will adjust the priming strength
-        current_probability = self.atts.activation[construction_index]
+        current_probability = self.atts.activation.level[construction_index]
 
         # Safety for division, like Laplace
         epsilon = 0.001
@@ -181,10 +181,10 @@ class PrimingAgent(mesa.Agent):
         if self.model.params.use_activation:
             # Now the hearer has to adjust their internal distribution
             # Maximum activation level is one!
-            new_activation_level = self.atts.activation[construction_index] + self.compute_priming_strength(construction_index)
+            new_activation_level = self.atts.activation.level[construction_index] + self.compute_priming_strength(construction_index)
             if self.model.params.activation_cap:
                 new_activation_level = min(new_activation_level, 1)
-            self.atts.activation[construction_index] = new_activation_level
+            self.atts.activation.level[construction_index] = new_activation_level
 
         # If reception is set to affect base rate, update base rate
         # This happens regardless whether activation levels are activated or not
@@ -218,25 +218,25 @@ class PrimingAgent(mesa.Agent):
             uniform_dist = self.model.params.uniform_dist
         # The distribution to decay to is the starting probabilities
         elif self.model.params.decay_to == model.enums.DecayTo.STARTING_DIST:
-            uniform_dist = self.atts.starting_base_rate.copy()
+            uniform_dist = self.atts.base_rate.starting_level.copy()
         # The distribution to decay to is the base rate
         elif self.model.params.decay_to == model.enums.DecayTo.BASE_RATE:
-            uniform_dist = self.atts.base_rate.copy()
+            uniform_dist = self.atts.base_rate.level.copy()
 
         # self.atts.activation = (1 - self.model.params.decay_strength) * self.atts.activation + self.model.params.decay_strength * uniform_dist
 
         # Apply decay for each construction
         for construction_index in range(self.model.params.num_constructions):
             # Compute difference with the uniform distribution (or base rate)
-            activation_delta = self.atts.activation[construction_index] - uniform_dist[construction_index]
+            activation_delta = self.atts.activation.level[construction_index] - uniform_dist[construction_index]
 
             # Multiply by decay strength to attenuate
             decay = activation_delta * self.model.params.decay_strength
 
             # Now subtract the decay from the current activation level for this construction index
-            self.atts.activation[construction_index] -= decay
+            self.atts.activation.level[construction_index] -= decay
 
             # Snap to decay goal if within a certain range
             RANGE = 0.05
-            if self.atts.activation[construction_index] - RANGE <= self.atts.base_rate[construction_index]:
-                self.atts.activation[construction_index] = self.atts.base_rate[construction_index]
+            if self.atts.activation.level[construction_index] - RANGE <= self.atts.base_rate.level[construction_index]:
+                self.atts.activation.level[construction_index] = self.atts.base_rate.level[construction_index]
