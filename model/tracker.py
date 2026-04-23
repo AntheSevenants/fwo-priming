@@ -98,6 +98,6 @@ class Tracker:
             float: A number of the median of the value
         """
 
-        agent_property_dist = self.get_property_per_agent(property_name, index=index)
+        agent_property_dist = self.get_property_per_agent(property_name, index=index, for_innovator=for_innovator)
 
         return np.median(agent_property_dist, axis=0)
