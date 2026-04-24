@@ -69,6 +69,12 @@ class Parameters:
     priming_opportunity: float = 1.0
 
     # ----
+    # Agent age
+    # ----
+    agent_age_mean: int = 0
+    agent_age_range: int = 200
+
+    # ----
     # Decay
     # ----
 

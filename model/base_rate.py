@@ -16,23 +16,29 @@ class BaseRate:
         model_params: "model.model_defaults.Parameters",
         update_mechanism: int,
         is_innovator: bool,
+        init_probs: np.ndarray | None = None
     ):
         self.model_params = model_params
         self.update_mechanism = update_mechanism
         self.is_innovator = is_innovator
 
         self._level: np.ndarray = np.array([], dtype=np.float64)
-        self.init_construction_probs()
+        self.init_construction_probs(init_probs)
         self.init_memory()
 
         self.entropy = model.entropy.Entropy(self.level)
 
-    def init_construction_probs(self):
+    def init_construction_probs(self, init_probs: np.ndarray | None = None):
         """Initialies the base rate starting probabilities based on the starting probability mode.
 
         Raises:
             NotImplementedError: Randomised starting probabilities are not implemented yet
         """
+
+        # When a child agent is born
+        if init_probs is not None:
+            self._level = init_probs
+            return
 
         # Assign starting base rate to the constructions
         if self.is_innovator:

@@ -75,9 +75,36 @@ class PrimingModel(mesa.Model):
             # Now do decay for all agents
             self.agents.do("do_decay")
 
+        # Check if agents need to be replaced
+        dead_agents = []
+        for agent in self.agents.copy():
+            if not agent.is_dead:
+                continue
+            
+            dead_agents.append(agent)
+            
+            # Get a random agent that is not the agent being replaced
+            parent_agent = self.get_random_agent(agent)
+            # Birth new agent
+            model.agent.PrimingAgent.create_agents(
+                model=self, n=1, is_innovator=parent_agent.is_innovator, preset_probs=parent_agent.atts.base_rate.level
+            )
+        
+        for dead_agent in dead_agents:
+            dead_agent.remove()
+
         # Stop the simulation if consensus is reached and early stopping is allowed
         if (
             self.datacollector.model_vars["consensus_reached"][-1]
             and self.params.early_stop
         ):
             self.running = False
+
+    def get_random_agent(self, speaker_agent):
+        # Choose a random other agent that is not the agent itself
+        while True:
+            hearer_agent = self.random.choice(self.agents)
+            if speaker_agent != hearer_agent and not hearer_agent.is_dead:
+                break
+
+        return hearer_agent

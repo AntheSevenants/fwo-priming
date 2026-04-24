@@ -16,7 +16,9 @@ if TYPE_CHECKING:
 class PrimingAgent(mesa.Agent):
     """A speaker in the model"""
 
-    def __init__(self, priming_model: PrimingModel, is_innovator: bool):
+    def __init__(
+            self, priming_model: PrimingModel, is_innovator: bool, preset_probs: np.ndarray | None = None
+    ):
         """Initialise a PrimingModel agent
 
         Args:
@@ -28,9 +30,19 @@ class PrimingAgent(mesa.Agent):
         super().__init__(priming_model)
 
         self.is_innovator = is_innovator
+
+        # Compute agent's age
+        if self.model.params.agent_age_mean != 0:
+            lower_limit = self.model.params.agent_age_mean - self.model.params.agent_age_range
+            upper_limit = self.model.params.agent_age_mean + self.model.params.agent_age_range
+            
+            age = self.model.nprandom.integers(lower_limit, upper_limit, size=1)[0]
+        else:
+            age = None
+
         # Populate the agent's parameters based off the model parameters
         self.atts = model.agent_defaults.Attributes(
-            model_params=priming_model.params, is_innovator=is_innovator
+            model_params=priming_model.params, is_innovator=is_innovator, max_age=age
         )
 
     @property
@@ -63,6 +75,9 @@ class PrimingAgent(mesa.Agent):
         and/or whether there needs to be decay instead.
         """
 
+        # Agent grows one step older
+        self.atts.age += 1
+
         # First, establish whether there is a priming opportunity
         # If no chance at priming anyway, do not have a conversation
         priming_chance = self.model.nprandom.random()
@@ -70,10 +85,7 @@ class PrimingAgent(mesa.Agent):
             return
 
         # Choose a random other agent that is not the agent itself
-        while True:
-            hearer_agent = self.random.choice(self.model.agents)
-            if self != hearer_agent:
-                break
+        hearer_agent = self.model.get_random_agent(self)
 
         # If there *is* an interaction, do interact
         self.interact(hearer_agent)
@@ -242,3 +254,15 @@ class PrimingAgent(mesa.Agent):
                 self.atts.activation.level[construction_index] = (
                     self.atts.base_rate.level[construction_index]
                 )
+
+    @property
+    def is_dead(self):
+        # Eternal life
+        if self.atts.max_age is None:
+            return False
+
+        # Emperor says: you live!
+        if self.atts.age < self.atts.max_age:
+            return False
+        
+        return True
