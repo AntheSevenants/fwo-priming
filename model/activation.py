@@ -30,4 +30,8 @@ class Activation:
             # Prevent negative log through addition of 1
             to_normalise = np.log10(1 + self.level)
 
+        to_normalise[
+            self.model_params.innovation_index
+        ] += self.model_params.replicator_selection_sway
+
         return np.divide(to_normalise, np.sum(to_normalise))

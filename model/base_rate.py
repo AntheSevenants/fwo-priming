@@ -52,10 +52,12 @@ class BaseRate:
 
     @property
     def level(self):
-        if self.update_mechanism == BaseRateUpdateMechanism.RENORMALISE:
+        if self.update_mechanism == BaseRateUpdateMechanism.DEKKER or BaseRateUpdateMechanism.RENORMALISE:
             return self._level
-        else:
+        elif self.update_mechanism == BaseRateUpdateMechanism.COUNT or BaseRateUpdateMechanism.LATERAL_INHIBITION:
             return np.divide(self.memory_counts, self.model_params.memory_size)
+        else:
+            raise ValueError("Base rate update mechanism not recognised")
 
     def init_memory(self):
         """Initialise the memory counts of this agent.
@@ -82,6 +84,8 @@ class BaseRate:
             or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
         ):
             self.update_count(construction_index, deletion_index)
+        else:
+            raise ValueError("Base rate update mechanism not recognised")
 
     def update_count(self, construction_index: int, deletion_index: int):
         # First, we select a random count to remove from
@@ -98,28 +102,23 @@ class BaseRate:
 
     def update_dekker(self, construction_index: int):
         base_rate_change_strength = self.model_params.base_rate_change_strength
-        if (
-            construction_index == self.model_params.innovation_index
-            and self.model_params.replicator_selection
-        ):
-            base_rate_change_strength *= 2
 
-        self.level[construction_index] = np.divide(
-            self.level[construction_index] + base_rate_change_strength,
+        self._level[construction_index] = np.divide(
+            self._level[construction_index] + base_rate_change_strength,
             1 + base_rate_change_strength,
         )
         other_index = np.abs(construction_index - 1)
-        self.level[other_index] = np.divide(
-            self.level[other_index],
+        self._level[other_index] = np.divide(
+            self._level[other_index],
             1 + base_rate_change_strength,
         )
 
     def update_renormalise(self, construction_index: int, deletion_index: int):
-        self.level[construction_index] = min(
+        self._level[construction_index] = min(
             1,
-            self.level[construction_index]
+            self._level[construction_index]
             + self.model_params.base_rate_change_strength,
         )
-        self.level[deletion_index] = max(
-            0, self.level[deletion_index] - self.model_params.base_rate_change_strength
+        self._level[deletion_index] = max(
+            0, self._level[deletion_index] - self.model_params.base_rate_change_strength
         )
