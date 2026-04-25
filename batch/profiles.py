@@ -46,6 +46,30 @@ params = {
         "base_rate_update_mechanism": model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION,
         "linear_increase": [0.4, 0.8]
     },
+    "complete": {
+        "num_agents": 10,
+        "innovators_share": 0,
+        "conservator_innovation_share": 0.1,
+        "priming_strength": 0.4,
+        "inverse_frequency_exponent": [0, 0.5, 1],
+        "inverse_frequency_max_multiplier": 2,
+        "priming_opportunity": [ 0.01, 0.05, 0.4 ],
+        "decay_strength": [0.2, 0.5, 0.9],
+        "decay_to": model.enums.DecayTo.BASE_RATE,
+        "affects_base_rate": model.enums.AffectsBaseRate.RECEPTION,
+        "base_rate_change_strength": [ 0.01, 0.02, 0.1 ],
+        "allow_decay_stop": False,
+        "activation_cap": False,
+        "base_rate_update_mechanism": [ 
+            model.enums.BaseRateUpdateMechanism.LATERAL_INHIBITION,
+            model.enums.BaseRateUpdateMechanism.RENORMALISE,
+            model.enums.BaseRateUpdateMechanism.COUNT,
+            model.enums.BaseRateUpdateMechanism.DEKKER,
+            model.enums.BaseRateUpdateMechanism.INFINITE
+        ],
+        "agent_age_mean": [0, 1000],
+        "replicator_selection_sway": [ 0.01, 0.05, 0.1 ],
+    },
 }
 
 params["lite_latin"] = {
