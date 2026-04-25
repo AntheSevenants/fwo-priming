@@ -94,17 +94,15 @@ class BaseRate:
             raise ValueError("Base rate update mechanism not recognised")
 
     def update_count(self, construction_index: int, deletion_index: int):
-        # First, we select a random count to remove from
-        if self.update_mechanism == BaseRateUpdateMechanism.COUNT:
-            self.memory_counts[deletion_index] = max(
-                self.memory_counts[deletion_index] - 1, 0
-            )
+        self.memory_counts[deletion_index] = max(
+            self.memory_counts[deletion_index] - 1, 0
+        )
 
-            # Then, we add to the chosen index
-            self.memory_counts[construction_index] = min(
-                self.model_params.memory_size,
-                self.memory_counts[construction_index] + 1,
-            )
+        # Then, we add to the chosen index
+        self.memory_counts[construction_index] = min(
+            self.model_params.memory_size,
+            self.memory_counts[construction_index] + 1,
+        )
 
     def update_dekker(self, construction_index: int):
         base_rate_change_strength = self.model_params.base_rate_change_strength
