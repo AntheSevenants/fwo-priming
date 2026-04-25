@@ -90,6 +90,8 @@ class BaseRate:
             or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
         ):
             self.update_count(construction_index, deletion_index)
+        elif self.update_mechanism == BaseRateUpdateMechanism.INFINITE:
+            self.update_count_infinite(construction_index)
         else:
             raise ValueError("Base rate update mechanism not recognised")
 
@@ -103,6 +105,9 @@ class BaseRate:
             self.model_params.memory_size,
             self.memory_counts[construction_index] + 1,
         )
+
+    def update_count_infinite(self, construction_index: int):
+        self.memory_counts[construction_index] += 1
 
     def update_dekker(self, construction_index: int):
         base_rate_change_strength = self.model_params.base_rate_change_strength

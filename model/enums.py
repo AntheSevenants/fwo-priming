@@ -26,3 +26,4 @@ class BaseRateUpdateMechanism:
     LATERAL_INHIBITION = 1
     COUNT = 2
     DEKKER = 3
+    INFINITE = 4
