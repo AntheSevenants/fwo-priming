@@ -42,7 +42,10 @@ class PrimingAgent(mesa.Agent):
 
         # Populate the agent's parameters based off the model parameters
         self.atts = model.agent_defaults.Attributes(
-            model_params=priming_model.params, is_innovator=is_innovator, max_age=age
+            model_params=priming_model.params,
+            is_innovator=is_innovator,
+            max_age=age,
+            preset_probs=preset_probs, # copied construction preferences of parent
         )
 
     @property
