@@ -516,7 +516,8 @@ def check_if_none(variable_name: str, value: Any):
 
 
 def plot_histogram(
-    data: List[float],
+    data: Union[model.model.PrimingModel, List[List[float]]],
+    attribute: str,
     ax: Optional[matplotlib.axes.Axes] = None,
     bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
@@ -525,7 +526,8 @@ def plot_histogram(
     """Plot a desired series of values from a model run
 
     Args:
-        data (List[float]]): A list of values
+        data (Union[model.model.PrimingModel, List[List[float]]]): A list of values
+        attribute (Optional[str], optional): The name of the series to model.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
@@ -534,13 +536,16 @@ def plot_histogram(
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
 
+    # Get the right data based on the supplied arguments
+    value_list = get_value_lists(data, attribute)[0]
+
     fig, ax = check_ax(ax, disable_title)
 
     _bins = 10
     if bin_range is not None:
         _bins = bin_range
 
-    ax.hist(data, bins=_bins, edgecolor='black')
+    ax.hist(value_list, bins=_bins, edgecolor='black')
     ax.set_xlabel("Slope values")
     ax.set_ylabel("Frequency")
 
@@ -555,6 +560,7 @@ def plot_histogram(
 def plot_bar(
     data: List[float],
     x: List[str],
+    attribute: str,
     ylim: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     x_label: Optional[str] = None,
@@ -567,6 +573,7 @@ def plot_bar(
     Args:
         data (List[float]): A list of values
         x (List[str]): A list of values for the X axis
+        attribute (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         x_label (Optional[str], optional): The label for the X axis. Defaults to None.
@@ -577,10 +584,13 @@ def plot_bar(
     Returns:
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
     """
+
+    # Get the right data based on the supplied arguments
+    value_list = get_value_lists(data, attribute)[0]
     
     fix, ax = check_ax(ax, disable_title)
 
-    ax.bar(x, data, edgecolor='black')
+    ax.bar(x, value_list, edgecolor='black')
 
     if ylim is not None:
         ax.set_ylim(*ylim)
