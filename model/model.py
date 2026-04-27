@@ -43,7 +43,11 @@ class PrimingModel(mesa.Model):
         # Model data collection
         self.tracker = model.tracker.Tracker(self)
 
-        model_reporters = model.reporters.get_model_reporters()
+        # Is there an innovator / conservator difference?
+        for_all_types = self.params.innovators_share > 0
+        # If not, don't make superfluous model reporters which will slow down performance
+        model_reporters = model.reporters.get_model_reporters(for_all_types=for_all_types)
+
         consensus_lambda: Callable[[PrimingModel], bool] = lambda model: (
             False
             if len(model.datacollector.model_vars["ctx_base_rate_mean"]) == 0
