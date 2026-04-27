@@ -28,8 +28,8 @@ def make_aggregate_title_infix(parameter: Optional[str] = None) -> str:
 
 def plot_aggregate_values(
     data: Union[List[float], List[List[float]]],
-    attribute: str,
     x: List[str],
+    attributes: str,
     ylim: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     min_data: Optional[List[float]] = None,
@@ -56,8 +56,8 @@ def plot_aggregate_values(
 
     fig, ax = visualisation.core.check_ax(ax, disable_title)
 
-    print(visualisation.core.get_value_lists(data, attribute))
-    value_list = visualisation.core.get_value_lists(data, attribute)[0]
+    print(visualisation.core.get_value_lists(data, attributes))
+    value_list = visualisation.core.get_value_lists(data, attributes)[0]
     _min_data, _max_data = visualisation.core.check_min_max_data(
         data, min_data, max_data
     )

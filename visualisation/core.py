@@ -410,7 +410,7 @@ def plot_ratio(
 
 def plot_ratio_pass(
     data: Union[model.model.PrimingModel, List[List[float]], List[List[List[float]]]],
-    attribute: str,
+    attributes: str,
     ylim: Optional[List[float]] = None,
     y_scale_factor: int = 1,
     baseline: Optional[float] = None,
@@ -422,7 +422,7 @@ def plot_ratio_pass(
 
     Args:
         data (Union[model.model.PrimingModel, List[List[float]], List[List[float]]): Either a model instance or a list of values
-        attribute (Optional[str], optional): The name of the series to model.
+        attributes (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         y_scale_factor (int, optional): The factor to scale the y axis ticks by. Defaults to 1.
         baseline (Optional[float], optional): The baseline to show in each subplot. Can mark a default value. Defaults to None.
@@ -439,7 +439,7 @@ def plot_ratio_pass(
     """
 
     # Get the right data based on the supplied arguments
-    matrix = get_value_lists(data, attribute)[0]
+    matrix = get_value_lists(data, attributes)[0]
 
     if ax is not None:
         raise ValueError(
@@ -517,7 +517,7 @@ def check_if_none(variable_name: str, value: Any):
 
 def plot_histogram(
     data: Union[model.model.PrimingModel, List[List[float]]],
-    attribute: str,
+    attributes: str,
     ax: Optional[matplotlib.axes.Axes] = None,
     bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
@@ -537,7 +537,7 @@ def plot_histogram(
     """
 
     # Get the right data based on the supplied arguments
-    value_list = get_value_lists(data, attribute)[0]
+    value_list = get_value_lists(data, attributes)[0]
 
     fig, ax = check_ax(ax, disable_title)
 
@@ -560,7 +560,7 @@ def plot_histogram(
 def plot_bar(
     data: List[float],
     x: List[str],
-    attribute: str,
+    attributes: str,
     ylim: Optional[List[float]] = None,
     ax: Optional[matplotlib.axes.Axes] = None,
     x_label: Optional[str] = None,
@@ -573,7 +573,7 @@ def plot_bar(
     Args:
         data (List[float]): A list of values
         x (List[str]): A list of values for the X axis
-        attribute (Optional[str], optional): The name of the series to model.
+        attributes (Optional[str], optional): The name of the series to model.
         ylim (Optional[List[float]], optional): The expected range of values for y axis. Defaults to None.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         x_label (Optional[str], optional): The label for the X axis. Defaults to None.
@@ -586,7 +586,7 @@ def plot_bar(
     """
 
     # Get the right data based on the supplied arguments
-    value_list = get_value_lists(data, attribute)[0]
+    value_list = get_value_lists(data, attributes)[0]
     
     fix, ax = check_ax(ax, disable_title)
 

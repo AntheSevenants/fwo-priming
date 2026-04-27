@@ -24,7 +24,6 @@ def plot_slope_range(
 
     return visualisation.aggregate.core.plot_aggregate_values(
         data,
-        "entropy_slope_median",
         x,
         title=f"Distribution of median slope across {title_infix} range",
         **kwargs,

@@ -530,6 +530,8 @@ def generate_inner_lambda(
                     batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, "q3")
                     ]
             kwargs[common_arg] = value
+        
+        kwargs["attributes"] = data_column
 
         return lambda ax: config.plot_func(
             data[
