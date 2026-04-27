@@ -189,6 +189,7 @@ def show_interface(live: bool = False):
         runs=matched_run_ids,
         selected_run=selected_run,
         get_enum_name=get_enum_name,
+        enum_mapping=model.model_defaults.PARAMETER_ENUM_MAPPING,
     )
 
 
