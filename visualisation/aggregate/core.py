@@ -56,6 +56,7 @@ def plot_aggregate_values(
 
     fig, ax = visualisation.core.check_ax(ax, disable_title)
 
+    print(visualisation.core.get_value_lists(data, attribute))
     value_list = visualisation.core.get_value_lists(data, attribute)[0]
     _min_data, _max_data = visualisation.core.check_min_max_data(
         data, min_data, max_data
@@ -63,7 +64,7 @@ def plot_aggregate_values(
 
     _yerr = (
         None
-        if _min_data is None
+        if _min_data is None or _max_data is None
         else [np.abs(value_list - _min_data), np.abs(_max_data - value_list)]
     )
 
