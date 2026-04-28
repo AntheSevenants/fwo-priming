@@ -31,6 +31,7 @@ class Attributes:
             self.model_params,
             update_mechanism=self.model_params.base_rate_update_mechanism,
             is_innovator=self.is_innovator,
+            init_probs=self.preset_probs,
         )
 
         # Set activation and initial levels
