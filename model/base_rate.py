@@ -58,9 +58,15 @@ class BaseRate:
 
     @property
     def level(self):
-        if self.update_mechanism == BaseRateUpdateMechanism.DEKKER or BaseRateUpdateMechanism.RENORMALISE:
+        if (
+            self.update_mechanism == BaseRateUpdateMechanism.DEKKER
+            or self.update_mechanism == BaseRateUpdateMechanism.RENORMALISE
+        ):
             return self._level
-        elif self.update_mechanism == BaseRateUpdateMechanism.COUNT or BaseRateUpdateMechanism.LATERAL_INHIBITION:
+        elif (
+            self.update_mechanism == BaseRateUpdateMechanism.COUNT
+            or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
+        ):
             return np.divide(self.memory_counts, self.model_params.memory_size)
         else:
             raise ValueError("Base rate update mechanism not recognised")
