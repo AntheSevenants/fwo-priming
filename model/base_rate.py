@@ -68,6 +68,8 @@ class BaseRate:
             or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
         ):
             return np.divide(self.memory_counts, self.model_params.memory_size)
+        elif self.update_mechanism == BaseRateUpdateMechanism.INFINITE:
+            return np.divide(self.memory_counts, np.sum(self.memory_counts))
         else:
             raise ValueError("Base rate update mechanism not recognised")
 
