@@ -97,7 +97,10 @@ def show_interface(live: bool = False):
             for parameter in parameter_mapping:
                 selected_parameters[parameter] = parameter_mapping[parameter][0]
 
-            return redirect(url_for("index", _external=False, **selected_parameters))
+            if len(parameter_mapping) > 0:
+                return redirect(url_for("index", _external=False, **selected_parameters))
+            else:
+                no_selection = False
 
         # These are runs that adhere to the parameter selection made
         selected_runs = export.parameters.find_eligible_runs(
