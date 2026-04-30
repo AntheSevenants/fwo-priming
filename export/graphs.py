@@ -534,9 +534,9 @@ def generate_inner_lambda(
         kwargs["attributes"] = data_column
 
         return lambda ax: config.plot_func(
-            data[
+            [ data[
                 batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, config.action_column)
-            ].tolist(),
+            ].tolist() ], # I "temporarily" wrap this in brackets until I fix the dimensionality issue
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,
             **kwargs,
