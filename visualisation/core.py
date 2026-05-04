@@ -9,7 +9,31 @@ import numpy as np
 from typing import List, Optional, Union, Any, Tuple, List
 
 COLOURS = ["blue", "orange", "green", "red", "purple"]
-LINE_STYLES = ["-", "dotted", "dashdot"]
+LINE_STYLES = ["-", "dotted", "dashdot", "dashed"]
+
+# If there are multiple groups in a graph, this can be either
+class MultiGroupContext:
+    # ... because we programmed a conservator / innovator distinction
+    CONSERVATOR_INNOVATOR = 0
+    # ... because we are generalising over multiple combinations
+    AGGREGATE_EXTENSION = 1
+
+
+def get_multi_group_context(aggregate_extension: bool) -> int:
+    """Return what multi group context we're in depending on the value for aggregate extension
+
+    Args:
+        aggregate_extension (bool): Whether this is an aggregate extension graph
+
+    Returns:
+        int: MultiGroupContext enum
+    """
+
+    return (
+        MultiGroupContext.CONSERVATOR_INNOVATOR
+        if not aggregate_extension
+        else MultiGroupContext.AGGREGATE_EXTENSION
+    )
 
 
 def formatter(x: float, pos: float, scale: int):
@@ -78,6 +102,16 @@ def get_line_style(index: int, total_groups: int):
         return LINE_STYLES[index + 1]
 
 
+def get_line_style_by_group_context(
+    index: int, total_groups: int, multi_group_context: int
+):
+    return (
+        get_line_style(index, total_groups)
+        if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
+        else LINE_STYLES[0]
+    )
+
+
 def make_legend_label(agent_type_index: int, construction_index: int | None = None):
     agent_type_translation = {
         model.reporters.AgentType.INNOVATOR: "innovator",
@@ -93,6 +127,17 @@ def make_legend_label(agent_type_index: int, construction_index: int | None = No
         return f"{construction_type_translation[construction_index]} ({agent_type_translation[agent_type_index]})"
     else:
         return agent_type_translation[agent_type_index]
+    
+
+def make_legend_label_by_group_context(
+    attribute_idx: int,
+    construction_index: int | None = None,
+    aggregate_extension_x: List[str] | None = None,
+):
+    if aggregate_extension_x is None:
+        return make_legend_label(attribute_idx, construction_index)
+    else:
+        return aggregate_extension_x[attribute_idx]
 
 
 def get_ax_figure(ax: matplotlib.axes.Axes):
@@ -260,10 +305,11 @@ def plot_value(
     x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_filter: Optional[int] = None,
-    min_data: Optional[List[float]] = None,
-    max_data: Optional[List[float]] = None,
+    min_data: List[float] | List[List[float]] | None = None,
+    max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
     disable_title: bool = False,
+    aggregate_extension_x: List[str] | None = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of values from a model run
 
@@ -274,9 +320,11 @@ def plot_value(
         x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
-        min_data (Optional[List[float]], optional): List of minimal values. Needs to be defined together with max_data.
+        min_data (List[float] | List[List[float]] | None, optional): List of minimal values. Needs to be defined together with max_data. Defaults to None.
+        max_data (List[float] | List[List[float]] | None, optional): List of maximal values. Needs to be defined together with min_data. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+        aggregate_extension_x (List[str], optional): A list of values for the legend of an aggregate extension graph. Defaults to None.
 
     Returns:
         Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]: The finished graph
@@ -293,21 +341,37 @@ def plot_value(
 
     fig, ax = check_ax(ax, disable_title)
 
+    multi_group_context = get_multi_group_context(aggregate_extension_x is not None)
+
     for attribute_idx, value_list in enumerate(value_lists):
+        # Line colour stays constant with conservator/innovator
+        # Across parameter combinations, different colours fit better
+        line_colour = (
+            COLOURS[0]
+            if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
+            else COLOURS[attribute_idx]
+        )
+        line_style = get_line_style_by_group_context(
+            attribute_idx, num_groups, multi_group_context
+        )
+        legend_label = make_legend_label_by_group_context(
+            attribute_idx, aggregate_extension_x=aggregate_extension_x
+        )
+
         ax.plot(
             value_list,
-            color=COLOURS[0],
-            linestyle=get_line_style(attribute_idx, num_groups),
-            label=make_legend_label(attribute_idx)
+            color=line_colour,
+            linestyle=line_style,
+            label=legend_label
         )
 
         # Plot the shaded area between min and max values
         if _min_data is not None and _max_data is not None:
             ax.fill_between(
                 x=range(len(value_list)),
-                y1=_min_data,
-                y2=_max_data,
-                color=COLOURS[0],
+                y1=_min_data[attribute_idx],
+                y2=_max_data[attribute_idx],
+                color=line_colour,
                 alpha=0.2,
             )
 
@@ -335,10 +399,11 @@ def plot_ratio(
     x_scale_factor: int = 1,
     ax: Optional[matplotlib.axes.Axes] = None,
     agent_filter: Optional[int] = None,
-    min_data: Optional[List[List[float]]] = None,
-    max_data: Optional[List[List[float]]] = None,
+    min_data: List[float] | List[List[float]] | None = None,
+    max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
     disable_title: bool = False,
+    aggregate_extension_x: List[str] | None = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of ratio values from a model run
 
@@ -349,10 +414,12 @@ def plot_ratio(
         x_scale_factor (int, optional): The factor to scale the x axis ticks by. Defaults to 1.
         ax (Optional[matplotlib.axes.Axes], optional): A pre-existing axis. Pass if you are building a multi-plot. Defaults to None.
         agent_filter (Optional[int], optional): The index of the agent you want to filter values for. If not supplied, no filtering is applied. Defaults to None.
-        min_data (Optional[List[List[float]]], optional): List of minimal values. Needs to be defined together with max_data.
-        max_data (Optional[List[List[float]]], optional): List of maximal values. Needs to be defined together with min_data.
+        min_data (List[float] | List[List[float]] | None, optional): List of minimal values. Needs to be defined together with max_data. Defaults to None.
+        max_data (List[float] | List[List[float]] | None, optional): List of maximal values. Needs to be defined together with min_data. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
-        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+        disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.        
+        aggregate_extension_x (List[str], optional): A list of values for the legend of an aggregate extension graph. Defaults to None.
+
 
     Raises:
         ValueError: If the number of attributes to plot is larger than the supported number of line styles
@@ -374,22 +441,45 @@ def plot_ratio(
 
     fig, ax = check_ax(ax, disable_title)
 
+    multi_group_context = get_multi_group_context(aggregate_extension_x is not None)
+
     for attribute_idx, matrix in enumerate(value_lists):
         for i in range(matrix.shape[1]):
+            # Line colour normally indicates the construction
+            # Across parameter combinations, we only show the innovative construction
+            # so here line colour can encode a specific parameter value
+            line_colour = (
+                COLOURS[i]
+                if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
+                else COLOURS[attribute_idx]
+            )
+            line_style = get_line_style_by_group_context(
+                attribute_idx, num_groups, multi_group_context
+            )
+            legend_label = make_legend_label_by_group_context(
+                attribute_idx, i, aggregate_extension_x
+            )
+
             ax.plot(
-                matrix[:, i], color=COLOURS[i], linestyle=get_line_style(attribute_idx, num_groups),
-                label=make_legend_label(attribute_idx, i)
+                matrix[:, i],
+                color=line_colour,
+                linestyle=line_style,
+                label=legend_label,
             )
 
             # Plot the shaded area between min and max values
             if _min_data is not None and _max_data is not None:
                 ax.fill_between(
                     x=range(matrix.shape[0]),
-                    y1=_min_data[:, i],
-                    y2=_max_data[:, i],
-                    color=COLOURS[i],
+                    y1=_min_data[attribute_idx, :, i],
+                    y2=_max_data[attribute_idx, :, i],
+                    color=line_colour,
                     alpha=0.2,
                 )
+            
+            # Only show the innovative form in an aggregate extension graph
+            if multi_group_context == MultiGroupContext.AGGREGATE_EXTENSION:
+                break
 
     if title is not None and not disable_title:
         ax.set_title(title)
@@ -522,6 +612,7 @@ def plot_histogram(
     bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
+    aggregate_extension_x: Any = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of values from a model run
 
