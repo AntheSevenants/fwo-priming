@@ -16,23 +16,29 @@ class BaseRate:
         model_params: "model.model_defaults.Parameters",
         update_mechanism: int,
         is_innovator: bool,
+        init_probs: np.ndarray | None = None
     ):
         self.model_params = model_params
         self.update_mechanism = update_mechanism
         self.is_innovator = is_innovator
 
         self._level: np.ndarray = np.array([], dtype=np.float64)
-        self.init_construction_probs()
+        self.init_construction_probs(init_probs)
         self.init_memory()
 
         self.entropy = model.entropy.Entropy(self.level)
 
-    def init_construction_probs(self):
+    def init_construction_probs(self, init_probs: np.ndarray | None = None):
         """Initialies the base rate starting probabilities based on the starting probability mode.
 
         Raises:
             NotImplementedError: Randomised starting probabilities are not implemented yet
         """
+
+        # When a child agent is born
+        if init_probs is not None:
+            self._level = init_probs
+            return
 
         # Assign starting base rate to the constructions
         if self.is_innovator:
@@ -52,10 +58,18 @@ class BaseRate:
 
     @property
     def level(self):
-        if self.update_mechanism == BaseRateUpdateMechanism.DEKKER or BaseRateUpdateMechanism.RENORMALISE:
+        if (
+            self.update_mechanism == BaseRateUpdateMechanism.DEKKER
+            or self.update_mechanism == BaseRateUpdateMechanism.RENORMALISE
+        ):
             return self._level
-        elif self.update_mechanism == BaseRateUpdateMechanism.COUNT or BaseRateUpdateMechanism.LATERAL_INHIBITION:
+        elif (
+            self.update_mechanism == BaseRateUpdateMechanism.COUNT
+            or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
+        ):
             return np.divide(self.memory_counts, self.model_params.memory_size)
+        elif self.update_mechanism == BaseRateUpdateMechanism.INFINITE:
+            return np.divide(self.memory_counts, np.sum(self.memory_counts))
         else:
             raise ValueError("Base rate update mechanism not recognised")
 
@@ -84,21 +98,24 @@ class BaseRate:
             or self.update_mechanism == BaseRateUpdateMechanism.LATERAL_INHIBITION
         ):
             self.update_count(construction_index, deletion_index)
+        elif self.update_mechanism == BaseRateUpdateMechanism.INFINITE:
+            self.update_count_infinite(construction_index)
         else:
             raise ValueError("Base rate update mechanism not recognised")
 
     def update_count(self, construction_index: int, deletion_index: int):
-        # First, we select a random count to remove from
-        if self.update_mechanism == BaseRateUpdateMechanism.COUNT:
-            self.memory_counts[deletion_index] = max(
-                self.memory_counts[deletion_index] - 1, 0
-            )
+        self.memory_counts[deletion_index] = max(
+            self.memory_counts[deletion_index] - 1, 0
+        )
 
-            # Then, we add to the chosen index
-            self.memory_counts[construction_index] = min(
-                self.model_params.memory_size,
-                self.memory_counts[construction_index] + 1,
-            )
+        # Then, we add to the chosen index
+        self.memory_counts[construction_index] = min(
+            self.model_params.memory_size,
+            self.memory_counts[construction_index] + 1,
+        )
+
+    def update_count_infinite(self, construction_index: int):
+        self.memory_counts[construction_index] += 1
 
     def update_dekker(self, construction_index: int):
         base_rate_change_strength = self.model_params.base_rate_change_strength

@@ -9,7 +9,7 @@ from typing import Optional, Union, List, Tuple, Any
 
 
 def plot_slope_dist(
-    data: List[float], attribute: str, **kwargs: Any
+    data: List[List[float]], attribute: str, **kwargs: Any
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot the slope distribution of a given parameter combination
 

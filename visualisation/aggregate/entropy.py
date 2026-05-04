@@ -34,7 +34,6 @@ def plot_entropy_range(
 
     return visualisation.aggregate.core.plot_aggregate_values(
         data,
-        "entropy" if not is_base_rate else "base_rate_entropy",
         x,
         ylim=ylim,
         title=f"Distribution of mean {infix}entropy across {title_infix} range",

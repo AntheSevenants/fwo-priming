@@ -15,6 +15,10 @@ import model.base_rate
 class Attributes:
     model_params: model.model_defaults.Parameters
     is_innovator: bool
+    max_age: int | None
+
+    preset_probs: np.ndarray | None = None
+    age: int = 0 # How old is the agent currently?
 
     def __post_init__(self):
         # We need the parent model parameters in order to be able to initialise
@@ -27,6 +31,7 @@ class Attributes:
             self.model_params,
             update_mechanism=self.model_params.base_rate_update_mechanism,
             is_innovator=self.is_innovator,
+            init_probs=self.preset_probs,
         )
 
         # Set activation and initial levels

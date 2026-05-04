@@ -32,18 +32,7 @@ class ModelReporter:
             ReporterType.MEDIAN,
         ]
     )
-    for_all_types: bool = True
     index: int | None = None
-
-    def __post_init__(self):
-        if self.for_all_types:
-            self.agent_types = [
-                AgentType.INNOVATOR,
-                AgentType.CONSERVATOR,
-                AgentType.ALL,
-            ]
-        else:
-            self.agent_types = [AgentType.ALL]
 
 
 # Basic properties for which to construct model reporters
@@ -54,7 +43,9 @@ model_reporters_base = {
         property_name="base_rate.level",
     ),
     "ctx_entropy": ModelReporter(property_name="activation.entropy.history", index=-1),
-    "ctx_base_rate_entropy": ModelReporter(property_name="base_rate.entropy.history", index=-1),
+    "ctx_base_rate_entropy": ModelReporter(
+        property_name="base_rate.entropy.history", index=-1
+    ),
 }
 
 # Create a specialised tracking function depending on:
@@ -63,7 +54,8 @@ model_reporters_base = {
 # - innovator profile
 # - data operation (no / mean / median)
 function_translation: Dict[
-    int, Callable[[str, int | None, bool | None], Callable[['PrimingModel'], np.ndarray]]
+    int,
+    Callable[[str, int | None, bool | None], Callable[["PrimingModel"], np.ndarray]],
 ] = {
     ReporterType.SINGULAR: lambda property_name, index, for_innovator: lambda model: model.tracker.get_property_per_agent(
         property_name,
@@ -127,7 +119,7 @@ def get_model_reporter_key(
 
 def get_model_reporter_function(
     reporter_type: int, property_name: str, agent_type: int, property_index: int | None
-) -> Callable[['PrimingModel'], np.ndarray]:
+) -> Callable[["PrimingModel"], np.ndarray]:
     """Builds the appropriate lambda function for a model reporter based on the given parameters.
 
     Args:
@@ -147,8 +139,13 @@ def get_model_reporter_function(
     )
 
 
-def get_model_reporters() -> Dict[str, Callable[['PrimingModel'], np.ndarray | bool]]:
+def get_model_reporters(
+    for_all_types: bool = False,
+) -> Dict[str, Callable[["PrimingModel"], np.ndarray | bool]]:
     """Build a full Dict of model reporters based on the (hard-coded) model reporter definitions.
+
+    Args:
+        for_all_types (bool): Whether to create model reporters for all agent types separately. Defaults to False.
 
     Returns:
         Dict[str, Callable[[PrimingModel], np.ndarray | bool]]: A Dict with the model reporter names as keys and the correct lambda functions as values.
@@ -158,7 +155,11 @@ def get_model_reporters() -> Dict[str, Callable[['PrimingModel'], np.ndarray | b
     for model_reporter_name in model_reporters_base:
         model_reporter_config = model_reporters_base[model_reporter_name]
 
-        for agent_type in model_reporter_config.agent_types:
+        agent_types = [AgentType.INNOVATOR, AgentType.CONSERVATOR, AgentType.ALL]
+        if not for_all_types:
+            agent_types = [AgentType.ALL]
+
+        for agent_type in agent_types:
             for reporter_type in model_reporter_config.reporter_types:
                 # Set the model reporter key
                 model_reporter_key = get_model_reporter_key(

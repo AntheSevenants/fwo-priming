@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Any, Optional, List, Dict, Union, Tuple
+from typing import Callable, Dict, Any, Optional, List, Dict, Sequence, Union, Tuple
 
 import matplotlib.axes
 import matplotlib.figure
@@ -54,6 +54,7 @@ class GraphConfig:
     action_column: str = "median" # Aggregate operation column to use data from
     action_column_inner: str = "median" # Combination operation column to use data from
     aggregate: bool = False # Aggregate graph or not?
+    aggregate_extension: bool = False # Can this graph be extended to become an overlayed aggregate graph?
     is_mosaic: bool = False # Is this a mosaic graph?
     single_run_sensible: bool = True # Does it make sense to show this graph for a single run?
     context: int = GraphContext.EXPORT # In what context should this graph be shown?
@@ -88,6 +89,7 @@ class MosaicConfig:
     context: int = GraphContext.DASHBOARD # In what context should this graph be shown?
     single_run_sensible: bool = True # Does it make sense to show this graph for a single run?
     aggregate: bool = False # Aggregate graph or not?
+    aggregate_extension: bool = False # Mosaic graph can pass the extension to its children
 
 
 @dataclass
@@ -98,6 +100,7 @@ class AggregateSettings:
     combination_ids: List[int]
     parameter: str
     parameter_values: List[Any]
+    combination_data: List[Dict[str, Any]] | None
 
     def __init__(
         self,
@@ -127,37 +130,50 @@ class AggregateSettings:
             .tolist()
         ) ]
 
+        self.combination_data = None # by default, we do not send along combination data
+
 def get_num_constructions(
-    data: Dict[str, Any],
+    data: Dict[str, Any] | List[Dict[str, Any]],
     is_single_run: bool = False,
+    aggregate_extension: bool = False,
 ) -> int:
     """Get the number of constructions from a model run evolution of combination of run evolutions.
 
     Args:
         data (Dict[str, Any]): Run evolution or series of run evolutions. 
         is_single_run (bool, optional): Whether the input is a single run. Defaults to False.
+        aggregate_extension (bool, optional): Whether the input is data from an aggregate extension graph. Defaults to False.
 
     Returns:
         int: The number of constructions
     """
 
+    # the additional type checks (list, dict) are to satisfy the type checker
+
     if not is_single_run:
-        return len(data["ctx_base_rate_mean"]["mean"][0])
-    else:
+        if not aggregate_extension and type(data) == dict:
+            return len(data["ctx_base_rate_mean"]["mean"][0])
+        elif aggregate_extension and type(data) == list:
+            return len(data[0]["ctx_base_rate_mean"]["mean"][0])
+    elif is_single_run and type(data) == dict:
         return len(data["ctx_base_rate_mean"][0])
+    
+    return -1 # to satisfy the type checker
 
 
 # These are all definitions of graphs
-graph_configs = {
+graph_configs: Dict[str, GraphConfig | MosaicConfig] = {
     "ctx_activation_mean": GraphConfig(
         reporter_name="ctx_activation",
         plot_func=visualisation.activation.plot_ctx_activation_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
+        aggregate_extension=True,
     ),
     "ctx_base_rate_mean": GraphConfig(
         reporter_name="ctx_base_rate",
         plot_func=visualisation.base_rate.plot_ctx_base_rate_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
+        aggregate_extension=True,
     ),
     "ctx_entropy_mean": GraphConfig(
         reporter_name="ctx_entropy",
@@ -166,6 +182,7 @@ graph_configs = {
         extra_args={
             "num_constructions": get_num_constructions,
         },
+        aggregate_extension=True,
     ),
     "ctx_entropy_mean_slope": GraphConfig(
         reporter_name="ctx_entropy",
@@ -173,7 +190,8 @@ graph_configs = {
         plot_func=lambda data, **kwargs: visualisation.slope.plot_slope_dist(
             data, "median entropy", **kwargs
         ),
-        single_run_sensible=False
+        single_run_sensible=False,
+        aggregate_extension=True,
     ),
     "consensus_reached": GraphConfig(
         reporter_name="consensus_reached",
@@ -193,17 +211,20 @@ graph_configs = {
             "num_constructions": get_num_constructions,
             "is_base_rate": True
         },
+        aggregate_extension=True,
     ),
     "ctx_probs_mean": GraphConfig(
         reporter_name="ctx_probs",
         plot_func=visualisation.probabilities.plot_ctx_probs_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
+        aggregate_extension=True,
     ),
     "activation_composite_plot": MosaicConfig(
         layout=[
             ["ctx_activation_mean", "ctx_probs_mean"],
             ["ctx_entropy_mean"]
         ],
+        aggregate_extension=True,
         size=(12, 12)
     ),
     "base_rate_composite_plot": MosaicConfig(
@@ -211,6 +232,7 @@ graph_configs = {
             ["ctx_base_rate_mean"],
             ["ctx_base_rate_entropy_mean"]
         ],
+        aggregate_extension=True,
         size=(6, 12)
     ),
     "other_graphs": MosaicConfig(
@@ -299,7 +321,10 @@ def get_aggregate_graph_names(context: int) -> List[str]:
         graph_config
         for graph_config in list(graph_configs.keys())
         if graph_configs[graph_config].context == context
-        and graph_configs[graph_config].aggregate
+        and (
+            graph_configs[graph_config].aggregate
+            or graph_configs[graph_config].aggregate_extension
+        )
     ]
 
 
@@ -378,6 +403,27 @@ def generate_graphs(
         data = combination_infos[
             combination_infos["combination_id"].isin(combination_ids)
         ]
+
+        needs_combination_data = False
+        # Now, check if we need combination data
+        # With this I meant the data that is needed to overlay multiple regular graphs
+        # over each other in an aggregate context
+        for graph in graphs:
+            print(graph)
+            graph_config = graph_configs[graph]
+            if graph_config.aggregate_extension:
+                needs_combination_data = True
+
+        if needs_combination_data:
+            # Get the combination data for each combination_id that is involved in this aggregate
+            combination_data: List[Dict[str, Any]] = []
+            for combination_id in aggregate.combination_ids:
+                combination_data_single = export.combinations.get_combination_data(
+                    sweeps_dir, selected_sweep, combination_id
+                )
+                combination_data.append(combination_data_single)
+            # Attach to aggregate settings
+            aggregate.combination_data = combination_data
     else:
         raise ValueError(
             "Unrecognised combination of combination IDs and aggregate settings"
@@ -481,43 +527,104 @@ def generate_inner_lambda(
         for arg_name, arg_func in config.extra_args.items():
             # extra_arg is a lambda function
             if isinstance(arg_func, Callable):
+                # Data source changes depending on whether this is an aggregate extension graph
+                # or just a regular extension graph
                 arg_func_args: List[Any] = [ data ]
-                if single_run is not None:
-                    arg_func_args.append(True)
+                arg_func_kwargs: Dict[str, Any] = {}
 
-                kwargs[arg_name] = arg_func(*arg_func_args)
+                if aggregate_config is not None and config.aggregate_extension:
+                    if aggregate_config.combination_data is None:
+                        raise ValueError("Cannot apply argument function Callable if combination data is None")
+                    
+                    arg_func_args = [ aggregate_config.combination_data ]
+
+                if single_run is not None:
+                    arg_func_kwargs["is_single_run"] = True
+
+                if config.aggregate_extension and aggregate_config is not None:
+                    arg_func_kwargs["aggregate_extension"] = True
+
+                kwargs[arg_name] = arg_func(*arg_func_args, **arg_func_kwargs)
             # extra_arg is a constant
             else:
                 kwargs[arg_name] = arg_func
 
-    # Regular graph
-    if aggregate_config is None:
+    # If aggregate config is None, this is always a simple graph
+    # If this is an aggregate extension graph, this is also a simple graph
+    # DESPITE the aggregate configuration being defined
+    is_regular_graph = aggregate_config is None or config.aggregate_extension
+    
+    if is_regular_graph:
+        # You cannot have both innovators/conservators and an aggregate extension
+        if config.aggregate_extension and len(config.data_columns) > 1:
+            raise ValueError("Cannot build aggregate extension graph if innovators_share > 0. This is an architectural decision, and no mistake on your behalf.")
+
         central_data = []
-        for data_column in config.data_columns:
-            for common_arg in config.common_args:
-                value = None
-                if common_arg == "x_scale_factor":
-                    value = scale_factor
-                elif common_arg == "min_data" and single_run is None:
-                    value = data[data_column]["q1"]
-                elif common_arg == "max_data" and single_run is None:
-                    value = data[data_column]["q3"]
 
-                kwargs[common_arg] = value
+        # Since the aggregate extension graphs complicate things even further,
+        # allow me to explain ...
 
-            kwargs["attributes"] = config.data_columns
+        # Either there is a single data source (one combination ID), and then there can be 
+        # multiple data columns (innovator, conservator)
+        # Or, there are multiple data sources (multiple combination IDs)
+        # then there can only be ONE data column
+        # So I'm adding one more layer of abstraction where we loop over data sources
+        # so then I can switch out the data sources in case fo an aggregate extension graph
+        data_sources: Sequence[Union[Dict[str, Any], pd.DataFrame]] = []
+        aggregate_extension_x: List[str] | None = None # x values for aggregate extension graph
+        if not config.aggregate_extension or (config.aggregate_extension and aggregate_config is None):
+            data_sources = [ data ]
+        elif config.aggregate_extension and aggregate_config is not None:
+            if aggregate_config.combination_data is None:
+                raise ValueError("Combination data stored in aggregate config cannot be None")
 
-            # Combination graph
-            if single_run is None:
-                central_data.append(data[data_column][config.action_column])
-            else:
-                # No need for aggregation
-                central_data.append(data[data_column])
+            data_sources = aggregate_config.combination_data
+            aggregate_extension_x = aggregate_config.parameter_values
+        else:
+            raise ValueError("Invalid aggregate config argument")
+
+        min_data: List[List[float]] = []
+        max_data: List[List[float]] = []
+
+        for data in data_sources:
+            for data_column in config.data_columns:
+                for common_arg in config.common_args:
+                    value = None
+                    if common_arg == "x_scale_factor":
+                        value = scale_factor
+                    elif common_arg == "min_data" and single_run is None:
+                        min_data.append(data[data_column]["q1"])
+                    elif common_arg == "max_data" and single_run is None:
+                        max_data.append(data[data_column]["q3"])
+
+                    kwargs[common_arg] = value
+
+                # Combination graph
+                if single_run is None:
+                    central_data.append(data[data_column][config.action_column])
+                else:
+                    # No need for aggregation
+                    central_data.append(data[data_column])
+
+        if len(min_data) > 0:
+            kwargs["min_data"] = min_data
+        if len(max_data) > 0:
+            kwargs["max_data"] = max_data
+        if aggregate_extension_x is not None:
+            kwargs["aggregate_extension_x"] = aggregate_extension_x
+
+        kwargs["attributes"] = config.data_columns
 
         # Make the plot function
-        return lambda ax: config.plot_func(central_data, **kwargs, ax=ax)
+        return lambda ax: config.plot_func(
+            central_data, **kwargs, ax=ax
+        )
     # Aggregate graph
     else:
+        # To satisfy the type checker
+        if aggregate_config is None:
+            raise ValueError("Aggregate config cannot be None when an aggregate graph is requested")
+
         data_column = config.data_columns[0] # temporary workaround for aggregate graphs
         for common_arg in config.common_args:
             value = None
@@ -530,11 +637,13 @@ def generate_inner_lambda(
                     batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, "q3")
                     ]
             kwargs[common_arg] = value
+        
+        kwargs["attributes"] = data_column
 
         return lambda ax: config.plot_func(
-            data[
+            [ data[
                 batch.aggregate.make_aggregate_output_name(data_column, config.action_column_inner, config.action_column)
-            ].tolist(),
+            ].tolist() ], # I "temporarily" wrap this in brackets until I fix the dimensionality issue
             aggregate_config.parameter_values,
             parameter=aggregate_config.parameter,
             **kwargs,

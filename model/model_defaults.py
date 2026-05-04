@@ -10,6 +10,7 @@ PARAMETER_ENUM_MAPPING: Dict[str, Type] = {
     "starting_probabilities_type": model.enums.StartingProbabilities,
     "decay_to": model.enums.DecayTo,
     "affects_base_rate": model.enums.AffectsBaseRate,
+    "base_rate_update_mechanism": model.enums.BaseRateUpdateMechanism,
 }
 
 
@@ -67,6 +68,12 @@ class Parameters:
 
     # What probability does an agent have to be primed in every time step?
     priming_opportunity: float = 1.0
+
+    # ----
+    # Agent age
+    # ----
+    agent_age_mean: int = 0
+    agent_age_range: int = 200
 
     # ----
     # Decay
