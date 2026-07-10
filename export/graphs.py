@@ -124,11 +124,14 @@ class AggregateSettings:
         # We want to know what possible values are they for the parameter that is being expanded
         # So then for each parameter value, we will check what the outcomes are from that combination
         run_infos = export.sweeps.get_run_infos(sweeps_dir, selected_sweep)
-        self.parameter_values = [ str(item) for item in sorted(
-            run_infos[run_infos["combination_id"].isin(combination_ids)][parameter]
+        self.parameter_values = [
+            str(item)
+            for item in run_infos[run_infos["combination_id"].isin(combination_ids)][
+                parameter
+            ]
             .unique()
             .tolist()
-        ) ]
+        ]
 
         self.combination_data = None # by default, we do not send along combination data
 
