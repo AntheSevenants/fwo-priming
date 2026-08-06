@@ -1,0 +1,160 @@
+\documentclass[tikz,border=3.14mm]{standalone}
+\usepackage{tikzpeople}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usetikzlibrary{positioning,calc,matrix,patterns.meta}
+
+\newdimen\canspeakwidth
+\newdimen\hearerwidth
+\newdimen\barsheight
+
+\begin{document}
+\begin{tikzpicture}[
+		participant/.style={align=center},
+    modelstep/.style={draw, rounded corners, fill=yellow!30, anchor=west, align=left, minimum width=2cm, minimum height=0.55cm},
+    exemplar/.style={draw, rectangle, fill=orange!30, anchor=west, align=left, minimum width=0.5cm, minimum height=0.55cm,
+    								 text depth=0.25ex, text height=1.5ex, dashed},
+    exemplar_location/.style={draw, circle, font=\small, fill=orange!30, minimum size=0.5cm, inner sep=1.5pt, outer sep=0pt, text depth=0.3ex, text height=1.8ex},
+    activation/.style={draw, fill opacity=0, anchor=west, align=left, text height=0.20cm, text height=0.35cm, inner sep=0pt},
+    activation_fill/.style={draw, fill opacity=1, draw=none, anchor=west, align=left, text height=0.35cm, inner sep=0pt},
+    step_arrow/.style={->, >=stealth, very thick},
+    dist_arrow/.style={->, >=stealth},
+]
+
+% === SPEAKER ===
+% 1
+\node[modelstep] (can_speak) [anchor=west] {1. Check if allowed to speak};
+% Measure 1's width
+\path let \p1=($(can_speak.east)-(can_speak.west)$) in \pgfextra{\global\canspeakwidth=\x1};
+% 2
+\node[modelstep] (choose_construction) [
+  below=of can_speak.west,anchor=west] {2. Choose construction};
+% 1 -> 2
+\draw[step_arrow] (can_speak.west) 
+  .. controls +(left:7mm) and +(left:7mm) .. (choose_construction.west);
+  
+% Activation nodes
+% BAR 1
+\node[activation_fill, text width=2.5cm, xshift=1cm, fill=green!30] 
+  (bar_1_fill) [below=of choose_construction.west, anchor=west];
+\draw[black] (bar_1_fill.east) -- (bar_1_fill.south east); % Top part of east edge
+\draw[black] (bar_1_fill.east) -- (bar_1_fill.north east);   % Bottom part of east edge  
+\node[activation, text width=3cm, xshift=1cm] 
+  (bar_1) [below=of choose_construction.west, anchor=west];
+% BAR 2
+\node[activation_fill, text width=2.1cm, fill=red!30] 
+  (bar_2_fill) [below=0.5cm of bar_1.west, anchor=west];
+\draw[black] (bar_2_fill.east) -- (bar_2_fill.south east); % Top part of east edge
+\draw[black] (bar_2_fill.east) -- (bar_2_fill.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] (bar_2) [below=0.5cm of bar_1.west, anchor=west];
+% extra text next to BAR 2
+\node[right=0.1cm of bar_2] {$\text{+ } \gamma$};
+
+% Measure height between bar 1 and bar 2
+\path let \p1=($(bar_2.north west)-(bar_1.north west)$) in \pgfextra{\global\barsheight=\y1};
+
+% ALPHA vector sign next to bars
+\node[left=0.1cm of bar_1, yshift={(\barsheight/2) + 0.15ex}] {$\mathbf{A} =$} (alpha_vector);
+  
+% arrow below bars
+\draw[dist_arrow] ([yshift=-2mm]bar_2.south) -- ++(0,-0.5) node (activation_output_arrow) {};
+  
+% OUTPUT BAR
+\node[activation_fill, text width=1.25cm, fill=green!30] 
+  (output_bar_fill_1) [below=1.35cm of bar_2.west, anchor=west];
+\node[activation_fill, text width=1.75cm, fill=red!30] 
+  (output_bar_fill_2) [right=0cm of output_bar_fill_1.east, anchor=west];
+\draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+\draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=1.35cm of bar_2.west, anchor=west];
+
+% ALPHA NORM sign next to output bar*
+\node[left=0.1cm of output_bar.west] 
+  {$\mathbf{A_{\text{norm}}} =$} (alpha_norm_vector);
+
+% arrow below output bar
+\draw[dist_arrow] ([yshift=-2mm]output_bar.south) -- ++(0,-0.25) node (output_bar_arrow) {};
+  
+\node[exemplar_location] (construction_chosen) [
+  below=0.1cm of output_bar_arrow.south,anchor=north, fill=red!30] {ctx 2};
+
+% Speaker banner %
+\node[participant, above=of can_speak.west, anchor=west, text width=\canspeakwidth] 
+  (speaker) {\textbf{Speaker}};
+
+% === HEARER ===
+% 3
+\node[modelstep] (hear_form) [right=1.5cm of can_speak.east,anchor=west] {3. Hear construction};
+% 2 -> 3
+\draw[step_arrow] (choose_construction.east) 
+  .. controls +(right:7mm) and +(left:7mm) .. ([yshift=-2mm]hear_form.north west);
+
+% 4
+\node[modelstep] (update_activation) [below=of hear_form.west,anchor=west] {4. Update activation + base rate};
+% 3 -> 4
+\draw[step_arrow] ([yshift=2mm]hear_form.south west) 
+  .. controls +(left:7mm) and +(left:7mm) .. (update_activation.west);
+
+% Measure width of longest node in hearer side
+\path let \p1=($(update_activation.west)-(update_activation.east)$) in \pgfextra{\global\hearerwidth=\x1};
+
+% Hearer banner %
+\node[participant, above=of hear_form.west, anchor=east, text width=\hearerwidth] 
+  (hearer) {\textbf{Hearer}};
+
+% Activation nodes
+% BAR 1
+\node[activation_fill, text width=2.5cm, xshift=1cm, fill=green!30] 
+  (2_bar_1_fill) [below=of update_activation.west, anchor=west];
+\draw[black] (2_bar_1_fill.east) -- (2_bar_1_fill.south east); % Top part of east edge
+\draw[black] (2_bar_1_fill.east) -- (2_bar_1_fill.north east);   % Bottom part of east edge  
+\node[activation, text width=3cm, xshift=1cm] 
+  (2_bar_1) [below=of update_activation.west, anchor=west];
+% BAR 2
+\node[activation_fill, text width=2.1cm, fill=red!30] 
+  (2_bar_2_fill) [below=0.5cm of 2_bar_1.west, anchor=west];
+\node[activation_fill, text width=0.5cm, fill=red!10, xshift=2.1cm]
+  (2_bar_2_fill_extra) [below=0.5cm of 2_bar_1.west, anchor=west];
+%\node[right=0.1cm of 2_bar_2_fill, text width=0.5cm, align=center, xshift=-2.3mm] {$\gamma$};
+% arrow below extra part
+\draw[dist_arrow] ([yshift=-4.5mm, xshift=0.5mm]2_bar_2_fill_extra.south west) -- 
+                  ([yshift=-4.5mm, xshift=-0.5mm]2_bar_2_fill_extra.south east)
+                  node[midway, above, yshift=0.1mm] {$\alpha$};
+  
+\draw[black] (2_bar_2_fill.east) -- (2_bar_2_fill.south east); % Top part of east edge
+\draw[black] (2_bar_2_fill.east) -- (2_bar_2_fill.north east);   % Bottom part of east edge
+% bonk
+\draw[black] (2_bar_2_fill_extra.east) -- (2_bar_2_fill_extra.south east); % Top part of east edge
+\draw[black] (2_bar_2_fill_extra.east) -- (2_bar_2_fill_extra.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] (2_bar_2) [below=0.5cm of 2_bar_1.west, anchor=west];
+
+% Measure height between bar 1 and bar 2
+\path let \p1=($(2_bar_2.north west)-(2_bar_1.north west)$) in \pgfextra{\global\barsheight=\y1};
+
+% A vector sign next to bars
+\node[left=0.1cm of 2_bar_1, yshift={(\barsheight/2) + 0.15ex}] {$\mathbf{A} =$} (a_vector);
+
+% BASE RATE BAR
+\node[activation_fill, text width=0.75cm, fill=green!30] 
+  (output_bar_fill_1) [below=1.1cm of 2_bar_2.west, anchor=west];
+\node[activation_fill, text width=0.5cm, fill=red!10, xshift=0.75cm] 
+  (output_bar_fill_extra) [below=1.1cm of 2_bar_2.west, anchor=west];
+% arrow below extra part
+\draw[dist_arrow] ([yshift=-6mm, xshift=-0.5mm]output_bar_fill_extra.south east) -- 
+                  ([yshift=-6mm, xshift=0.5mm]output_bar_fill_extra.south west)
+                  node[midway, above] {$\beta$};
+\node[activation_fill, text width=1.75cm, fill=red!30, xshift=1.25cm] 
+  (output_bar_fill_2) [below=1.1cm of 2_bar_2.west, anchor=west];
+\draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+\draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=1.1cm of 2_bar_2.west, anchor=west];
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
+  
+% B vector sign next to bar
+\node[left=0.1cm of output_bar.west] {$\mathbf{B} =$} (b_vector);
+  
+\end{tikzpicture}
+\end{document}
