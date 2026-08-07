@@ -72,6 +72,10 @@ def check_ax(
     if disable_title:
         plt.tight_layout()
 
+        # Make sure axis titles do not clip
+        if isinstance(fig, matplotlib.figure.Figure):
+            fig.set_layout_engine("tight")
+
     return fig, ax
 
 
@@ -308,6 +312,10 @@ def plot_value(
     min_data: List[float] | List[List[float]] | None = None,
     max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
+    legend_title: Optional[str] = None,
+    legend_labels: List[str] | None = None,
+    x_label: str | None = None,
+    y_label: str | None = None,
     disable_title: bool = False,
     aggregate_extension_x: List[str] | None = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -323,6 +331,10 @@ def plot_value(
         min_data (List[float] | List[List[float]] | None, optional): List of minimal values. Needs to be defined together with max_data. Defaults to None.
         max_data (List[float] | List[List[float]] | None, optional): List of maximal values. Needs to be defined together with min_data. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
+        legend_title (Optional[str], optional): The title for the legend. Defaults to None.
+        legend_labels (List[str], optional): The labels for the legend. Defaults to None.
+        x_label (str, optional): The label for the X axis. Defaults to None.
+        y_label (str, optional): The label for the Y axis. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
         aggregate_extension_x (List[str], optional): A list of values for the legend of an aggregate extension graph. Defaults to None.
 
@@ -354,9 +366,12 @@ def plot_value(
         line_style = get_line_style_by_group_context(
             attribute_idx, num_groups, multi_group_context
         )
-        legend_label = make_legend_label_by_group_context(
-            attribute_idx, aggregate_extension_x=aggregate_extension_x
-        )
+        if legend_labels is None:
+            legend_label = make_legend_label_by_group_context(
+                attribute_idx, aggregate_extension_x=aggregate_extension_x
+            )
+        else:
+            legend_label = legend_labels[attribute_idx]
 
         ax.plot(
             value_list,
@@ -380,11 +395,21 @@ def plot_value(
     if ylim is not None:
         ax.set_ylim(*ylim)
 
+    if x_label is not None:
+        ax.set_xlabel(x_label)
+    if y_label is not None:
+        ax.set_ylabel(y_label)
+
     if title is not None and not disable_title:
         ax.set_title(title)
 
     if num_groups > 1:
-        ax.legend()
+        legend_kwargs = {}
+
+        if legend_title is not None:
+            legend_kwargs["title"] = legend_title
+
+        ax.legend(**legend_kwargs)
 
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
@@ -402,6 +427,10 @@ def plot_ratio(
     min_data: List[float] | List[List[float]] | None = None,
     max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
+    legend_title: Optional[str] = None,
+    legend_labels: List[str] | None = None,
+    x_label: str | None = None,
+    y_label: str | None = None,
     disable_title: bool = False,
     aggregate_extension_x: List[str] | None = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -456,9 +485,12 @@ def plot_ratio(
             line_style = get_line_style_by_group_context(
                 attribute_idx, num_groups, multi_group_context
             )
-            legend_label = make_legend_label_by_group_context(
-                attribute_idx, i, aggregate_extension_x
-            )
+            if legend_labels is None:
+                legend_label = make_legend_label_by_group_context(
+                    attribute_idx, i, aggregate_extension_x
+                )
+            else:
+                legend_label = legend_labels[attribute_idx]
 
             ax.plot(
                 matrix[:, i],
@@ -488,6 +520,19 @@ def plot_ratio(
 
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))
+
+    if x_label is not None:
+        ax.set_xlabel(x_label)
+    if y_label is not None:
+        ax.set_ylabel(y_label)
+
+    # if num_groups > 1:
+    legend_kwargs = {}
+
+    if legend_title is not None:
+        legend_kwargs["title"] = legend_title
+
+    ax.legend(**legend_kwargs)
 
     if num_groups > 1:
         ax.legend()
@@ -612,6 +657,8 @@ def plot_histogram(
     bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
+    legend_title: Optional[str] = None,
+    legend_labels: List[str] | None = None,
     aggregate_extension_x: Any = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of values from a model run

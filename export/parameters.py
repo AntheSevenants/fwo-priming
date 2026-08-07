@@ -3,8 +3,8 @@ import pandas as pd
 from typing import Dict, Tuple, List, Union
 
 # Parameters used by the application. These are not parameters
-RESERVED_KEYWORDS = ["sweep", "filter", "aggregate", "run"]
-
+RESERVED_KEYWORDS = ["sweep", "filter", "aggregate", "run", "step", "parameter_set"]
+RESERVED_COLUMNS = ["run_id", "combination_id", "seed", "iteration", "parameter_set"]
 
 def build_mapping(
     run_infos: pd.DataFrame,
@@ -23,7 +23,7 @@ def build_mapping(
 
     for column in run_infos:
         # Do not process housekeeping column names
-        if column in ["run_id", "combination_id", "seed", "iteration"]:
+        if column in RESERVED_COLUMNS:
             continue
 
         unique_values = run_infos[column].unique().tolist()

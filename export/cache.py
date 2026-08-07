@@ -4,33 +4,33 @@ import export.files
 from typing import List, Union, Optional
 
 
-def get_combination_id(selected_run_ids: List[int]) -> int:
+def get_combination_id(selected_run_ids: List[int]) -> str:
     """Turn a list of selected runs into a unique ID identifying those runs
 
     Args:
         selected_run_ids (List[int]): List of selected run IDs
 
     Returns:
-        int: The unique ID for the specified combination of runs
+        str: The unique ID for the specified combination of runs
     """
 
-    return sum(selected_run_ids)
+    return "".join([str(selected_run_id) for selected_run_id in selected_run_ids])
 
 
-def get_cache_combination_id(combination_ids: Union[int, List[int]]) -> int:
+def get_cache_combination_id(combination_ids: Union[int, List[int]]) -> str:
     """Turn combination of combination IDs into a cache ID
 
     Args:
         combination_ids (Union[int, List[int]]): List of combination IDs, or a single one
 
     Returns:
-        int: _description_
+        str: Cache combination ID
     """
 
     if isinstance(combination_ids, list):
         cache_combination_id = get_combination_id(combination_ids)
     elif isinstance(combination_ids, int):
-        cache_combination_id = combination_ids
+        cache_combination_id = str(combination_ids)
 
     return cache_combination_id
 
@@ -59,7 +59,7 @@ def make_temp_sweep_figures_dir(selected_sweep: str, figures_output_dir: str) ->
 
 def make_temp_runs_figures_dir(
     selected_sweep: str,
-    combination_id: int,
+    combination_id: str,
     figures_output_dir: str,
     single_run_id: Optional[int] = None
 ) -> str:
@@ -67,7 +67,7 @@ def make_temp_runs_figures_dir(
 
     Args:
         selected_sweep (str): Name of the selected sweep
-        combination_id (int): Unique ID for the parameter selection
+        combination_id (str): Unique ID for the parameter selection
         figures_output_dir (str): Path to where figures are stored
         single_run_id (Optional[int], optional): ID of the single run, if applicable. Defaults to None.
 
@@ -101,7 +101,7 @@ def make_temp_runs_figures_dir(
 
 def is_graph_in_cache(
     selected_sweep: str,
-    combination_id: int,
+    combination_id: str,
     graph_name: str,
     profile_name: str,
     figures_output_dir: str,
@@ -111,7 +111,7 @@ def is_graph_in_cache(
 
     Args:
         selected_sweep (str): Name of the selected sweep
-        combination_id (int): Unique ID for the parameter selection
+        combination_id (str): Unique ID for the parameter selection
         graph_name (str): Name of the graph to check
         single_run_id (int, optional). Unique ID when singling out a single run. Defaults to None.
 
@@ -133,7 +133,7 @@ def is_graph_in_cache(
 
 def get_cached_graphs(
     selected_sweep: str,
-    combination_id: int,
+    combination_id: str,
     graphs: List[str],
     profile_name: str,
     figures_output_dir: str,
@@ -143,7 +143,7 @@ def get_cached_graphs(
 
     Args:
         selected_sweep (str): Name of the selected sweep
-        combination_id (int): Unique ID for the parameter selection
+        combination_id (str): Unique ID for the parameter selection
         graphs (List[str]): List with names of graphs to check whether in cache
         profile_name (str): Name of the selected profile
         figures_output_dir (str): Path where figures are written

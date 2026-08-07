@@ -47,6 +47,7 @@ from tqdm.auto import tqdm
 from mesa.model import Model
 
 from model.model import PrimingModel
+from batch.profile import BatchProfile
 from batch.params import dict_to_params
 
 multiprocessing.set_start_method("spawn", force=True)
@@ -57,7 +58,7 @@ def batch_run(
     model_cls: type[PrimingModel],
     sweeps_dir: str,
     current_sweep: str,
-    parameters: Mapping[str, Any | Iterable[Any]],
+    parameters: BatchProfile,
     # We still retain the Optional[int] because users may set it to None (i.e. use all CPUs)
     number_processes: int | None = 1,
     iterations: int = 1,
@@ -95,20 +96,31 @@ def batch_run(
     # Makes it MUCH easier to find the different parameter combinations later
     run_id = 0
     combination_id = 0
-    for kwargs in _make_model_kwargs(parameters):
-        for iteration in range(iterations):
-            # We have to make a new kwargs object in order to prevent the seed from sticking into this specific combinatino
-            if "seed" not in kwargs:
-                kwargs_pass = { **kwargs, "seed": random.randint(0, 99999999) }
-            else:
-                kwargs_pass = kwargs
-            
-            # Set the datacollector step size dynamically based on the max steps
-            kwargs_pass["datacollector_step_size"] = datacollector_step_size
+    for parameter_set in parameters.param_sets:
+        for kwargs in _make_model_kwargs(parameters.param_sets[parameter_set]):
+            for iteration in range(iterations):
+                # We have to make a new kwargs object in order to prevent the seed from sticking into this specific combination
+                if "seed" not in kwargs:
+                    kwargs_pass = {**kwargs, "seed": random.randint(0, 99999999)}
+                else:
+                    kwargs_pass = kwargs
 
-            runs_list.append((run_id, combination_id, iteration, sweeps_dir, current_sweep, kwargs_pass))
-            run_id += 1
-        combination_id += 1
+                # Set the datacollector step size dynamically based on the max steps
+                kwargs_pass["datacollector_step_size"] = datacollector_step_size
+
+                runs_list.append(
+                    (
+                        run_id,
+                        parameter_set,
+                        combination_id,
+                        iteration,
+                        sweeps_dir,
+                        current_sweep,
+                        kwargs_pass,
+                    )
+                )
+                run_id += 1
+            combination_id += 1
 
     process_func = partial(
         _model_run_func,
@@ -239,7 +251,7 @@ def check_webhook_update(pbar: tqdm, selected_sweep: str, webhook: batch.messagi
 
 def _model_run_func(
     model_cls: type[PrimingModel],
-    run: tuple[int, int, int, str, str, dict[str, Any]],
+    run: tuple[int, str, int, int, str, str, dict[str, Any]],
     max_steps: int,
     iterations: int,
     data_collection_period: int,
@@ -264,7 +276,16 @@ def _model_run_func(
     List[Dict[str, Any]]
         Return model_data, agent_data from the reporters
     """
-    run_id, combination_id, iteration, sweeps_dir, current_sweep, kwargs = run
+
+    (
+        run_id,
+        parameter_set,
+        combination_id,
+        iteration,
+        sweeps_dir,
+        current_sweep,
+        kwargs,
+    ) = run
     model_params = dict_to_params(kwargs)
     model = model_cls(model_params)
     while model.running and model.steps <= max_steps:
@@ -282,6 +303,7 @@ def _model_run_func(
     data = [
         {
             "run_id": run_id,
+            "parameter_set": parameter_set,
             "combination_id": combination_id,
             "iteration": iteration,
             "max_steps": max_steps,
