@@ -245,18 +245,15 @@ class PrimingAgent(mesa.Agent):
             # Multiply by decay strength to attenuate
             decay = activation_delta * self.model.params.decay_strength
 
-            # Now subtract the decay from the current activation level for this construction index
-            self.atts.activation.level[construction_index] -= decay
-
-            # Snap to decay goal if within a certain range
             RANGE = 0.05
-            if (
-                self.atts.activation.level[construction_index] - RANGE
-                <= self.atts.base_rate.level[construction_index]
-            ):
+            # If decay is too small, snap to base rate
+            if activation_delta <= RANGE:
                 self.atts.activation.level[construction_index] = (
                     self.atts.base_rate.level[construction_index]
                 )
+            else:
+                # Else subtract the decay from the current activation level for this construction index
+                self.atts.activation.level[construction_index] -= decay
 
     @property
     def is_dead(self):
