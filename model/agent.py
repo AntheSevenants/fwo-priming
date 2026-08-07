@@ -55,8 +55,8 @@ class PrimingAgent(mesa.Agent):
             return self.atts.activation.norm
         else:
             # Else, we're only working with entrenchment. So only return the base rate
-            # (the base rate is always normalised)
-            return self.atts.base_rate
+            # The norm property returns 
+            return self.atts.base_rate.norm
 
     def update_entropy_history(self):
         """We keep a log of the entropy of the activation levels for each agent.
