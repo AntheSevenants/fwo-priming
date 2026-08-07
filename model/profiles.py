@@ -9,7 +9,7 @@ params = {
             "innovators_share": 0,
             "conservator_innovation_share": 0.1,
             "priming_strength": 0.4,
-            "inverse_frequency_exponent": 0,
+            "inverse_frequency_exponent": [0, 1],
             "inverse_frequency_max_multiplier": 2,
             "priming_opportunity": [ 0.01, 0.05, 0.4 ],
             "decay_strength": 0.5,
@@ -19,8 +19,14 @@ params = {
             "allow_decay_stop": False,
             "activation_cap": False,
             "base_rate_update_mechanism": model.enums.BaseRateUpdateMechanism.DEKKER,
-            "replicator_selection_sway": 0.05,
+            "replicator_selection_sway": [ 0.01, 0.05, 0.1 ],
         },
-        child_params={}
+        child_params={
+            "entrenchment": {
+                "inverse_frequency_exponent": 0,
+                "use_activation": False,
+            },
+            "regular": {}
+        }
     )
 }
