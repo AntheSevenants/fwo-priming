@@ -33,6 +33,7 @@ class GraphContext:
 
     EXPORT = 0
     DASHBOARD = 1
+    ANY = 2
 
 
 @dataclass
@@ -108,6 +109,7 @@ class AggregateSettings:
         selected_sweep: str,
         combination_ids: List[int],
         parameter: str,
+        overlay_ids: List[int] | None = None,
     ):
         """Initialise an aggregate configuration.
 
@@ -116,10 +118,14 @@ class AggregateSettings:
             selected_sweep (str): The name of the sweep of interest
             combination_ids (List[int]): Unique IDs for the selected parameter combinations
             parameter (str): The parameter of which the permutations are currently under scrutiny
+            overlay_ids (List[int]): Unique IDs for the selected overlay combinations
         """
 
         self.combination_ids = combination_ids
         self.parameter = parameter
+
+        if overlay_ids is not None:
+            self.combination_ids += overlay_ids
 
         # We want to know what possible values are they for the parameter that is being expanded
         # So then for each parameter value, we will check what the outcomes are from that combination
@@ -301,7 +307,10 @@ def get_graph_names(context: int, is_single_run: bool = False) -> List[str]:
     return [
         graph_config
         for graph_config in list(graph_configs.keys())
-        if graph_configs[graph_config].context == context
+        if (
+            graph_configs[graph_config].context == context
+            or graph_configs[graph_config].context == GraphContext.ANY
+        )
         and not graph_configs[graph_config].aggregate
         and (not is_single_run or graph_configs[graph_config].single_run_sensible)
     ]
@@ -320,7 +329,10 @@ def get_aggregate_graph_names(context: int) -> List[str]:
     return [
         graph_config
         for graph_config in list(graph_configs.keys())
-        if graph_configs[graph_config].context == context
+        if (
+            graph_configs[graph_config].context == context
+            or graph_configs[graph_config].context == GraphContext.ANY
+        )
         and (
             graph_configs[graph_config].aggregate
             or graph_configs[graph_config].aggregate_extension
@@ -356,6 +368,8 @@ def generate_graphs(
     aggregate: Optional[AggregateSettings] = None,
     single_run: Optional[int] = None,
     disable_title=False,
+    legend_title: str | None = None,
+    legend_labels: List[str] | None = None,
 ) -> Dict[str, matplotlib.figure.Figure]:
     """Generate the specified graphs depending on the given sweep
 
@@ -367,6 +381,8 @@ def generate_graphs(
         aggregate (AggregateSettings, optional): Configuration for aggregate graphs. Defaults to None.
         single_run (int, optional): ID of the single run to generate a graph for. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
+        legend_title (str, optional): Set a legend title when aggregating. Defaults to None.
+        legend_labels (List[str], optional): Set the legend labels when aggregating. Defaults to None.
 
     Raises:
         ValueError: Raised if a supplied graph name does not have an associated graph
@@ -434,7 +450,10 @@ def generate_graphs(
         graphs,
         aggregate,
         single_run,
-        scale_factor
+        scale_factor,
+        disable_title=disable_title,
+        legend_title=legend_title,
+        legend_labels=legend_labels,
     )
     
 def generate_graphs_inner(
@@ -443,6 +462,9 @@ def generate_graphs_inner(
     aggregate: Optional[AggregateSettings] = None,
     single_run: Optional[int] = None,
     scale_factor: int = 1,
+    disable_title: bool = False,
+    legend_title: str | None = None,
+    legend_labels: List[str] | None = None,
 ) -> Dict[str, matplotlib.figure.Figure]:
     
     # Now, we can build the desired graphs and save them
@@ -469,6 +491,9 @@ def generate_graphs_inner(
                         scale_factor=scale_factor,
                         aggregate_config=aggregate,
                         single_run=single_run,
+                        disable_title=disable_title,
+                        legend_title=legend_title,
+                        legend_labels=legend_labels,
                     )
                     inner_functions.append(graph_function)
                 
@@ -486,7 +511,10 @@ def generate_graphs_inner(
                 graph_name,
                 scale_factor=scale_factor,
                 aggregate_config=aggregate,
-                single_run=single_run
+                single_run=single_run,
+                disable_title=disable_title,
+                legend_title=legend_title,
+                legend_labels=legend_labels,
             )(ax=None)
 
         graphs_output[graph_name] = figure
@@ -499,7 +527,10 @@ def generate_inner_lambda(
     graph_name: str,
     scale_factor: int = 1,
     single_run: Optional[int] = None,
-    aggregate_config: Optional[AggregateSettings] = None
+    aggregate_config: Optional[AggregateSettings] = None,
+    disable_title: bool = False,
+    legend_title: str | None = None,
+    legend_labels: List[str] | None = None,
 ) -> Callable:
     """Generate the function which builds the graph specified by the graph name
 
@@ -508,6 +539,9 @@ def generate_inner_lambda(
         graph_name (str): Name of the graph to generate the function for
         single_run (int, optional): ID of the single run to plot. Defaults to None.
         aggregate_config (AggregateSettings, optional): Configuration for aggregate graphs. Defaults to None.
+        disable_title (bool): Whether to show a title for this graph. Defaults to False.
+        legend_title (str, optional): Set a legend title when aggregating. Defaults to None.
+        legend_labels (List[str], optional): Set the legend labels when aggregating. Defaults to None.
 
     Raises:
         TypeError: Raised if the graph name is associated with a mosaic function
@@ -612,12 +646,14 @@ def generate_inner_lambda(
             kwargs["max_data"] = max_data
         if aggregate_extension_x is not None:
             kwargs["aggregate_extension_x"] = aggregate_extension_x
+            kwargs["legend_title"] = legend_title
+            kwargs["legend_labels"] = legend_labels
 
         kwargs["attributes"] = config.data_columns
 
         # Make the plot function
         return lambda ax: config.plot_func(
-            central_data, **kwargs, ax=ax
+            central_data, **kwargs, ax=ax, disable_title=disable_title
         )
     # Aggregate graph
     else:
@@ -648,4 +684,5 @@ def generate_inner_lambda(
             parameter=aggregate_config.parameter,
             **kwargs,
             ax=ax,
+            disable_title=disable_title,
         )

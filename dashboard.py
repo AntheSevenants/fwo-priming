@@ -5,6 +5,7 @@ import export.sweeps
 import export.files
 import export.parameters
 import export.graphs
+import export.render
 
 import model.model_defaults
 
@@ -37,6 +38,8 @@ def show_interface(live: bool = False):
     sweeps = export.sweeps.get_sweeps(args.sweeps_dir)
     # "selected sweep" = one of those batch runs
     selected_sweep = request.args.get("sweep")
+    # "selected params set" = a subset of general parameters
+    selected_parameter_set = request.args.get("parameter_set")
     # You can filter for specific graphs
     selected_filter = request.args.get("filter")
     # You can filter for a specific run
@@ -45,7 +48,7 @@ def show_interface(live: bool = False):
     # Aggregate parameter allows you to aggregate over multiple parameter combinations
     aggregate = request.args.get("aggregate")
 
-    # Combinatino of parameters selected
+    # Combination of parameters selected
     selected_parameters = dict(request.args)
     parameter_mapping = None
     constants_mapping = None
@@ -63,6 +66,8 @@ def show_interface(live: bool = False):
     GRAPHS = []
     matched_run_ids = []
 
+    parameter_sets = None
+
     # There are keywords used by the application, these do not appear as parameters 
     # We filter to check whether the user has made an actual parameter selection
     no_selection = (
@@ -79,6 +84,30 @@ def show_interface(live: bool = False):
         # Get information about all runs in the sweep as a  dataframe
         run_infos = export.sweeps.get_run_infos(args.sweeps_dir, selected_sweep)
 
+        # Get all parameter sets that span across runs in a sweep
+        if "parameter_set" in run_infos:
+            parameter_sets = run_infos["parameter_set"].unique().tolist()
+
+        if parameter_sets is not None:
+            if selected_parameter_set is None:
+                # Redirect to first available parameter set
+                return redirect(
+                    url_for(
+                        "index",
+                        sweep=selected_sweep,
+                        parameter_set=parameter_sets[0],
+                        _external=False,
+                    )
+                )
+            else:
+                # Filter run_infos by selected parameter set
+                if selected_parameter_set not in parameter_sets:
+                    raise ValueError("Parameter set not in available parameter sets")
+
+                run_infos = run_infos[
+                    run_infos["parameter_set"] == selected_parameter_set
+                ]
+
         parameter_mapping, constants_mapping = export.parameters.build_mapping(
             run_infos
         )
@@ -93,14 +122,20 @@ def show_interface(live: bool = False):
                 return redirect(url_for("index", _external=False, **selected_parameters))
 
         # If no parameter combination was made, create a parameter selection ourselves
-        if no_selection:
+        # Now that we have parameter sets, it is possible that the only parameter left is in an aggregation
+        # So no selection is OK if aggregate is defined
+        if no_selection and aggregate is None:
             for parameter in parameter_mapping:
                 selected_parameters[parameter] = parameter_mapping[parameter][0]
 
             if len(parameter_mapping) > 0:
-                return redirect(url_for("index", _external=False, **selected_parameters))
+                return redirect(
+                    url_for("index", _external=False, **selected_parameters)
+                )
             else:
                 no_selection = False
+        elif no_selection and aggregate is not None:
+            no_selection = False
 
         # These are runs that adhere to the parameter selection made
         selected_runs = export.parameters.find_eligible_runs(
@@ -108,10 +143,12 @@ def show_interface(live: bool = False):
         )
 
         if selected_runs.shape[0] == 0:
+            return redirect_on_error(selected_sweep, selected_parameter_set)
             raise ValueError("No runs found with the selected parameter combination")
 
         unique_combination_ids = selected_runs["combination_id"].unique().tolist()
         if len(unique_combination_ids) > 1 and aggregate is None:
+            return redirect_on_error(selected_sweep, selected_parameter_set)
             raise ValueError(
                 "Parameter selection does not single out a unique parameter combination"
             )
@@ -152,10 +189,13 @@ def show_interface(live: bool = False):
         if selected_run is not None:
             selected_run = int(selected_run)
 
-        prerender_profile_graphs(
+        export.render.prerender_profile_graphs(
+            args.figures_dir,
+            args.sweeps_dir,
             selected_sweep, 
             combination_ids, 
             graphs, 
+            PROFILE_NAME,
             aggregate_parameter=aggregate, 
             selected_run=selected_run
         )
@@ -179,6 +219,8 @@ def show_interface(live: bool = False):
         "index.html",
         sweeps=sweeps,
         selected_sweep=selected_sweep,
+        parameter_sets=parameter_sets,
+        selected_parameter_set=selected_parameter_set,
         combination_id=cache_combination_id,
         aggregate_parameter=aggregate,
         selected_parameters=selected_parameters,
@@ -196,69 +238,12 @@ def show_interface(live: bool = False):
     )
 
 
-def prerender_profile_graphs(
-    selected_sweep: str,
-    combination_ids: Union[int, List[int]],
-    graphs: List[str],
-    aggregate_parameter: Optional[str] = None,
-    selected_run: Optional[int] = None,
-) -> None:
-    figures_dir = args.figures_dir
+def redirect_on_error(selected_sweep, selected_parameter_set):
+    extra_parameters = {"sweep": selected_sweep}
+    if selected_parameter_set is not None:
+        extra_parameters["parameter_set"] = selected_parameter_set
 
-    if selected_run is not None and aggregate_parameter is not None:
-        raise ValueError("Single run cannot be isolated if aggregate parameter is defined")
-
-    cache_combination_id = export.cache.get_cache_combination_id(combination_ids)
-
-    # Get cached graphs
-    cached_graphs = export.cache.get_cached_graphs(
-        selected_sweep,
-        cache_combination_id,
-        graphs,
-        PROFILE_NAME,
-        figures_dir,
-        single_run_id=selected_run
-    )
-    non_cached_graph_count = len(list(set(graphs) - set(cached_graphs)))
-
-    if non_cached_graph_count == 0:
-        pass
-    # If we still need some graphs, just build all of them again
-    else:
-        # Generate the directory where we will put the figures
-        temp_models_figures_dir = export.cache.make_temp_runs_figures_dir(
-            selected_sweep, cache_combination_id, figures_dir, single_run_id=selected_run
-        )
-
-        # All graphs in a dict representation
-        # Create profile graphs
-        if aggregate_parameter is None:
-            aggregate_settings = None
-        # Else, create aggregate graphs
-        else:
-            if isinstance(combination_ids, list):
-                aggregate_settings = export.graphs.AggregateSettings(
-                    args.sweeps_dir,
-                    selected_sweep,
-                    combination_ids,
-                    aggregate_parameter,
-                )
-            else:
-                raise ValueError(
-                    "Cannot aggregate with only one combination of parameters"
-                )
-
-        graphs_output = export.graphs.generate_graphs(
-            args.sweeps_dir,
-            selected_sweep,
-            combination_ids,
-            graphs,
-            single_run=selected_run,
-            aggregate=aggregate_settings
-        )
-
-        # Save the files to disk!
-        export.files.export_files(graphs_output, PROFILE_NAME, temp_models_figures_dir)
+    return redirect(url_for("index", **extra_parameters, _external=False))
 
 
 @app.route("/graph/<string:selected_sweep>/<string:combination_id>/<string:single_run_id>/<string:graph_name>")

@@ -52,7 +52,7 @@ def get_run_infos(sweeps_dir: str, selected_sweep: str) -> pd.DataFrame:
     # I am not a French speaker, I just like using the word "infos" because it is goofy
     model_infos_path = make_run_infos_path(sweeps_dir, selected_sweep)
     if not os.path.exists(model_infos_path):
-        raise FileNotFoundError("Run infos CSV does nost exist")
+        raise FileNotFoundError("Run infos CSV does not exist")
 
     return pd.read_csv(model_infos_path)
 
