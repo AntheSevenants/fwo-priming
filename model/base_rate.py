@@ -58,13 +58,13 @@ class BaseRate:
 
     
     def __compute_norm__(self, with_replicator_selection: bool = True) -> np.ndarray:
-        """Internal function which normalises activation levels. All values sum to one.
+        """Internal function which normalises base rate levels. All values sum to one.
 
         Args:
             with_replicator_selection (bool, optional): Whether to add the replicator selection sway to the innovative variant. Defaults to True.
 
         Returns:
-            np.ndarray: A numpy array containing the activation levels, normalised to sum to one.
+            np.ndarray: A numpy array containing the base rate levels, normalised to sum to one.
         """
 
         to_normalise = self.level
@@ -82,7 +82,7 @@ class BaseRate:
         This adds replicator selection bonus to the innovative variant. This can be used in the entrenchment profile.
 
         Returns:
-            np.ndarray(float): A numpy array containing the activation levels, normalised to sum to one.
+            np.ndarray(float): A numpy array containing the base rate levels, normalised to sum to one.
         """
 
         return self.__compute_norm__(with_replicator_selection=True)
