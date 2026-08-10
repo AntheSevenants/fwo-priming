@@ -237,11 +237,12 @@ Additionally, however, we can check the influence of the inclusion of the invers
 
 In this section, we show the default values for the different parameters in our computer model. If these parameters change, the behaviour of the simulation changes as well. If any of these default parameters are overridden, we will mention this clearly.
 
-| Parameter | Explanation | Value |
+| Parameter | Explanation | Value(s) |
 | --- | --- | --- |
 | $N$ | Number of agents | 10 |
-| $P$ | Speaking probability, proxy for construction frequency | 0.4 |
+| $P$ | Speaking probability, proxy for construction frequency | 0.01, 0.05, 0.4 |
 | $\alpha$ | Priming strength | 0.4 |
+| $\gamma$ | Replicator selection bias | 0.01, 0.05, 0.1 |
 | $\beta$ | Base rate change strength | 0.01 |
 | $\lambda$ | Decay rate for delta between activation and base rate ($\Delta \mathbf{A}$) | 0.5 |
 | $\epsilon$ | Below this value for $\Delta \mathbf{A}$, activation snaps to base rate immediately | 0.05 |
