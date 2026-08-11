@@ -64,7 +64,7 @@ def prerender_profile_graphs(
 
         # All graphs in a dict representation
         # Create profile graphs
-        if aggregate_parameter is None and aggregate_diy is None:
+        if aggregate_parameter is None and aggregate_diy is False:
             aggregate_settings = None
         # Else, create aggregate graphs
         else:
