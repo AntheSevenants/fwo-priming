@@ -13,11 +13,15 @@ def prerender_profile_graphs(
     graphs: List[str],
     PROFILE_NAME: str,
     aggregate_parameter: str | None = None,
+    aggregate_diy: bool = False,
     overlay_ids: List[int] | None = None,
     selected_run: int | None = None,
     disable_title: bool = False,
-    legend_title_override: str | None = None,
-    legend_labels_override: List[str] | None = None,
+    legend_titles_override: List[str] | None = None,
+    legend_colour_labels_override: List[str] | None = None,
+    legend_style_labels_override: List[str] | None = None,
+    legend_colours_override: List[str] | None = None,
+    legend_styles_override: List[str] | None = None,
     exporting: bool = False,
 ) -> None:
     if selected_run is not None and aggregate_parameter is not None:
@@ -60,7 +64,7 @@ def prerender_profile_graphs(
 
         # All graphs in a dict representation
         # Create profile graphs
-        if aggregate_parameter is None:
+        if aggregate_parameter is None and aggregate_diy is None:
             aggregate_settings = None
         # Else, create aggregate graphs
         else:
@@ -86,8 +90,11 @@ def prerender_profile_graphs(
             # selected_step=selected_step,
             aggregate=aggregate_settings,
             disable_title=disable_title,
-            legend_title=legend_title_override,
-            legend_labels=legend_labels_override,
+            legend_titles=legend_titles_override,
+            legend_colour_labels=legend_colour_labels_override,
+            legend_style_labels=legend_style_labels_override,
+            legend_colours=legend_colours_override,
+            legend_styles=legend_styles_override,
         )
 
         # Save the files to disk!
