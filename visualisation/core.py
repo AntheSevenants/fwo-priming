@@ -4,6 +4,7 @@ import model.reporters
 import matplotlib.figure
 import matplotlib.axes
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 
 from typing import List, Optional, Union, Any, Tuple, List
@@ -34,6 +35,10 @@ def get_multi_group_context(aggregate_extension: bool) -> int:
         if not aggregate_extension
         else MultiGroupContext.AGGREGATE_EXTENSION
     )
+
+
+def unique(x: List[str]):
+    return list(dict.fromkeys(x))
 
 
 def formatter(x: float, pos: float, scale: int):
@@ -312,8 +317,11 @@ def plot_value(
     min_data: List[float] | List[List[float]] | None = None,
     max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
-    legend_title: Optional[str] = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
     x_label: str | None = None,
     y_label: str | None = None,
     disable_title: bool = False,
@@ -331,8 +339,11 @@ def plot_value(
         min_data (List[float] | List[List[float]] | None, optional): List of minimal values. Needs to be defined together with max_data. Defaults to None.
         max_data (List[float] | List[List[float]] | None, optional): List of maximal values. Needs to be defined together with min_data. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
-        legend_title (Optional[str], optional): The title for the legend. Defaults to None.
-        legend_labels (List[str], optional): The labels for the legend. Defaults to None.
+        legend_titles (List[str], optional): The titles for the legends. Defaults to None.
+        legend_colour_labels (List[str], optional): The colour labels for the legend. Defaults to None.
+        legend_style_labels (List[str], optional): Thestyle  labels for the legend. Defaults to None.
+        legend_colours (List[str], optional): The colours for the legend. Defaults to None.
+        legend_styles (List[str], optional): The line styles for the legend. Defaults to None.
         x_label (str, optional): The label for the X axis. Defaults to None.
         y_label (str, optional): The label for the Y axis. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
@@ -358,20 +369,32 @@ def plot_value(
     for attribute_idx, value_list in enumerate(value_lists):
         # Line colour stays constant with conservator/innovator
         # Across parameter combinations, different colours fit better
-        line_colour = (
-            COLOURS[0]
-            if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
-            else COLOURS[attribute_idx]
-        )
-        line_style = get_line_style_by_group_context(
-            attribute_idx, num_groups, multi_group_context
-        )
-        if legend_labels is None:
+        # Can also be overridden manually
+        if legend_colours is None:
+            line_colour = (
+                COLOURS[0]
+                if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
+                else COLOURS[attribute_idx]
+            )
+        else:
+            line_colour = legend_colours[attribute_idx]
+
+        if legend_styles is None:
+            line_style = get_line_style_by_group_context(
+                attribute_idx, num_groups, multi_group_context
+            )
+        else:
+            line_style = legend_styles[attribute_idx]
+
+        if legend_colour_labels is None:
             legend_label = make_legend_label_by_group_context(
                 attribute_idx, aggregate_extension_x=aggregate_extension_x
             )
         else:
-            legend_label = legend_labels[attribute_idx]
+            if legend_style_labels is None:
+                legend_label = legend_colour_labels[attribute_idx]
+            else:
+                legend_label = None
 
         ax.plot(
             value_list,
@@ -403,14 +426,39 @@ def plot_value(
     if title is not None and not disable_title:
         ax.set_title(title)
 
-    if num_groups > 1:
-        legend_kwargs = {}
+    legend_kwargs = {}
+    if legend_titles is not None:
+        if len(legend_titles) == 1:
+            legend_kwargs["title"] = legend_titles[0]
+            ax.legend(**legend_kwargs)
+        elif len(legend_titles) == 2:
+            if legend_colours is None or legend_styles is None:
+                raise ValueError("Legend colours and styles labels cannot be None")
 
-        if legend_title is not None:
-            legend_kwargs["title"] = legend_title
+            unique_colours = unique(legend_colours)
+            unique_styles = unique(legend_styles)
 
-        ax.legend(**legend_kwargs)
+            colour_lines = [ 
+                Line2D([0], [0], color=colour) for colour in unique_colours
+            ]
+            style_lines = [
+                Line2D([0], [0], color="black", linestyle=style) for style in
+                unique_styles
+            ]
 
+            if legend_colour_labels is None or legend_style_labels is None:
+                raise ValueError("Legend colour and style labels cannot be None")
+
+            legend = ax.legend(
+                colour_lines + style_lines,
+                legend_colour_labels + legend_style_labels,
+                title="",
+                loc="best",
+                ncols=2)
+        else:
+            raise ValueError("Legend titles count cannot exceed 2")
+    elif legend_titles is None and num_groups > 1:
+        ax.legend()
     output_fig = get_ax_figure(ax)
     plt.close(output_fig)
 
@@ -427,8 +475,11 @@ def plot_ratio(
     min_data: List[float] | List[List[float]] | None = None,
     max_data: List[float] | List[List[float]] | None = None,
     title: Optional[str] = None,
-    legend_title: Optional[str] = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
     x_label: str | None = None,
     y_label: str | None = None,
     disable_title: bool = False,
@@ -446,6 +497,11 @@ def plot_ratio(
         min_data (List[float] | List[List[float]] | None, optional): List of minimal values. Needs to be defined together with max_data. Defaults to None.
         max_data (List[float] | List[List[float]] | None, optional): List of maximal values. Needs to be defined together with min_data. Defaults to None.
         title (Optional[str], optional): The title for the graph. Defaults to None.
+        legend_titles (List[str], optional): The titles for the legends. Defaults to None.
+        legend_colour_labels (List[str], optional): The colour labels for the legend. Defaults to None.
+        legend_style_labels (List[str], optional): Thestyle  labels for the legend. Defaults to None.
+        legend_colours (List[str], optional): The colours for the legend. Defaults to None.
+        legend_styles (List[str], optional): The line styles for the legend. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.        
         aggregate_extension_x (List[str], optional): A list of values for the legend of an aggregate extension graph. Defaults to None.
 
@@ -477,20 +533,31 @@ def plot_ratio(
             # Line colour normally indicates the construction
             # Across parameter combinations, we only show the innovative construction
             # so here line colour can encode a specific parameter value
-            line_colour = (
-                COLOURS[i]
-                if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
-                else COLOURS[attribute_idx]
-            )
-            line_style = get_line_style_by_group_context(
-                attribute_idx, num_groups, multi_group_context
-            )
-            if legend_labels is None:
+            if legend_colours is None:
+                line_colour = (
+                    COLOURS[i]
+                    if multi_group_context == MultiGroupContext.CONSERVATOR_INNOVATOR
+                    else COLOURS[attribute_idx]
+                )
+            else:
+                line_colour = legend_colours[attribute_idx]
+
+            if legend_styles is None:
+                line_style = get_line_style_by_group_context(
+                    attribute_idx, num_groups, multi_group_context
+                )
+            else:
+                line_style = legend_styles[attribute_idx]
+
+            if legend_colour_labels is None:
                 legend_label = make_legend_label_by_group_context(
                     attribute_idx, i, aggregate_extension_x
                 )
             else:
-                legend_label = legend_labels[attribute_idx]
+                if legend_style_labels is None:
+                    legend_label = legend_colour_labels[attribute_idx]
+                else:
+                    legend_label = None
 
             ax.plot(
                 matrix[:, i],
@@ -526,15 +593,38 @@ def plot_ratio(
     if y_label is not None:
         ax.set_ylabel(y_label)
 
-    # if num_groups > 1:
     legend_kwargs = {}
+    if legend_titles is not None:
+        if len(legend_titles) == 1:
+            legend_kwargs["title"] = legend_titles[0]
+            ax.legend(**legend_kwargs)
+        elif len(legend_titles) == 2:
+            if legend_colours is None or legend_styles is None:
+                raise ValueError("Legend colours and styles labels cannot be None")
 
-    if legend_title is not None:
-        legend_kwargs["title"] = legend_title
+            unique_colours = unique(legend_colours)
+            unique_styles = unique(legend_styles)
 
-    ax.legend(**legend_kwargs)
+            colour_lines = [ 
+                Line2D([0], [0], color=colour) for colour in unique_colours
+            ]
+            style_lines = [
+                Line2D([0], [0], color="black", linestyle=style) for style in
+                unique_styles
+            ]
 
-    if num_groups > 1:
+            if legend_colour_labels is None or legend_style_labels is None:
+                raise ValueError("Legend colour and style labels cannot be None")
+
+            legend = ax.legend(
+                colour_lines + style_lines,
+                legend_colour_labels + legend_style_labels,
+                title="",
+                loc="best",
+                ncols=2)
+        else:
+            raise ValueError("Legend titles count cannot exceed 2")
+    elif legend_titles is None and num_groups > 1:
         ax.legend()
 
     output_fig = get_ax_figure(ax)
@@ -657,8 +747,11 @@ def plot_histogram(
     bin_range: Optional[List[float]] = None,
     title: Optional[str] = None,
     disable_title: bool = False,
-    legend_title: Optional[str] = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
     aggregate_extension_x: Any = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     """Plot a desired series of values from a model run

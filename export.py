@@ -56,6 +56,12 @@ parser.add_argument(
     "--aggregate", type=str, help="Aggregate over a specific parameter", default=None
 )
 parser.add_argument(
+    "--aggregate_diy",
+    help="Combine overlays yourself to make an aggregate extension graph",
+    action="store_true",
+    default=False,
+)
+parser.add_argument(
     "--overlay",
     nargs="+",
     action="append",
@@ -66,15 +72,33 @@ parser.add_argument(
     "--step", type=int, help="Inspect the model at a specific step", default=None
 )
 parser.add_argument(
-    "--legend_title",
-    type=str,
-    help="Set a legend title when aggregating over a specific parameter",
+    "--legend_titles",
+    nargs="+",
+    help="Set a legend title when aggregating over a specific parameter. For more elaborate legends, multiple titles can be supplied.",
     default=None,
 )
 parser.add_argument(
-    "--legend_labels",
+    "--legend_colour_labels",
     nargs="+",
-    help="List of legend labels to override. Must match number of groups plotted.",
+    help="List of legend colour labels to override. Must match number of unique colours.",
+    default=None,
+)
+parser.add_argument(
+    "--legend_style_labels",
+    nargs="+",
+    help="List of legend style labels to override. Must match number of unique styles.",
+    default=None,
+)
+parser.add_argument(
+    "--legend_colours",
+    nargs="+",
+    help="List of legend colours. Must match number of groups plotted.",
+    default=None,
+)
+parser.add_argument(
+    "--legend_styles",
+    nargs="+",
+    help="List of legend line styles. Must match number of groups plotted.",
     default=None,
 )
 parser.add_argument(
@@ -94,6 +118,7 @@ args = parser.parse_args()
 sweeps = export.sweeps.get_sweeps(args.sweeps_dir)
 selected_sweep = args.selected_sweep
 aggregate = args.aggregate
+aggregate_diy = args.aggregate_diy
 parameter_set = args.parameter_set
 selected_run = args.run
 selected_step = None
@@ -146,13 +171,18 @@ selected_runs = export.parameters.find_eligible_runs(
 if selected_runs.shape[0] == 0:
     raise ValueError("No runs found with the selected parameter combination")
 
-unique_combination_ids = selected_runs["combination_id"].unique().tolist()
+# For aggregate diy, there are no main filters
+if aggregate_diy is False:
+    unique_combination_ids = selected_runs["combination_id"].unique().tolist()
+else:
+    unique_combination_ids = []
+
 overlay_ids = None
-if len(unique_combination_ids) > 1 and aggregate is None:
+if len(unique_combination_ids) > 1 and aggregate is None and aggregate_diy is None:
     raise ValueError(
         "Parameter selection does not single out a unique parameter combination"
     )
-elif len(unique_combination_ids) > 1 and aggregate is not None:
+elif (len(unique_combination_ids) > 1 and aggregate is not None) or aggregate_diy:
     combination_ids = unique_combination_ids
     overlay_ids = []
 
@@ -178,17 +208,22 @@ elif len(unique_combination_ids) > 1 and aggregate is not None:
 
         if overlay_runs.shape[0] == 0:
             raise ValueError(
-                f"Overlay #{overlay_idx} does not single out a single parameter combination"
+                f"Overlay #{overlay_idx} does not filter any parameter combination"
             )
 
         selected_overlays = overlay_runs["combination_id"].unique().tolist()
+        if len(selected_overlays) != 1:
+            raise ValueError(
+                f"Overlay #{overlay_idx} does not single out a single parameter combination"
+            )
+
         overlay_ids += selected_overlays
 else:
     combination_ids = unique_combination_ids[0]
     # Get the IDs of all runs which belong to the search results
     matched_run_ids = selected_runs["run_id"].unique().tolist()
 
-if aggregate is None:
+if aggregate is None and aggregate_diy is False:
     GRAPHS = export.graphs.get_graph_names(
         export.graphs.GraphContext.EXPORT,
         is_single_run=False,
@@ -204,10 +239,14 @@ export.render.prerender_profile_graphs(
     GRAPHS,
     args.output_profile,
     aggregate_parameter=aggregate,
+    aggregate_diy=aggregate_diy,
     overlay_ids=overlay_ids,
     selected_run=selected_run,
     exporting=True,
     disable_title=args.disable_titles,
-    legend_title_override=args.legend_title,
-    legend_labels_override=args.legend_labels,
+    legend_titles_override=args.legend_titles,
+    legend_colour_labels_override=args.legend_colour_labels,
+    legend_style_labels_override=args.legend_style_labels,
+    legend_colours_override=args.legend_colours,
+    legend_styles_override=args.legend_styles,
 )

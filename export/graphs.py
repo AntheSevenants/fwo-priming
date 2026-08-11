@@ -99,7 +99,7 @@ class AggregateSettings:
     """
 
     combination_ids: List[int]
-    parameter: str
+    parameter: str |None
     parameter_values: List[Any]
     combination_data: List[Dict[str, Any]] | None
 
@@ -108,8 +108,9 @@ class AggregateSettings:
         sweeps_dir: str,
         selected_sweep: str,
         combination_ids: List[int],
-        parameter: str,
+        parameter: str | None,
         overlay_ids: List[int] | None = None,
+        is_diy: bool = False
     ):
         """Initialise an aggregate configuration.
 
@@ -119,6 +120,7 @@ class AggregateSettings:
             combination_ids (List[int]): Unique IDs for the selected parameter combinations
             parameter (str): The parameter of which the permutations are currently under scrutiny
             overlay_ids (List[int]): Unique IDs for the selected overlay combinations
+            is_diy (bool): Whether this is a DIY aggregation
         """
 
         self.combination_ids = combination_ids
@@ -130,16 +132,27 @@ class AggregateSettings:
         # We want to know what possible values are they for the parameter that is being expanded
         # So then for each parameter value, we will check what the outcomes are from that combination
         run_infos = export.sweeps.get_run_infos(sweeps_dir, selected_sweep)
-        self.parameter_values = [
-            str(item)
-            for item in run_infos[run_infos["combination_id"].isin(combination_ids)][
-                parameter
+        if self.parameter is not None:
+            self.parameter_values = [
+                str(item)
+                for item in run_infos[run_infos["combination_id"].isin(combination_ids)][
+                    parameter
+                ]
+                .unique()
+                .tolist()
             ]
-            .unique()
-            .tolist()
-        ]
+        else:
+            self.parameter_values = []
 
-        self.combination_data = None # by default, we do not send along combination data
+        if overlay_ids is not None:
+            overlay_labels = [
+                f"Overlay #{index + 1}" for index, overlay_id in enumerate(overlay_ids)
+            ]
+            self.parameter_values += overlay_labels
+
+        self.combination_data = (
+            None  # by default, we do not send along combination data
+        )
 
 def get_num_constructions(
     data: Dict[str, Any] | List[Dict[str, Any]],
@@ -371,8 +384,11 @@ def generate_graphs(
     aggregate: Optional[AggregateSettings] = None,
     single_run: Optional[int] = None,
     disable_title=False,
-    legend_title: str | None = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
 ) -> Dict[str, matplotlib.figure.Figure]:
     """Generate the specified graphs depending on the given sweep
 
@@ -384,8 +400,11 @@ def generate_graphs(
         aggregate (AggregateSettings, optional): Configuration for aggregate graphs. Defaults to None.
         single_run (int, optional): ID of the single run to generate a graph for. Defaults to None.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.
-        legend_title (str, optional): Set a legend title when aggregating. Defaults to None.
-        legend_labels (List[str], optional): Set the legend labels when aggregating. Defaults to None.
+        legend_title (str, optional): Set a legend title when aggregating. For more elaborate legends, multiple titles can be supplied. Defaults to None.
+        legend_colour_labels (List[str], optional): Set the legend colour labels when aggregating. Defaults to None.
+        legend_style_labels (List[str], optional): Set the legend style labels when aggregating. Defaults to None.
+        legend_colours (List[str], optional): Set the legend colours when aggregating. Defaults to None.
+        legend_styles (List[str], optional): Set the legend line styles when aggregating. Defaults to None.
 
     Raises:
         ValueError: Raised if a supplied graph name does not have an associated graph
@@ -455,8 +474,11 @@ def generate_graphs(
         single_run,
         scale_factor,
         disable_title=disable_title,
-        legend_title=legend_title,
-        legend_labels=legend_labels,
+        legend_titles=legend_titles,
+        legend_colour_labels=legend_colour_labels,
+        legend_style_labels=legend_style_labels,
+        legend_colours=legend_colours,
+        legend_styles=legend_styles,
     )
     
 def generate_graphs_inner(
@@ -466,8 +488,11 @@ def generate_graphs_inner(
     single_run: Optional[int] = None,
     scale_factor: int = 1,
     disable_title: bool = False,
-    legend_title: str | None = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
 ) -> Dict[str, matplotlib.figure.Figure]:
     
     # Now, we can build the desired graphs and save them
@@ -495,8 +520,11 @@ def generate_graphs_inner(
                         aggregate_config=aggregate,
                         single_run=single_run,
                         disable_title=disable_title,
-                        legend_title=legend_title,
-                        legend_labels=legend_labels,
+                        legend_titles=legend_titles,
+                        legend_colour_labels=legend_colour_labels,
+                        legend_style_labels=legend_style_labels,
+                        legend_colours=legend_colours,
+                        legend_styles=legend_styles,
                     )
                     inner_functions.append(graph_function)
                 
@@ -516,8 +544,11 @@ def generate_graphs_inner(
                 aggregate_config=aggregate,
                 single_run=single_run,
                 disable_title=disable_title,
-                legend_title=legend_title,
-                legend_labels=legend_labels,
+                legend_titles=legend_titles,
+                legend_colour_labels=legend_colour_labels,
+                legend_style_labels=legend_style_labels,
+                legend_colours=legend_colours,
+                legend_styles=legend_styles,
             )(ax=None)
 
         graphs_output[graph_name] = figure
@@ -532,8 +563,11 @@ def generate_inner_lambda(
     single_run: Optional[int] = None,
     aggregate_config: Optional[AggregateSettings] = None,
     disable_title: bool = False,
-    legend_title: str | None = None,
-    legend_labels: List[str] | None = None,
+    legend_titles: List[str] | None = None,
+    legend_colour_labels: List[str] | None = None,
+    legend_style_labels: List[str] | None = None,
+    legend_colours: List[str] | None = None,
+    legend_styles: List[str] | None = None,
 ) -> Callable:
     """Generate the function which builds the graph specified by the graph name
 
@@ -543,8 +577,11 @@ def generate_inner_lambda(
         single_run (int, optional): ID of the single run to plot. Defaults to None.
         aggregate_config (AggregateSettings, optional): Configuration for aggregate graphs. Defaults to None.
         disable_title (bool): Whether to show a title for this graph. Defaults to False.
-        legend_title (str, optional): Set a legend title when aggregating. Defaults to None.
-        legend_labels (List[str], optional): Set the legend labels when aggregating. Defaults to None.
+        legend_titles (List[str], optional): Set legend titles when aggregating. Defaults to None.
+        legend_colour_labels (List[str], optional): Set the legend colour labels when aggregating. Defaults to None.
+        legend_style_labels (List[str], optional): Set the legend style labels when aggregating. Defaults to None.
+        legend_colours (List[str], optional): Set the legend colours when aggregating. Defaults to None.
+        legend_styles (List[str], optional): Set the legend line styles when aggregating. Defaults to None.
 
     Raises:
         TypeError: Raised if the graph name is associated with a mosaic function
@@ -649,8 +686,11 @@ def generate_inner_lambda(
             kwargs["max_data"] = max_data
         if aggregate_extension_x is not None:
             kwargs["aggregate_extension_x"] = aggregate_extension_x
-            kwargs["legend_title"] = legend_title
-            kwargs["legend_labels"] = legend_labels
+            kwargs["legend_titles"] = legend_titles
+            kwargs["legend_colour_labels"] = legend_colour_labels
+            kwargs["legend_style_labels"] = legend_style_labels
+            kwargs["legend_colours"] = legend_colours
+            kwargs["legend_styles"] = legend_styles
 
         kwargs["attributes"] = config.data_columns
 

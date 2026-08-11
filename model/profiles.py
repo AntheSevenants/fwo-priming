@@ -12,7 +12,7 @@ params = {
             "inverse_frequency_exponent": [0, 1],
             "inverse_frequency_max_multiplier": 2,
             "priming_opportunity": [ 0.01, 0.05, 0.4 ],
-            "decay_strength": 0.5,
+            "decay_strength": [0.2, 0.5, 0.9],
             "decay_to": model.enums.DecayTo.BASE_RATE,
             "affects_base_rate": model.enums.AffectsBaseRate.RECEPTION,
             "base_rate_change_strength": [ 0.01 ],
@@ -25,6 +25,7 @@ params = {
             "entrenchment": {
                 "inverse_frequency_exponent": 0,
                 "use_activation": False,
+                "decay_strength": 0.5,
             },
             "regular": {}
         }
