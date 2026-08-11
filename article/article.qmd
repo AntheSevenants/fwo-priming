@@ -249,20 +249,21 @@ In this section, we show the default values for the different parameters in our 
 
 ## Results {#sec-results}
 
-In this section, we show the results of the different parameter permutations in our computer simulations. Each subsection investigates the influence of one specific mechanism, in accordance with our prescribed way of analysis defined in @sec-evaluation-priming-influence.
+In this section, we show the results of the different parameter permutations in our computer simulations.
 
-### Influence of priming, no inverse frequency effect
+### Without the inverse frequency effect
 
+(TODO dit nog een beetje beter uitschrijven: verschil alternation and construction moet duidelijker worden)
+First, we show simulations in which the inverse frequency effect is disabled. We vary the different parameter values for alternation frequency (through its proxy "priming opportunity") and replicator selection to check their effects on how language changes. @fig-todo shows this visually. As is clear from the graph, the more frequent an alternation, the more opportunities there are for the alternation to be used, and thus for both replicator selection and priming to boost the innovative construction. Unsurprisingly, high priming opportunity thus leads to a faster spread of the innovative construction. Interestingly, priming opportunity seems to matter more for the pace of propagation than the strength of replicator selection: a high-frequency alternation with low replicator selection strength has the innovative form evolve faster than a low-frequency alternation with high replicator selection strength.
 
+Additionally, we varied the decay rate of the priming effect. Recall that this parameter regulates how quickly the activation level of a construction decays back to the regular level dictated by the current base rate. @fig-todo shows that, as decay rate becomes smaller, propagation goes faster. As a primed construction remains highly activated for longer, it continues to affect the base rate for a longer time as well. We see that the effect of a smaller decay rate is bigger for a high-frequency alternation. This makes sense: if an alternation is of a low frequency, the window of opportunity to make use of prolonged priming has already passed by the time the alternation is relevant again.
 
-### Influence of priming, inverse frequency effect
+### With the inverse frequency effect
 
-### Influence of priming, influence of construction frequency
+In this section, we show how the evolution of the innovative construction changes when the inverse frequency effect is enabled. This is the most complete realisation of the two-stage competition model [see @sec-review-two-stage-competition], as low-frequency constructions are assumed to require more activation. @fig-todo shows that the effect on the spread of the innovative construction has completely changed. Perhaps counterintuitively, we see that in a high-frequency alternation, the spread of the innovative construction stalls, even when paired with a high replicator selection strength. The effect of replicator selection strength remains apparent, however, as a high replicator selection strength seems to cause the spread to stall at a much higher base rate level. At the same time, in a low-frequency alternation, the innovative construction *is* able to spread without issue, ableit very slowly [see @fig-todo in the Appendix for simulations on a much longer time-scale, which show that the spread of the innovative variant eventually completes]. As the innovative construction passes the halfway mark and becomes the most dominant construction, inverse frequency starts to work against the spread of the construction. As we saw already in the results without the inverse frequency effect, priming is stronger than replicator selection when an alternation is very frequent. When pitted against each other, then, the inverse frequency effect now working *against* the innovative variant is stronger than the replicator selection mechanism, and the spread of the innovative variant comes to a halt. In contrast, when frequency is too low, the activation of a primed construction does not last until the next speaking opportunity, and priming no longer plays a role. In this way, the innovative construction can continue to spread, despite the presence of the inverse frequency effect.
 
-ook aandacht hebben voor cumulativity! bij frequentie
-
-### Influence of priming, influence of replicator selection strength
+We again also show the effect of varying decay rate of the priming effect. @fig-todo shows that, as decay rate becomes smaller, the ceiling where propagation stalls for a high-frequency alternation becomes lower. This is again to be expected: as priming becomes more effective, i.e. lasts longer, the inverse frequency effect becomes stronger, and replicator selection has even less of an impact.
 
 ## Discussion
 
-
+cumulativity = een combinatie van priming opportunity EN decay rate
