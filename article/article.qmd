@@ -144,7 +144,7 @@ In our study, then, we aim to investigate to what extent priming, when modelled 
 
 ## Model design {#sec-model-design}
 
-In this section, we discuss how exactly we built our model of priming. More specifically, we show what capabilities our agents have, how they enter into conversation with each other, and what parameters are available. We also show how we translate the principles from @segaert_unifying_2016 to our computer model. To keep the model straightforward, we model one alternation with two choices [like @dekker_conversational_2024]. Our model was implemented using Python and the MESA library [@python-mesa-2020]. All source code is available online.[^github-link]
+In this section, we discuss how exactly we built our model of priming. More specifically, we show what capabilities our agents have, how they enter into conversation with each other, and what parameters are available. We also show how we translate the principles from @segaert_unifying_2016 to our computer model. To keep the model straightforward, we model one alternation with two choices [like @dekker_conversational_2024]. Our model was implemented using Python and the MESA library [@kazil_utilizing_2020]. All source code is available online.[^github-link]
 
 [^github-link]: todo
 
