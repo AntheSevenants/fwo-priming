@@ -66,13 +66,13 @@ execute:
 
 ## Introduction {#sec-introduction}
 
-Syntactic or structural priming, the increased probability of repeating a syntactic structure as a speaker given past exposure to that structure as a hearer [@bock_syntactic_1986, @pickering_representation_1998, @mahowald_meta-analysis_2016], is widely accepted in linguistics as a fleeting effect. Some studies, however, show that priming effects could last longer, which, in theory, opens the door to language change on a longer term. In this article, we investigate to what extent syntactic priming could, theoretically, lead to language change. Due to practical constraints, we do so by deploying an agent-based model [todo]. Because agent-based models require precise formalisations of linguistic behaviour and associated theories [todo], we first give an overview of the properties of priming, and the different ways in which researchers have tried to explain the phenomenon so far. Then, we detail how our computer model implements these findings, and how we exactly we model priming and measure the broad concept "language change". Finally, we discuss the results of our simulations and discuss what repercussions our findings could have on priming theory in the context of language change.
+Syntactic or structural priming, the increased probability of repeating a syntactic structure as a speaker given past exposure to that structure as a hearer [@bock_syntactic_1986, @pickering_representation_1998, @mahowald_meta-analysis_2016], is widely accepted in linguistics as a fleeting effect. Some studies, however, show that priming effects could last longer, which, in theory, opens the door to language change on a longer term. In this article, we investigate to what extent syntactic priming could, theoretically, lead to language change. Due to practical constraints, we do so by deploying an agent-based model [@steels_modeling_2011]. Because agent-based models require precise formalisations of linguistic behaviour and associated theories [@alishahi_computational_2010, 5], we first give an overview of the properties of priming, and the different ways in which researchers have tried to explain the phenomenon so far. Then, we detail how our computer model implements these findings, and how we exactly we model priming and measure the broad concept "language change". Finally, we discuss the results of our simulations and discuss what repercussions our findings could have on priming theory in the context of language change.
 
 ## Literature review {#sec-review}
 
 ### Properties of priming {#sec-review-priming-properties}
 
-The core mechanism of syntactic priming is straightforward. A hearer encounters a choice that was made in a syntactic alternation by another speaker, for example in the dative alternation [todo]:
+The core mechanism of syntactic priming is straightforward. A hearer encounters a choice that was made in a syntactic alternation by another speaker, for example in the dative alternation [@bresnan_predicting_2007]:
 
 1. I gave some treats to the cat.
 
@@ -294,12 +294,3 @@ More generally, still, we show that there is worth in using computer simulations
 
 ## Appendix
 
-### Simulation results on larger timescales
-
-### Metrics {#sec-appendix-metrics}
-
-In order to keep track of the simulation course, we computed the following metrics at each step:
-
-BASE RATE COMPUTATION (ken eigenlijk ook in de body text)
-
-BASE RATE ENTROPY COMPUTATION
