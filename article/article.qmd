@@ -88,7 +88,7 @@ The second additional factor is the inverse frequency effect [@ferreira_misinter
 
 The final factor is the cumulativity of priming [@kaschak_long-term_2007; @kaschak_long_2014]. Priming experience can be accumulated over time, as more and more primes are encountered. In this way, priming itself is stronger and lasts longer (see also below).
 
-### Two ways of explaining at priming {#sec-review-priming-explanations}
+### Two ways of explaining priming {#sec-review-priming-explanations}
 
 The additional properties of priming make it an interesting phenomenon to attempt to explain. Priming can be accumulated when similar primes are repeated, and lexical overlap makes priming even more probable. At the same time, if a prime is particularly unexpected, it also has an influence on priming strength, which can be seen as the reverse of cumulativity. 
 
