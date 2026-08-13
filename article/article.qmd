@@ -110,7 +110,7 @@ We mentioned in the beginning of this article that our aim is to find out to wha
 
 These results teach us that base rate and priming seem to operate at two distinct levels. When base rate is influenced, this does not have a significant impact on priming strength. This finding poses a problem for the implicit learning explanation of priming [@kaschak_long-term_2007, 935]: if the base rate is heavily shifted towards the DO construction, the "error" for a PO prime should be larger, and priming should be stronger. This is, however, not the case.[^lexical-boost] An alternative explanation of priming compatible with this finding is offered in the next section.
 
-[^lexical-boost]: @kaschak_long-term_2007 also found lexical boost effects, which are not compatible with the implicit learning activation either. In the remainder of the article, we will not focus as much on the lexical boost as it is does not make a part of our simulation, but we will mention it whenever relevant.
+[^lexical-boost]: @kaschak_long-term_2007 also found lexical boost effects, which are not compatible with the implicit learning activation either. In the remainder of the article, we will not focus as much on the lexical boost as it is does not make a part of our simulation.
 
 ### Two-stage competition model {#sec-review-two-stage-competition}
 
