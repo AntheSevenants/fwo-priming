@@ -156,7 +156,7 @@ Base rate is implemented as a vector $\mathbf{B}$ of size $2$. Since base rate r
 
 Activation level is implemented as a vector $\mathbf{A}$, also of size $2$. Activation is separate for each construction, so the sum of the two values does not have to be one. This means that activation can, in principle, rise to infinity: $A_1, A_2 \in [0, +\infty]$.
 
-### Language game and course of the simulation {#sec-model-design-language-game}
+### Language game and course of the simulation {#sec-model-design-language-game-simulation-course}
 
 In this section, we explain how the simulation itself works, and how agents have "conversations" with each other. We also show how they update their internal representations as the result of these conversations.
 
