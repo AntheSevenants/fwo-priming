@@ -261,7 +261,7 @@ Additionally, we varied the decay rate of the priming effect. Recall that this p
 ::: {#fig-no-inverse-frequency layout-ncol=2}
 ![Evolution of the median base rate across agents for different frequencies and replicator selection strengths, for the model without the inverse frequency effect.](figures/fig-without-inverse-frequency-ctx_base_rate_mean.png){#fig-without-inverse-frequency-ctx_base_rate_mean}
 
-![Evolution of the median base rate across agents for different frequencies and decay rates, for the model without the inverse frequency effect.](figures/fig-without-inverse-frequency-decay-split-ctx_base_rate_mean.png){#fig-without-inverse-frequency-decay-split-ctx_base_rate_mean}
+![Evolution of the median base rate across agents for different frequencies and decay rates, for the model without the inverse frequency effect. The value for replicator selection strength is set to "low" ($0.01$).](figures/fig-without-inverse-frequency-decay-split-ctx_base_rate_mean.png){#fig-without-inverse-frequency-decay-split-ctx_base_rate_mean}
 
 Evolution of the median base rate across agents for different frequencies, broken down by replicator selection strength and decay rate values, for the model without the inverse frequency effect.
 :::
@@ -275,7 +275,7 @@ We again also show the effect of varying decay rate of the priming effect. @fig-
 ::: {#fig-with-inverse-frequency layout-ncol=2}
 ![Evolution of the median base rate across agents for different frequencies and replicator selection strengths, for the model with the inverse frequency effect.](figures/fig-with-inverse-frequency-ctx_base_rate_mean.png){#fig-with-inverse-frequency-ctx_base_rate_mean}
 
-![Evolution of the median base rate across agents for different frequencies and decay rates, for the model with the inverse frequency effect.](figures/fig-with-inverse-frequency-decay-split-ctx_base_rate_mean.png){#fig-with-inverse-frequency-decay-split-ctx_base_rate_mean}
+![Evolution of the median base rate across agents for different frequencies and decay rates, for the model with the inverse frequency effect. The value for replicator selection strength is set to "low" ($0.01$).](figures/fig-with-inverse-frequency-decay-split-ctx_base_rate_mean.png){#fig-with-inverse-frequency-decay-split-ctx_base_rate_mean}
 
 Evolution of the median base rate across agents for different frequencies, broken down by replicator selection strength and decay rate values, for the model with the inverse frequency effect.
 :::
