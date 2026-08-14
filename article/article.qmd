@@ -239,11 +239,11 @@ In this section, we show the default values for the different parameters in our 
 | Parameter | Explanation | Value(s) |
 | --- | --- | --- |
 | $N$ | Number of agents | 10 |
-| $P$ | Speaking probability, proxy for alternation frequency | 0.01, 0.05, 0.4 |
+| $P$ | Speaking probability, proxy for alternation frequency | 0.01 (low), 0.1 (medium), 0.4 (high) |
 | $\alpha$ | Priming strength | 0.4 |
-| $\gamma$ | Replicator selection bias | 0.01, 0.05, 0.1 |
+| $\gamma$ | Replicator selection bias | 0.01 (low), 0.1 (high) |
 | $\beta$ | Base rate change strength | 0.01 |
-| $\lambda$ | Decay rate for delta between activation and base rate ($\Delta \mathbf{A}$) | 0.5 |
+| $\lambda$ | Decay rate for delta between activation and base rate ($\Delta \mathbf{A}$) | 0.1 (slow), 0.5 (fast) |
 | $\epsilon$ | Below this value for $\Delta \mathbf{A}$, activation snaps to base rate immediately | 0.05 |
 | $\kappa$ | Exponent for the inverse frequency multiplier | 1 |
 : An overview of all parameters in the simulation and their values. {#tbl-parameters}
