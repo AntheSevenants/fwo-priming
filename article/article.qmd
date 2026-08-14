@@ -248,6 +248,8 @@ In this section, we show the default values for the different parameters in our 
 | $\kappa$ | Exponent for the inverse frequency multiplier | 1 |
 : An overview of all parameters in the simulation and their values. {#tbl-parameters}
 
+Since our model relies on random chance in several areas (whether an agent can speak, what construction they choose to utter ...), each combination of parameters is trialled 100 times. In our graphs, we always show an aggregation of these 100 runs by taking the median across the runs. The range of variability across runs is shown in confidence intervals: the lower bound shows Q1 across runs, the upper bounds shows Q3. Additionally, we deliberately do not run inferential statistical tests to compare behaviour across parameter permutations. Inferential statistics is designed to extrapolate about population-level behaviour from a sample. In our case, however, we are free to run our trials (individual simulation runs) as often as we like, which defeats the purpose of inferential metrics like statistical significance [@ohmer_communication_2025]. Our comparisons will thus be visual, as is customary in simulation-based research.
+
 ## Results {#sec-results}
 
 In this section, we show the results of the different parameter permutations in our computer simulations.
