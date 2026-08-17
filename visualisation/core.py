@@ -4,6 +4,7 @@ import model.reporters
 import matplotlib.figure
 import matplotlib.axes
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 from matplotlib.lines import Line2D
 import numpy as np
 
@@ -52,6 +53,10 @@ def scale_x_axis(ax: matplotlib.axes.Axes, scale: int = 100):
         return
 
     ax.xaxis.set_major_formatter(lambda x, pos: formatter(x, pos, scale=scale))
+
+
+def set_y_axis_percent(ax: matplotlib.axes.Axes):
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
 
 
 def check_ax(
@@ -482,6 +487,7 @@ def plot_ratio(
     legend_styles: List[str] | None = None,
     x_label: str | None = None,
     y_label: str | None = None,
+    y_axis_percentage: bool = False,
     disable_title: bool = False,
     aggregate_extension_x: List[str] | None = None,
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
@@ -502,6 +508,9 @@ def plot_ratio(
         legend_style_labels (List[str], optional): Thestyle  labels for the legend. Defaults to None.
         legend_colours (List[str], optional): The colours for the legend. Defaults to None.
         legend_styles (List[str], optional): The line styles for the legend. Defaults to None.
+        x_label (str, optional): The title for the x axis. Defaults to None.
+        y_label (str, optional): The title for the y axis. Defaults to None.
+        y_axis_percentage (bool): Whether the y axis should be formatted as a percentage. Defaults to False.
         disable_title (bool, optional): Whether to show a title for this graph. Defaults to False.        
         aggregate_extension_x (List[str], optional): A list of values for the legend of an aggregate extension graph. Defaults to None.
 
@@ -584,6 +593,8 @@ def plot_ratio(
         ax.set_title(title)
 
     scale_x_axis(ax, x_scale_factor)
+    if y_axis_percentage:
+        set_y_axis_percent(ax)
 
     ax.set_ylim(*ylim)
     ax.set_yticks(np.arange(ylim[0], ylim[1] + 0.1, 0.1))

@@ -196,6 +196,11 @@ graph_configs: Dict[str, GraphConfig | MosaicConfig] = {
         plot_func=visualisation.base_rate.plot_ctx_base_rate_mean,
         common_args=["x_scale_factor", "min_data", "max_data"],
         aggregate_extension=True,
+        extra_args={
+            "x_label": "Time in the simulation",
+            "y_label": r"% entrenchment of the innovative construction",
+            "y_axis_percentage": True,
+        }
     ),
     "ctx_entropy_mean": GraphConfig(
         reporter_name="ctx_entropy",
