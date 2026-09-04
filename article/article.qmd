@@ -142,66 +142,52 @@ In our study, then, we aim to investigate to what extent priming, when modelled 
 
 ## Model design {#sec-model-design}
 
-In this section, we discuss how exactly we built our model of priming. More specifically, we show what capabilities our agents have, how they enter into conversation with each other, and what parameters are available. We also show how we translate the principles from @segaert_unifying_2016 to our computer model. To keep the model straightforward, we model one alternation with two choices [like @dekker_conversational_2024]. Our model was implemented using Python and the MESA library [@kazil_utilizing_2020]. All source code is available online.[^github-link]
+In this section, we discuss how exactly we built our model of priming. We show what capabilities our agents have, how they enter into conversation with each other and how we translate the principles from @segaert_unifying_2016 into our computer model. To keep the model straightforward, we model one alternation with two choices [like @dekker_conversational_2024]. Our model was implemented using Python and the MESA library [@kazil_utilizing_2020]. All source code is available online.[^github-link]
 
 [^github-link]: todo
 
 ### Frequency tally {#sec-model-design-frequency-tally}
 
-Following the two-stage competition model, each agent keeps track of two types of frequency: base rate and activation. An agent's base rate represents the agent's personal division between two constructions in unprimed usage, while activation level represents how "hot" a construction's node currently is in memory.
+Following the two-stage competition model, each agent keeps track of two types of frequency: base rate and activation. An agent's base rate represents the relative entrenchment of two constructions in unprimed usage, while activation level represents how "hot" a construction's node currently is in memory.
 
-Base rate is implemented as a vector $\mathbf{B}$ of size $2$. Since base rate represents a division between two constructions, each vector value sits between 0 and 1, and all values should sum to one: $B_1 + B_2 = 1, \text{with } B_1, B_2 \in [0, 1]$. When we check the influence of priming on language change, we will look at the evolution this base rate.
+Base rate is implemented as a vector $\mathbf{B}$ of size $2$. Since base rate represents a division between two constructions, each vector value sits between 0 and 1, and all values should sum to one: $B_1 + B_2 = 1, \text{with } B_1, B_2 \in [0, 1]$. When we check the influence of priming on language change, we will look at the evolution of this base rate.
 
 Activation level is implemented as a vector $\mathbf{A}$, also of size $2$. Activation is separate for each construction, so the sum of the two values does not have to be one. This means that activation can, in principle, rise to infinity: $A_1, A_2 \in [0, +\infty]$.
 
 ### Language game and course of the simulation {#sec-model-design-language-game-simulation-course}
 
-In this section, we explain how the simulation itself works, and how agents have "conversations" with each other. We also show how they update their internal representations as the result of these conversations.
+In this section, we explain how the agents converse with one another and how they update their internal representations as the result of these conversations.
 
-#### Initialisation and general workings {#sec-model-design-initialisation}
+All $N$ agents in our simulation are initialised with the same values for the base rate. Activation levels start at the same level as the base rate, which reflects the idea that base activation mirrors base rate (see @sec-review-two-stage-competition). After the initialisation phase, time starts advancing in our model. At each time step, all agents enter into conversation with another randomly chosen agent, in a random order. It is possible that multiple agents choose the same agents as their conversation partners. This conversation phase is often called a "language game" [@smith_models_2014]. An overview of the language game is given in @fig-model_design_language_game.
 
-All $N$ agents in our simulation are initialised with the same values for the base rate. We do not have separate "innovators" and "conservators" as in @dekker_conversational_2024.[^innovators-conservators-useless]. Activation levels start at the same level as the base rate, which reflects the idea that base activation mirrors base rate (see @sec-review-two-stage-competition). After the initialisation phase, time starts advancing in our model. At each time step, the agents in our model have the opportunity of entering into conversation with another agent. This phase is often called a "language game" [@smith_models_2014], as agents usually have to cooperate or respond to something in their environment through language, which in turn influences that language. In this simulation, however, the linguistic exchange is quite simple, and no cooperation is required. Still, for clarity's sake, we will refer to the exchange between speaker and hearer as a language game.
+In the first step, it needs to be decided whether the conversation will actually include an instance of the alternation we follow. This happens with probability $p$, which is a parameter set at the start of the simulation. The parameter represents the frequency of the alternation. Priming only takes place if two instances of an alternation are produced within a limited time frame of each other, so if the alternation at issue is highly frequent, frequency is expected to have an important influence on priming. If the conversation does not include an instance of the alternation, the conversation itself is essentially irrelevant for us, and the agents immediately proceed to Step 5. If the conversation *does* include an instance of the alternation, it proceeds to the next step.
 
-[^innovators-conservators-useless]: We initially did include a distinction between innovators and conservators, but found that the distinction between the two groups was quickly lost as both groups base rates converged and then remained the same. We therefore decided not to include the distinction in our simulations.
+In the second step, the speaker now has to choose one of the two constructions of the alternation to utter to the hearer. The probability of choosing either construction is computed by normalising their activation levels, according to @eq-normalisation. Because replicator selection is active -- the innovative variant has an advantage over the older variant -- we add a bias activation value $\gamma$ to the innovative's variant activation level before normalisation.
+$$
+\mathbf{A}_{\text{normalised}} = \frac{\mathbf{A}}{\sum_{i=1}^{2} \tilde{A}_i}, \quad \text{where } \tilde{A}_i = 
+\begin{cases} 
+  A_i + \gamma & \text{if } i = \text{innovative} \\
+  A_i & \text{otherwise}
+\end{cases}
+$$ {#eq-normalisation}
 
-#### Language game {#sec-model-design-language-game}
+In the third step, the hearer hears the construction, and in the fourth, the activation level of the heard construction is updated in their mind by adding a fixed priming strength $\alpha$:
+$$
+{A}_{\text{heard}}^{\text{new}} = {A}_{\text{heard}} + \alpha
+$$ {#eq-alpha-update}
 
-The language game between speaker and hearer goes as follows:
+Additionally, the base rate for the construction is updated. For this, we use the same update mechanism as the one from @dekker_conversational_2024. A fixed value is added to the base rate, and the vector is normalised to again sum to one.
 
-**Speaker**
-
-1. First, it needs to be decided whether the chosen agent actually gets to speak. A number $p \in [0, 1]$ is randomly generated, and if $p > P, \text{with } P \in [0, 1]$, the speaking probability, then the conversation can take place. Speaking probability is a proxy for the frequency of the construction that is subject to priming: a frequent construction has a higher probability of occurrence in conversation than a less frequent construction. By varying $P$, we can check what the influence of a construction's frequency is during priming.
-2. The speaker now has to choose one of two constructions to utter to the hearer. The probability of choosing either construction is computed by normalising their activation levels. However, because replicator selection is active -- the innovative variant has an advantage over the older variant, we add a bias activation value $\gamma$ to the innovative's variant activation level before normalisation. 
-  $$
-  \mathbf{A}_{\text{normalised}} = \frac{\mathbf{A}}{\sum_{i=1}^{2} \tilde{A}_i}, \quad \text{where } \tilde{A}_i = 
-  \begin{cases} 
-    A_i + \gamma & \text{if } i = \text{innovative} \\
-    A_i & \text{otherwise}
-  \end{cases}
-  $$
-  Based on the probability distribution $\mathbf{A}_\text{normalised}$, one of two constructions is chosen.
-3. The chosen construction is communicated to the hearer.
-
-**Hearer**
-
-1. The hearer "hears" the construction that was spoken by the speaker.
-2. Because the construction is now "activated" in the hearer's mind, we update the activation level of that construction by adding a fixed priming strength $\alpha$:
-  $$
-  {A}_{\text{heard}}^{\text{new}} = {A}_{\text{heard}} + \alpha
-  $$
-3. Additionally, the base rate for the construction is updated. For this, we use the same update mechanism as the one from @dekker_conversational_2024. A fixed value is added to the base rate, and the vector is normalised to again sum to one.
-  $$
-  \begin{aligned}
-    &{B}_{\text{heard}}^\text{new} = \frac{{B}_\text{heard} + \beta}{1 + \beta}\\
-    &{B}_{\text{not heard}}^\text{new} = \frac{{B}_\text{not heard} + \beta}{1 + \beta} \\
-  \end{aligned}
-  $$
-
-An overview of the language game is given in @fig-model_design_language_game.
+$$
+\begin{aligned}
+  &{B}_{\text{heard}}^\text{new} = \frac{{B}_\text{heard} + \beta}{1 + \beta}\\
+  &{B}_{\text{not heard}}^\text{new} = \frac{{B}_\text{not heard}}{1 + \beta} \\
+\end{aligned}
+$$ {#eq-base-rate-update}
 
 ![A schematic overview of the language game played by the speaker and hearer.](./tikz/language_game.svg){#fig-model_design_language_game}
 
-Finally, after all speaking opportunities have passed, all activation levels decay towards the base rate. For each agent, the difference between activation and base rate, $\Delta A$, multiplied by a decay rate $\lambda$, is subtracted from the activation levels. If any value $\Delta A$ is smaller than $\epsilon = 0.05$, the activation level snaps directly to the base rate, to prevent the activation levels from becoming asymptotic. A formal representation is given in @eq-decay.
+Finally, in Step 5, after all speaking opportunities have passed, all activation levels decay towards the base rate. For each agent, the difference between activation and base rate, $\Delta A$, multiplied by a decay rate $\lambda$, is subtracted from the activation levels. If any value $\Delta A$ is smaller than $\epsilon = 0.05$, the activation level snaps directly to the base rate, to prevent the activation levels from becoming asymptotic. A formal representation is given in @eq-decay.
 
 $$
 \begin{aligned}
@@ -213,8 +199,6 @@ $$
     \end{cases} \\
 \end{aligned}
 $$ {#eq-decay}
-
-#### Inverse frequency effect {#sec-model-design-inverse-frequency-effect}
 
 If the inverse frequency effect is active, we change the activation level update formula so priming strength $\alpha$ is modulated depending on the "unexpectedness" of hearing a specific construction. We compute a multiplier for $\alpha$ by dividing $\alpha$ by the current activation level of the heard construction. This entails that, if a construction is already highly activated, additional priming will be attenuated. Conversely, if a construction is barely activated at all, priming will be amplified. The multiplier can be regulated through an exponent $\kappa$. In the end, however, we cap the resulting multiplier at $2$ to prevent ballooning activation levels. Additionally, we use Laplace smoothing [@brysbaert_dealing_2013] to prevent division by zero when computing the multiplier itself. An overview of the activation level update formula adjusted for the inverse frequency effect is given in @eq-inverse-frequency-update.
 
