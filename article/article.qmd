@@ -208,15 +208,19 @@ $$ {#eq-inverse-frequency-update}
 
 ## Evaluation {#sec-evaluation}
 
-In this section, we explain how we assess whether priming influences language change in any way, and how we can check this.
+In this section, we explain how we assess whether priming influences language change in the simulation.
 
 ### Assessing the influence of priming and other factors {#sec-evaluation-priming-influence}
 
-First and foremost, because the interplay of different priming factors is unpredictable, our investigation of the effect of priming on language change is primarily explorative in nature. We track how the base rate evolves under the influence of different parameter values. Because each agent keeps track of their own base rate levels, we take the median of all agents' base rates at each step. Furthermore, our methodology is incremental: we start from a baseline situation *without* the inverse frequency, and investigate how construction frequencies and different replicator selection strengths influence the evolution of the base rate among agents. Afterwards, we can compare these results to an implementation *with* inverse frequency. This incremental workflow is inspired by the principle of Occam's razor [@pijpops_agent-gebaseerde_2015, 12], which dictates that the simplest explanation for a phenomenon is the most likely explanation. Because we start from a simple set-up and incrementally increase complexity, we are able to (1) first understand the dynamics in the simpler system before attempting to explain the behaviour in a more complex system (2) assess whether the addition of another mechanism has an influence on the system's behaviour in the first place. The latter mechanism means we effectively apply the principle of Occam's razor in reverse.
+First and foremost, because the interplay of different priming factors is unpredictable, our investigation of the effect of priming on language change is primarily explorative in nature. We track how the base rate evolves under the influence of different parameter values. Because each agent has their own base rate, we track the median of all agents' base rates. Furthermore, our methodology is incremental: we start from a baseline situation *without* the inverse frequency, and investigate how construction frequencies and different replicator selection strengths influence the evolution of the base rate among agents. Afterwards, we can compare these results to an implementation *with* inverse frequency. This incremental workflow is inspired by the principle of Occam's razor:
+
+> [I]f the weaker mechanism [...] is sufficient to account for the data, then it should be adopted over the stronger mechanism. [@blythe_s-curves_2012, 277; referring to @labov_principles_2001, 192]
+
+Because we start from a simple set-up and incrementally increase complexity, we are able to (1) first understand the dynamics in the simpler system before attempting to explain the behaviour in a more complex system (2) assess in how far the addition of another mechanism has an influence on the system's behaviour in the first place.
 
 ### Parameters {#sec-evaluation-parameters}
 
-In this section, we show the default values for the different parameters in our computer model. If these parameters change, the behaviour of the simulation changes as well. If any of these default parameters are overridden, we will mention this clearly.
+In this section, we show the different values we used for the parameters in our computer model. If these parameters change, the behaviour of the simulation changes as well. Some parameters remain constant throughout all simulations, where others are altered to test the impact of a specific parameter. Constant parameters only have one value in @tbl-parameters, parameters with variable values have multiple.
 
 | Parameter | Explanation | Value(s) |
 | --- | --- | --- |
@@ -228,9 +232,9 @@ In this section, we show the default values for the different parameters in our 
 | $\lambda$ | Decay rate for delta between activation and base rate ($\Delta \mathbf{A}$) | 0.1 (slow), 0.5 (fast) |
 | $\epsilon$ | Below this value for $\Delta \mathbf{A}$, activation snaps to base rate immediately | 0.05 |
 | $\kappa$ | Exponent for the inverse frequency multiplier | 1 |
-: An overview of all parameters in the simulation and their values. {#tbl-parameters}
+: An overview of all parameters in the simulation and their possible values. {#tbl-parameters}
 
-Since our model relies on random chance in several areas (whether an agent can speak, what construction they choose to utter ...), each combination of parameters is trialled 100 times. In our graphs, we always show an aggregation of these 100 runs by taking the median across the runs. The range of variability across runs is shown in confidence intervals: the lower bound shows Q1 across runs, the upper bounds shows Q3. Additionally, we deliberately do not run inferential statistical tests to compare behaviour across parameter permutations. Inferential statistics is designed to extrapolate about population-level behaviour from a sample. In our case, however, we are free to run our trials (individual simulation runs) as often as we like, which defeats the purpose of inferential metrics like statistical significance [@ohmer_communication_2025]. Our comparisons will thus be visual, as is customary in simulation-based research.
+Since our model relies on random chance in several areas, e.g. whether the conversation contains an instance of the alternation, what construction the speaker chooses to utter etc., each combination of parameters is trialled 100 times. In our graphs, we always show an aggregation of these 100 runs by taking the median across the runs. The range of variability across runs is shown in interquartile bands: the lower bound shows Q1 across runs, the upper bounds shows Q3. Additionally, we deliberately do not run inferential statistical tests to compare behaviour across parameter permutations. Inferential statistics is designed to extrapolate about population-level behaviour from a sample. In our case, however, we are free to run simulations as often as we like, which defeats the purpose of inferential metrics like statistical significance [@ohmer_communication_2025]. Our comparisons will thus be visual, as is customary in simulation-based research.
 
 ## Results {#sec-results}
 
