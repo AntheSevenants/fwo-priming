@@ -225,7 +225,7 @@ In this section, we show the different values we used for the parameters in our 
 | Parameter | Explanation | Value(s) |
 | --- | --- | --- |
 | $N$ | Number of agents | 10 |
-| $P$ | Speaking probability, proxy for alternation frequency | 0.01 (low), 0.1 (medium), 0.4 (high) |
+| $P$ | Alternation frequency | 0.01 (low), 0.1 (medium), 0.4 (high) |
 | $\alpha$ | Priming strength | 0.4 |
 | $\gamma$ | Replicator selection bias | 0.01 (low), 0.1 (high) |
 | $\beta$ | Base rate change strength | 0.01 |
