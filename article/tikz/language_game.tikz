@@ -1,12 +1,13 @@
 \documentclass[tikz,border=3.14mm]{standalone}
-\usepackage{tikzpeople}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usetikzlibrary{patterns.meta}
 \usetikzlibrary{positioning,calc,matrix,patterns.meta}
 
 \newdimen\canspeakwidth
 \newdimen\hearerwidth
 \newdimen\barsheight
+\newdimen\totalwidth
 
 \begin{document}
 \begin{tikzpicture}[
@@ -23,7 +24,7 @@
 
 % === SPEAKER ===
 % 1
-\node[modelstep] (can_speak) [anchor=west] {1. Check if allowed to speak};
+\node[modelstep] (can_speak) [anchor=west] {1. Check if alternation\\\ \ \ \ appears in conversation};
 % Measure 1's width
 \path let \p1=($(can_speak.east)-(can_speak.west)$) in \pgfextra{\global\canspeakwidth=\x1};
 % 2
@@ -31,22 +32,23 @@
   below=of can_speak.west,anchor=west] {2. Choose construction};
 % 1 -> 2
 \draw[step_arrow] (can_speak.west) 
-  .. controls +(left:7mm) and +(left:7mm) .. (choose_construction.west);
+  .. controls +(left:7mm) and +(left:7mm) .. (choose_construction.west)
+  node[midway, above, sloped] {yes};
   
 % Activation nodes
 % BAR 1
 \node[activation_fill, text width=2.5cm, xshift=1cm, fill=green!30] 
-  (bar_1_fill) [below=of choose_construction.west, anchor=west];
+  (bar_1_fill) [below=of choose_construction.west, anchor=west] {};
 \draw[black] (bar_1_fill.east) -- (bar_1_fill.south east); % Top part of east edge
 \draw[black] (bar_1_fill.east) -- (bar_1_fill.north east);   % Bottom part of east edge  
 \node[activation, text width=3cm, xshift=1cm] 
-  (bar_1) [below=of choose_construction.west, anchor=west];
+  (bar_1) [below=of choose_construction.west, anchor=west] {};
 % BAR 2
 \node[activation_fill, text width=2.1cm, fill=red!30] 
-  (bar_2_fill) [below=0.5cm of bar_1.west, anchor=west];
+  (bar_2_fill) [below=0.5cm of bar_1.west, anchor=west] {};
 \draw[black] (bar_2_fill.east) -- (bar_2_fill.south east); % Top part of east edge
 \draw[black] (bar_2_fill.east) -- (bar_2_fill.north east);   % Bottom part of east edge
-\node[activation, text width=3cm] (bar_2) [below=0.5cm of bar_1.west, anchor=west];
+\node[activation, text width=3cm] (bar_2) [below=0.5cm of bar_1.west, anchor=west] {};
 % extra text next to BAR 2
 \node[right=0.1cm of bar_2] {$\text{+ } \gamma$};
 
@@ -54,24 +56,24 @@
 \path let \p1=($(bar_2.north west)-(bar_1.north west)$) in \pgfextra{\global\barsheight=\y1};
 
 % ALPHA vector sign next to bars
-\node[left=0.1cm of bar_1, yshift={(\barsheight/2) + 0.15ex}] {$\mathbf{A} =$} (alpha_vector);
+\node[left=0.1cm of bar_1, yshift={(\barsheight/2) + 0.15ex}] (alpha_vector) {$\mathbf{A} =$} ;
   
 % arrow below bars
 \draw[dist_arrow] ([yshift=-2mm]bar_2.south) -- ++(0,-0.5) node (activation_output_arrow) {};
   
 % OUTPUT BAR
 \node[activation_fill, text width=1.25cm, fill=green!30] 
-  (output_bar_fill_1) [below=1.35cm of bar_2.west, anchor=west];
+  (output_bar_fill_1) [below=1.35cm of bar_2.west, anchor=west] {};
 \node[activation_fill, text width=1.75cm, fill=red!30] 
-  (output_bar_fill_2) [right=0cm of output_bar_fill_1.east, anchor=west];
+  (output_bar_fill_2) [right=0cm of output_bar_fill_1.east, anchor=west] {};
 \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
 \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
 \node[activation, text width=3cm] 
-  (output_bar) [below=1.35cm of bar_2.west, anchor=west];
+  (output_bar) [below=1.35cm of bar_2.west, anchor=west] {};
 
 % ALPHA NORM sign next to output bar*
-\node[left=0.1cm of output_bar.west] 
-  {$\mathbf{A_{\text{norm}}} =$} (alpha_norm_vector);
+\node[left=0.1cm of output_bar.west] (alpha_norm_vector) 
+  {$\mathbf{A_{\text{norm}}} =$} {};
 
 % arrow below output bar
 \draw[dist_arrow] ([yshift=-2mm]output_bar.south) -- ++(0,-0.25) node (output_bar_arrow) {};
@@ -106,16 +108,16 @@
 % Activation nodes
 % BAR 1
 \node[activation_fill, text width=2.5cm, xshift=1cm, fill=green!30] 
-  (2_bar_1_fill) [below=of update_activation.west, anchor=west];
+  (2_bar_1_fill) [below=of update_activation.west, anchor=west] {};
 \draw[black] (2_bar_1_fill.east) -- (2_bar_1_fill.south east); % Top part of east edge
 \draw[black] (2_bar_1_fill.east) -- (2_bar_1_fill.north east);   % Bottom part of east edge  
 \node[activation, text width=3cm, xshift=1cm] 
-  (2_bar_1) [below=of update_activation.west, anchor=west];
+  (2_bar_1) [below=of update_activation.west, anchor=west] {};
 % BAR 2
 \node[activation_fill, text width=2.1cm, fill=red!30] 
-  (2_bar_2_fill) [below=0.5cm of 2_bar_1.west, anchor=west];
+  (2_bar_2_fill) [below=0.5cm of 2_bar_1.west, anchor=west] {};
 \node[activation_fill, text width=0.5cm, fill=red!10, xshift=2.1cm]
-  (2_bar_2_fill_extra) [below=0.5cm of 2_bar_1.west, anchor=west];
+  (2_bar_2_fill_extra) [below=0.5cm of 2_bar_1.west, anchor=west] {};
 %\node[right=0.1cm of 2_bar_2_fill, text width=0.5cm, align=center, xshift=-2.3mm] {$\gamma$};
 % arrow below extra part
 \draw[dist_arrow] ([yshift=-4.5mm, xshift=0.5mm]2_bar_2_fill_extra.south west) -- 
@@ -127,34 +129,284 @@
 % bonk
 \draw[black] (2_bar_2_fill_extra.east) -- (2_bar_2_fill_extra.south east); % Top part of east edge
 \draw[black] (2_bar_2_fill_extra.east) -- (2_bar_2_fill_extra.north east);   % Bottom part of east edge
-\node[activation, text width=3cm] (2_bar_2) [below=0.5cm of 2_bar_1.west, anchor=west];
+\node[activation, text width=3cm] (2_bar_2) [below=0.5cm of 2_bar_1.west, anchor=west] {};
 
 % Measure height between bar 1 and bar 2
 \path let \p1=($(2_bar_2.north west)-(2_bar_1.north west)$) in \pgfextra{\global\barsheight=\y1};
 
 % A vector sign next to bars
-\node[left=0.1cm of 2_bar_1, yshift={(\barsheight/2) + 0.15ex}] {$\mathbf{A} =$} (a_vector);
+\node[left=0.1cm of 2_bar_1, yshift={(\barsheight/2) + 0.15ex}] (a_vector) {$\mathbf{A} =$} {};
 
 % BASE RATE BAR
 \node[activation_fill, text width=0.75cm, fill=green!30] 
-  (output_bar_fill_1) [below=1.1cm of 2_bar_2.west, anchor=west];
+  (output_bar_fill_1) [below=1.1cm of 2_bar_2.west, anchor=west] {};
 \node[activation_fill, text width=0.5cm, fill=red!10, xshift=0.75cm] 
-  (output_bar_fill_extra) [below=1.1cm of 2_bar_2.west, anchor=west];
+  (output_bar_fill_extra) [below=1.1cm of 2_bar_2.west, anchor=west] {};
 % arrow below extra part
 \draw[dist_arrow] ([yshift=-6mm, xshift=-0.5mm]output_bar_fill_extra.south east) -- 
                   ([yshift=-6mm, xshift=0.5mm]output_bar_fill_extra.south west)
                   node[midway, above] {$\beta$};
 \node[activation_fill, text width=1.75cm, fill=red!30, xshift=1.25cm] 
-  (output_bar_fill_2) [below=1.1cm of 2_bar_2.west, anchor=west];
+  (output_bar_fill_2) [below=1.1cm of 2_bar_2.west, anchor=west] {};
 \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
 \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
 \node[activation, text width=3cm] 
-  (output_bar) [below=1.1cm of 2_bar_2.west, anchor=west];
+  (output_bar) [below=1.1cm of 2_bar_2.west, anchor=west] {};
 \draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
 \draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
   
 % B vector sign next to bar
-\node[left=0.1cm of output_bar.west] {$\mathbf{B} =$} (b_vector);
+\node[left=0.1cm of output_bar.west] (b_vector) {$\mathbf{B} =$} {};
+
+\path let \p1=($(update_activation.east)-(can_speak.west)$) in \pgfextra{\global\totalwidth=\x1};
+
+% Decay section %
   
+\node[participant, below=5.2cm of choose_construction.west, anchor=west, text width=\totalwidth] 
+  (decay) {\textbf{After all conversations}};
+\node[modelstep, below=0.55cm of decay.south] (do_decay) [anchor=center] {Do decay};
+
+% BASE RATE BAR (green)
+\node[activation_fill, text width=0.75cm, fill=green!30] 
+  (output_bar_fill_1_s)
+  [below=6.5cm of bar_1_fill.west, anchor=west] {};
+% \node[anchor=north] at (output_bar_fill_1.south) {\textbf{B}};
+
+% ALPHA vector sign next to bars
+\node[left=0.1cm of output_bar_fill_1_s, yshift=0mm] (alpha_vector) {$\mathbf{A_{\text{green}}} =$} ;
+
+% bottom braces
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1_s.south west);
+\coordinate (end_point)   at ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1_s.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1_s.south west) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1_s.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$B$};
+
+\node[activation_fill, text width=0.75cm, fill=green!30]
+  (output_bar_fill_1) [below=6.5cm of bar_1_fill.west, anchor=west] {};
+
+  
+\node[activation_fill, text width=1.625cm, fill=green!30] 
+  (output_bar_fill_extra) [below=6.5cm of bar_1_fill.west, anchor=west] {};
+  
+\node[activation_fill, text width=0.875cm, xshift=1.625cm, 
+        preaction={fill=green!10},
+        align=center,
+        pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+        pattern color=green!30!black,] 
+  (output_bar_fill_2) [below=6.5cm of bar_1_fill.west, anchor=west] {};
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=6.5cm of bar_1_fill.west, anchor=west] {};
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
+
+\draw[black] (output_bar_fill_2.east) -- (output_bar_fill_2.south east); % Top part of east edge
+\draw[black] (output_bar_fill_2.east) -- (output_bar_fill_2.north east);   % Bottom part of east edge
+
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south east);
+\coordinate (end_point)   at ([yshift=-2mm]output_bar_fill_2.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1.south east) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.067mm]output_bar_fill_2.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$\Delta A$};
+
+% \node[] (lambda_note) [xshift=-0.5mm, right=0cm of output_bar_fill_extra.east, anchor=west, font=\tiny]
+%     {$\mathbf{\Delta A}$ $\cdot \lambda$};
+
+% \draw[dist_arrow] ([yshift=-13mm, xshift=-0.5mm]output_bar_fill_2.south east) -- 
+%                   ([yshift=-13mm, xshift=0.5mm]output_bar_fill_2.south west)
+%                   node[midway, above, pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+%         pattern color=green!30!black,] {{$\mathbf{\Delta A}$} $\cdot \lambda$};
+
+% top brace
+\coordinate (start_point) at ([yshift=2mm]output_bar_fill_2.north west);
+\coordinate (end_point)   at ([yshift=2mm]output_bar_fill_2.north east);
+  
+\draw (start_point) -- (end_point);
+\draw ([yshift=2mm, xshift=0.067mm]output_bar_fill_2.north west) -- ++(0, -1mm);
+\draw ([yshift=2mm, xshift=-0.067mm]output_bar_fill_2.north east) -- ++(0, -1mm);
+\node[above=0.35mm] at ($(start_point)!0.5!(end_point)$) {$\mathbf{\Delta A}$ $\cdot \lambda$};
+
+% nu alles eronder %
+
+% arrow below bars
+\draw[dist_arrow] ([yshift=-10mm]output_bar.south) -- ++(0,-0.5) node (activation_output_arrow) {};
+
+% balkske
+
+\node[activation_fill, text width=0.75cm, fill=green!30] 
+  (output_bar_fill_1)
+  [below=2.75cm of output_bar_fill_1_s.west, anchor=west] {};
+% \node[anchor=north] at (output_bar_fill_1.south) {\textbf{B}};
+
+% ALPHA vector sign next to bars
+\node[left=0.1cm of output_bar_fill_1, yshift=0mm] (alpha_vector) {$\mathbf{A^{\text{new}}_{\text{green}}} =$} ;
+
+% bottom braces
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south west);
+\coordinate (end_point)   at ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1.south west) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$B$};
+
+\node[activation_fill, text width=0.75cm, fill=green!30]
+  (output_bar_fill_1) [below=2.75cm of output_bar_fill_1_s.west, anchor=west] {};
+
+  
+\node[activation_fill, text width=1.625cm, fill=green!30] 
+  (output_bar_fill_extra) [below=2.75cm of output_bar_fill_1_s.west, anchor=west] {};
+  
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=2.75cm of output_bar_fill_1_s.west, anchor=west] {};
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
+
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south east);
+\coordinate (end_point)   at ([yshift=-2mm]output_bar_fill_extra.south east);
+
+% \draw[dist_arrow] ([yshift=-13mm, xshift=-0.5mm]output_bar_fill_2.south east) -- 
+%                   ([yshift=-13mm, xshift=0.5mm]output_bar_fill_2.south west)
+%                   node[midway, above, pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+%         pattern color=green!30!black,] {{$\mathbf{\Delta A}$} $\cdot \lambda$};
+
+% top brace
+\coordinate (start_point) at ([yshift=2mm]output_bar_fill_1.north west);
+\coordinate (end_point)   at ([yshift=2mm]output_bar_fill_extra.north east);
+  
+\draw (start_point) -- (end_point);
+\draw ([yshift=2mm, xshift=0.067mm]output_bar_fill_1.north west) -- ++(0, -1mm);
+\draw ([yshift=2mm, xshift=-0.067mm]output_bar_fill_extra.north east) -- ++(0, -1mm);
+\node[above=0.35mm] at ($(start_point)!0.5!(end_point)$) {A};
+
+% BASE RATE BAR (red)
+%%%% brakkie brak
+
+\node[activation_fill, text width=2.25cm, fill=red!30] 
+  (output_bar_fill_1_s2) [below=6.5cm of 2_bar_1_fill.west, anchor=west] {};
+% \node[anchor=north] at (output_bar_fill_1.south) {\textbf{B}};
+
+% ALPHA vector sign next to bars
+\node[left=0.1cm of output_bar_fill_1_s2, yshift=0mm] (alpha_vector) {$\mathbf{A_{\text{red}}} =$} ;
+
+% bottom braces
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1_s2.south west);
+\coordinate (end_point)   at ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1_s2.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1_s2.south west) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1_s2.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$B$};
+
+\node[activation_fill, text width=2.25cm, fill=red!30]
+  (output_bar_fill_1) [below=6.5cm of 2_bar_1_fill.west, anchor=west] {};
+
+  
+\node[activation_fill, text width=2.38cm, fill=red!30] 
+  (output_bar_fill_extra) [below=6.5cm of 2_bar_1_fill.west, anchor=west] {};
+  
+\node[activation_fill, text width=0.175cm, xshift=2.385cm, 
+        preaction={fill=red!10},
+        align=center,
+        pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+        pattern color=red!30!black,] 
+  (output_bar_fill_2) [below=6.5cm of 2_bar_1_fill.west, anchor=west] {};
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=6.5cm of 2_bar_1_fill.west, anchor=west] {};
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
+
+\draw[black] (output_bar_fill_2.east) -- (output_bar_fill_2.south east); % Top part of east edge
+\draw[black] (output_bar_fill_2.east) -- (output_bar_fill_2.north east);   % Bottom part of east edge
+
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south east);
+\coordinate (end_point)   at ([yshift=-2mm]output_bar_fill_2.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1.south east) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.067mm]output_bar_fill_2.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$\Delta A$};
+
+% \node[] (lambda_note) [xshift=-0.5mm, right=0cm of output_bar_fill_extra.east, anchor=west, font=\tiny]
+%     {$\mathbf{\Delta A}$ $\cdot \lambda$};
+
+% \draw[dist_arrow] ([yshift=-13mm, xshift=-0.5mm]output_bar_fill_2.south east) -- 
+%                   ([yshift=-13mm, xshift=0.5mm]output_bar_fill_2.south west)
+%                   node[midway, above, pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+%         pattern color=green!30!black,] {{$\mathbf{\Delta A}$} $\cdot \lambda$};
+
+% top brace
+\coordinate (start_point) at ([yshift=2mm]output_bar_fill_2.north west);
+\coordinate (end_point)   at ([yshift=2mm]output_bar_fill_2.north east);
+  
+\draw (start_point) -- (end_point);
+\draw ([yshift=2mm, xshift=0.067mm]output_bar_fill_2.north west) -- ++(0, -1mm);
+\draw ([yshift=2mm, xshift=-0.067mm]output_bar_fill_2.north east) -- ++(0, -1mm);
+\node[above=0.35mm] at ($(start_point)!0.5!(end_point)$) {$\mathbf{\Delta A}$ $\cdot \lambda$};
+
+
+% arrow below bars
+\draw[dist_arrow] ([yshift=-10mm]output_bar.south) -- ++(0,-0.5) node (activation_output_arrow) {};
+
+% balkske
+
+\node[activation_fill, text width=2.25cm, fill=red!30] 
+  (output_bar_fill_1)
+  [below=2.75cm of output_bar_fill_1_s2.west, anchor=west] {};
+% \node[anchor=north] at (output_bar_fill_1.south) {\textbf{B}};
+
+% ALPHA vector sign next to bars
+\node[left=0.1cm of output_bar_fill_1, yshift=0mm] (alpha_vector) {$\mathbf{A^{\text{new}}_{\text{red}}} =$} ;
+
+% bottom braces
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south west);
+\coordinate (end_point)   at ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1.south east);
+
+\draw (start_point) -- (end_point);
+\draw ([yshift=-2mm, xshift=0.067mm]output_bar_fill_1.south west) -- ++(0, +1mm);
+\draw ([yshift=-2mm, xshift=-0.267mm]output_bar_fill_1.south east) -- ++(0, +1mm);
+\node[below=0.35mm] at ($(start_point)!0.5!(end_point)$) {$B$};
+
+\node[activation_fill, text width=0.135cm, fill=red!30]
+  (output_bar_fill_1) [below=2.75cm of output_bar_fill_1_s2.west, anchor=west] {};
+
+  
+\node[activation_fill, text width=2.38cm, fill=red!30] 
+  (output_bar_fill_extra) [below=2.75cm of output_bar_fill_1_s2.west, anchor=west] {};
+  
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.south east); % Top part of east edge
+% \draw[black] (output_bar_fill_1.east) -- (output_bar_fill_1.north east);   % Bottom part of east edge
+\node[activation, text width=3cm] 
+  (output_bar) [below=2.75cm of output_bar_fill_1_s2.west, anchor=west] {};
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.south east); % Top part of east edge
+\draw[black] (output_bar_fill_extra.east) -- (output_bar_fill_extra.north east);   % Bottom part of east edge
+
+\coordinate (start_point) at ([yshift=-2mm]output_bar_fill_1.south east);
+\coordinate (end_point)   at ([yshift=-2mm]output_bar_fill_extra.south east);
+
+% \draw[dist_arrow] ([yshift=-13mm, xshift=-0.5mm]output_bar_fill_2.south east) -- 
+%                   ([yshift=-13mm, xshift=0.5mm]output_bar_fill_2.south west)
+%                   node[midway, above, pattern={Lines[angle=45, distance=1mm, line width=0.4pt]},
+%         pattern color=green!30!black,] {{$\mathbf{\Delta A}$} $\cdot \lambda$};
+
+% top brace
+\coordinate (start_point) at ([yshift=2mm]output_bar_fill_1.north west);
+\coordinate (end_point)   at ([yshift=2mm]output_bar_fill_extra.north east);
+  
+\draw (start_point) -- (end_point);
+\draw ([yshift=2mm, xshift=0.067mm]output_bar_fill_1.north west) -- ++(0, -1mm);
+\draw ([yshift=2mm, xshift=-0.067mm]output_bar_fill_extra.north east) -- ++(0, -1mm);
+\node[above=0.35mm] at ($(start_point)!0.5!(end_point)$) {A};
+
 \end{tikzpicture}
 \end{document}
