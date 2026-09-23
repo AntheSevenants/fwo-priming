@@ -59,7 +59,7 @@ reference-location: margin
 csl: chicago-author-date.csl
 df-print: kable
 abstract: |
-  TODO.
+  In this article, we investigate to what extent syntactic priming could, theoretically, lead to language change. We do so by deploying an agent-based model [@ohmer_communication_2025]. In our model, virtual speakers, so-called agents, talk to each other and cause priming effects. Inspired by the two-stage competition model [@segaert_unifying_2016], our agents track both a base rate (long-term entrenchment) and an activation level (short-term activation) for two constructions in alternation, with activation decaying back to the base rate. Production is based on activation level, while reception updates both activation and base rate. To simulate the advantage of the innovative construction [\"replicator selection\", @blythe_s-curves_2012], we slightly boost its activation. To simulate the inverse preference effect, i.e. low frequency constructions causing a stronger priming effect, [@ferreira_functions_2006], we increase the activation of low-frequency constructions. Our model results show that frequency influences innovation spread through two competing mechanisms: high-frequency alternations accelerate initial priming, but the inverse frequency effect can cause propagation to stall once the innovation becomes dominant. In low-frequency contexts, this plateauing does not typically occur, though the rate at which activation decays can influence this. Our model results accord with empirical accounts of maintained variation in high-frequency alternations, such as the dative alternation [@zehentner_competition_2019]. 
 execute:
   echo: false
 ---
